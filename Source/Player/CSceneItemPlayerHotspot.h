@@ -1,0 +1,39 @@
+//----------------------------------------------------------------------------------------------------------------------
+//	CSceneItemPlayerHotspot.h			©2012 Stevo Brock		All rights reserved.
+//----------------------------------------------------------------------------------------------------------------------
+
+#pragma once
+
+#include "CSceneItemHotspot.h"
+#include "CSceneItemPlayer.h"
+
+//----------------------------------------------------------------------------------------------------------------------
+// MARK: CSceneItemPlayerHotspot
+
+class CSceneItemPlayerHotspotInternals;
+class CSceneItemPlayerHotspot : public CSceneItemPlayer {
+	// Methods
+	public:
+									// Lifecycle methods
+									CSceneItemPlayerHotspot(const CSceneItemHotspot& sceneItemHotspot,
+											const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
+											const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo);
+									~CSceneItemPlayerHotspot();
+
+									// CSceneItemPlayer methods
+				S2DRect32			getCurrentScreenRect() const;
+
+				CActionArray		getAllActions() const;
+
+				bool				handlesTouchOrMouseAtPoint(const S2DPoint32& point);
+				void				touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 tapOrClickCount,
+											const void* reference);
+
+									// Instance methods
+		const	CSceneItemHotspot&	getSceneItemHotspot() const
+										{ return (CSceneItemHotspot&) getSceneItem(); }
+
+	// Properties
+	private:
+//		CSceneItemPlayerHotspotInternals*	mInternals;
+};
