@@ -11,18 +11,25 @@
 // MARK: SSceneItemPlayerAnimationProcsInfo
 
 class CSceneItemPlayerAnimation;
-typedef	bool			(*SceneItemPlayerAnimationShouldLoopProc)(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
+typedef	bool			(*CSceneItemPlayerAnimationShouldLoopProc)(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
 								UInt32 currentLoopCount, void* userData);
 
 struct SSceneItemPlayerAnimationProcsInfo {
-	// Lifecycle methods
-	SSceneItemPlayerAnimationProcsInfo(SceneItemPlayerAnimationShouldLoopProc shouldLoopProc, void* userData) :
-		mShouldLoopProc(shouldLoopProc), mUserData(userData)
-		{}
+			// Lifecycle methods
+			SSceneItemPlayerAnimationProcsInfo(CSceneItemPlayerAnimationShouldLoopProc shouldLoopProc, void* userData) :
+				mShouldLoopProc(shouldLoopProc), mUserData(userData)
+				{}
+
+			// Instance methods
+	bool	canPerformShouldLoop() const
+				{ return mShouldLoopProc != nil; }
+	bool	shouldLoop(CSceneItemPlayerAnimation& sceneItemPlayerAnimation, UInt32 currentLoopCount) const
+				{ return mShouldLoopProc(sceneItemPlayerAnimation, currentLoopCount, mUserData); }
 
 	// Properties
-	SceneItemPlayerAnimationShouldLoopProc	mShouldLoopProc;
-	void*									mUserData;
+	private:
+		CSceneItemPlayerAnimationShouldLoopProc	mShouldLoopProc;
+		void*									mUserData;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -32,42 +39,41 @@ class CSceneItemPlayerAnimationInternals;
 class CSceneItemPlayerAnimation : public CSceneItemPlayer {
 	// Methods
 	public:
-										// Lifecycle methods
-										CSceneItemPlayerAnimation(const CSceneItemAnimation& sceneItemAnimation,
-												const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-												const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo);
-										~CSceneItemPlayerAnimation();
+											// Lifecycle methods
+											CSceneItemPlayerAnimation(const CSceneItemAnimation& sceneItemAnimation,
+													const SSceneAppResourceManagementInfo&
+															sceneAppResourceManagementInfo,
+													const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo);
+											~CSceneItemPlayerAnimation();
 
-										// CSceneItemPlayer methods
-				S2DRect32				getCurrentScreenRect() const;
+											// CSceneItemPlayer methods
+				CActions					getAllActions() const;
 
-				CActionArray			getAllActions() const;
+				void						load();
+				void						unload();
 
-				void					load();
-				void					finishLoading();
-				void					unload();
-				bool					getIsFullyLoaded() const;
+		const	OV<UniversalTimeInterval>&	getStartTimeInterval() const;
 
-				UniversalTimeInterval	getStartTimeInterval() const;
+				void						reset();
+				void						update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
+				void						render(CGPU& gpu, const S2DPoint32& offset = S2DPoint32()) const;
 
-				void					reset();
-				void					update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
-				void					render(CGPU& gpu, const S2DPoint32& offset);
+											// Instance methods
+		const	CSceneItemAnimation&		getSceneItemAnimation() const
+												{ return (const CSceneItemAnimation&) getSceneItem(); }
 
-										// Instance methods
-		const	CSceneItemAnimation&	getSceneItemAnimation() const
-											{ return (const CSceneItemAnimation&) getSceneItem(); }
+				bool						getIsFinished() const;
 
-				bool					getIsFinished() const;
+				void						setAudioGain(Float32 gain);
+				void						resetAudioGain();
 
-				void					setAudioGain(Float32 gain);
-				void					resetAudioGain();
+				void						setCommonTexturesSceneItemPlayerAnimation(
+													const CSceneItemPlayerAnimation&
+															commonTexturesSceneItemPlayerAnimation);
 
-				void					setCommonTexturesSceneItemPlayerAnimation(
-												const CSceneItemPlayerAnimation& commonTexturesSceneItemPlayerAnimation);
-
-				void					setSceneItemPlayerAnimationProcsInfo(
-												const SSceneItemPlayerAnimationProcsInfo& sceneItemPlayerAnimationProcsInfo);
+				void						setSceneItemPlayerAnimationProcsInfo(
+													const SSceneItemPlayerAnimationProcsInfo&
+															sceneItemPlayerAnimationProcsInfo);
 
 	// Properties
 	private:

@@ -8,12 +8,7 @@
 #include "TimeAndDate.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Start time values
-
-const	UniversalTimeInterval	kSceneItemStartTimeStartAtLoad = -1.0;
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Options
+// MARK: Options
 
 enum ESceneItemOptions {
 	kSceneItemOptionsNone				= 0,
@@ -44,7 +39,7 @@ enum {
 	kSceneItemPropertyTypeScreenRect		= MAKE_OSTYPE('R', 'e', 'c', 't'),
 	kSceneItemPropertyTypeScreenRectArray	= MAKE_OSTYPE('A', 'R', 'c', 't'),
 	kSceneItemPropertyTypeScreenPoint		= MAKE_OSTYPE('S', 'c', 'P', 't'),
-	kSceneItemPropertyTypeActionArray		= MAKE_OSTYPE('A', 'c', 't', 'n'),
+	kSceneItemPropertyTypeActions			= MAKE_OSTYPE('A', 'c', 't', 'n'),
 	kSceneItemPropertyTypeStartTimeInterval	= MAKE_OSTYPE('S', 't', 'T', 'm'),
 	kSceneItemPropertyTypeColor				= MAKE_OSTYPE('C', 'o', 'l', 'r'),
 	kSceneItemPropertyTypePixelWidth		= MAKE_OSTYPE('P', 'x', 'l', 'W'),
@@ -71,7 +66,7 @@ class CSceneItem {
 						bool				getIsVisible() const;
 						void				setIsVisible(bool isVisible);
 
-						CString&			getName() const;
+				const	CString&			getName() const;
 						void				setName(const CString& name);
 
 						ESceneItemOptions	getOptions() const;

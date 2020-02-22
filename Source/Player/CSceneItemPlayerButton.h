@@ -21,20 +21,16 @@ class CSceneItemPlayerButton : public CSceneItemPlayer {
 									~CSceneItemPlayerButton();
 
 									// CSceneItemPlayer methods
-				S2DRect32			getCurrentScreenRect() const;
-
-				CActionArray		getAllActions() const;
+				CActions			getAllActions() const;
 
 				void				load();
-				void				finishLoading();
 				void				unload();
-				bool				getIsFullyLoaded() const;
 
 				void				reset();
 				void				update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
-				void				render(CGPU& gpu, const S2DPoint32& offset);
+				void				render(CGPU& gpu, const S2DPoint32& offset = S2DPoint32()) const;
 
-				bool				handlesTouchOrMouseAtPoint(const S2DPoint32& point);
+				bool				handlesTouchOrMouseAtPoint(const S2DPoint32& point) const;
 				void				touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 tapOrClickCount,
 											const void* reference);
 				void				touchOrMouseMovedFromPoint(const S2DPoint32& point1, const S2DPoint32& point2,

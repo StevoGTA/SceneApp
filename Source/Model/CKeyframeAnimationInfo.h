@@ -22,18 +22,18 @@ class CKeyframeAnimationInfoInternals;
 class CKeyframeAnimationInfo {
 	// Methods
 	public:
-												// Lifecycle methods
-												CKeyframeAnimationInfo();
-												CKeyframeAnimationInfo(const CDictionary& info);
-												CKeyframeAnimationInfo(const CKeyframeAnimationInfo& other);
-												~CKeyframeAnimationInfo();
+											// Lifecycle methods
+											CKeyframeAnimationInfo();
+											CKeyframeAnimationInfo(const CDictionary& info);
+											CKeyframeAnimationInfo(const CKeyframeAnimationInfo& other);
+											~CKeyframeAnimationInfo();
 
-												// Instance methods
-				TArray<CDictionary>				getProperties() const;
-				CDictionary						getInfo() const;
+											// Instance methods
+				TArray<CDictionary>			getProperties() const;
+				CDictionary					getInfo() const;
 
-		const	TPtrArray<CAnimationKeyframe*>&	getAnimationKeyframesArray() const;
-				void							addAnimationKeyframe(const CAnimationKeyframe& animationKeyframe);
+		const	TArray<CAnimationKeyframe>&	getAnimationKeyframesArray() const;
+				void						addAnimationKeyframe(const CAnimationKeyframe& animationKeyframe);
 
 	// Properties
 	private:

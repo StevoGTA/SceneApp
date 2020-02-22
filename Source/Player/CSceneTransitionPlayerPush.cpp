@@ -30,9 +30,9 @@ class CSceneTransitionPlayerPushInternals {
 
 // MARK: Properties
 
-CString	CSceneTransitionPlayerPush::mInfoIsAutoKey("auto");
-CString	CSceneTransitionPlayerPush::mInfoDirectionKey("direction");
-CString	CSceneTransitionPlayerPush::mInfoDurationKey("duration");
+CString	CSceneTransitionPlayerPush::mInfoIsAutoKey(OSSTR("auto"));
+CString	CSceneTransitionPlayerPush::mInfoDirectionKey(OSSTR("direction"));
+CString	CSceneTransitionPlayerPush::mInfoDurationKey(OSSTR("duration"));
 
 // MARK: Lifecycle methods
 
@@ -113,7 +113,7 @@ AssertFailUnimplemented();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneTransitionPlayerPush::render(CGPU& gpu)
+void CSceneTransitionPlayerPush::render(CGPU& gpu) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup

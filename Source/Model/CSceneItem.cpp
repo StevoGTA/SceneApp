@@ -7,24 +7,21 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local data
 
-static	CString	sNameKey("name");
-static	CString	sOptionsKey("options");
-static	CString	sIsVisibleKey("visible");
-
-CString	CSceneItem::mItemInfoKey("itemInfo");
-
-CString	CSceneItem::mPropertyNameKey("name");
-CString	CSceneItem::mPropertyTitleKey("title");
-CString	CSceneItem::mPropertyTypeKey("type");
+static	CString	sNameKey(OSSTR("name"));
+static	CString	sOptionsKey(OSSTR("options"));
+static	CString	sIsVisibleKey(OSSTR("visible"));
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItemInternals
 
-class CSceneItemInternals {
+class CSceneItemInternals : public TCopyOnWriteReferenceCountable<CSceneItemInternals> {
 	public:
-		CSceneItemInternals() : mIsVisible(true), mOptions(kSceneItemOptionsNone) {}
-		~CSceneItemInternals() {}
+		CSceneItemInternals() : TCopyOnWriteReferenceCountable(), mIsVisible(true), mOptions(kSceneItemOptionsNone) {}
+		CSceneItemInternals(const CSceneItemInternals& other) :
+			TCopyOnWriteReferenceCountable(),
+					mIsVisible(other.mIsVisible), mName(other.mName), mOptions(other.mOptions)
+			{}
 
 		bool				mIsVisible;
 		CString				mName;
@@ -34,6 +31,14 @@ class CSceneItemInternals {
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItem
+
+// MARK: Properties
+
+CString	CSceneItem::mItemInfoKey(OSSTR("itemInfo"));
+
+CString	CSceneItem::mPropertyNameKey(OSSTR("name"));
+CString	CSceneItem::mPropertyTitleKey(OSSTR("title"));
+CString	CSceneItem::mPropertyTypeKey(OSSTR("type"));
 
 // MARK: Lifecycle methods
 
@@ -59,18 +64,14 @@ CSceneItem::CSceneItem(const CDictionary& info)
 CSceneItem::CSceneItem(const CSceneItem& other)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemInternals();
-
-	mInternals->mIsVisible = other.mInternals->mIsVisible;
-	mInternals->mName = other.mInternals->mName;
-	mInternals->mOptions = other.mInternals->mOptions;
+	mInternals = other.mInternals->addReference();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItem::~CSceneItem()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	mInternals->removeReference();
 }
 
 // MARK: Instance methods
@@ -86,11 +87,15 @@ bool CSceneItem::getIsVisible() const
 void CSceneItem::setIsVisible(bool isVisible)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mIsVisible = isVisible;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CString& CSceneItem::getName() const
+const CString& CSceneItem::getName() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mName;
@@ -100,6 +105,10 @@ CString& CSceneItem::getName() const
 void CSceneItem::setName(const CString& name)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mName = name;
 }
 
@@ -114,6 +123,10 @@ ESceneItemOptions CSceneItem::getOptions() const
 void CSceneItem::setOptions(ESceneItemOptions options)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mOptions = options;
 }
 
@@ -121,7 +134,7 @@ void CSceneItem::setOptions(ESceneItemOptions options)
 CString CSceneItem::getDescription()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return mInternals->mName + CString(" (") + getType() + CString(")");
+	return mInternals->mName + CString(OSSTR(" (")) + getType() + CString(OSSTR(")"));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -129,23 +142,23 @@ TArray<CDictionary> CSceneItem::getProperties() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	TArray<CDictionary>	properties;
+	TNArray<CDictionary>	properties;
 
 	// Add properties
 	CDictionary	namePropertyInfo;
-	namePropertyInfo.set(mPropertyTitleKey, CString("Name"));
+	namePropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Name")));
 	namePropertyInfo.set(mPropertyNameKey, sNameKey);
 	namePropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeName);
 	properties += namePropertyInfo;
 
 	CDictionary	visiblePropertyInfo;
-	visiblePropertyInfo.set(mPropertyTitleKey, CString("Visible"));
+	visiblePropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Visible")));
 	visiblePropertyInfo.set(mPropertyNameKey, sIsVisibleKey);
 	visiblePropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeBoolean);
 	properties += visiblePropertyInfo;
 
 	CDictionary	optionsPropertyInfo;
-	optionsPropertyInfo.set(mPropertyTitleKey, CString("Options"));
+	optionsPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Options")));
 	optionsPropertyInfo.set(mPropertyNameKey, sOptionsKey);
 	optionsPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeOptions);
 	properties += optionsPropertyInfo;

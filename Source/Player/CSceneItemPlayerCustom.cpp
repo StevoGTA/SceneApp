@@ -4,49 +4,23 @@
 
 #include "CSceneItemPlayerCustom.h"
 
-////----------------------------------------------------------------------------------------------------------------------
-//// MARK: CSceneItemPlayerCustomInternals
-//
-//class CSceneItemPlayerCustomInternals {
-//	public:
-//		CSceneItemPlayerCustomInternals() {}
-//		~CSceneItemPlayerCustomInternals() {}
-//};
-
 //----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemPlayerCustom
+// MARK: CSceneItemPlayerCustom
 
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemPlayerCustom::CSceneItemPlayerCustom(const CSceneItemCustom& sceneItemCustom,
-		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo) :
 		CSceneItemPlayer(sceneItemCustom, sceneItemPlayerProcsInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
-//	mInternals = new CSceneItemPlayerCustomInternals();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerCustom::~CSceneItemPlayerCustom()
-//----------------------------------------------------------------------------------------------------------------------
-{
-//	DisposeOf(mInternals);
 }
 
 // MARK: CSceneItemPlayer methods
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DRect32 CSceneItemPlayerCustom::getCurrentScreenRect() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return getCurrentScreenRect(getSceneItemCustom());
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-CActionArray CSceneItemPlayerCustom::getAllActions() const
+CActions CSceneItemPlayerCustom::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return getAllActions(getSceneItemCustom());
@@ -59,15 +33,6 @@ void CSceneItemPlayerCustom::load()
 	CSceneItemPlayer::load();
 
 	load(getSceneItemCustom());
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::finishLoading()
-//----------------------------------------------------------------------------------------------------------------------
-{
-	finishLoading(getSceneItemCustom());
-
-	CSceneItemPlayer::finishLoading();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -89,14 +54,7 @@ void CSceneItemPlayerCustom::unload()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerCustom::getIsFullyLoaded() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return getIsFullyLoaded(getSceneItemCustom());
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-UniversalTimeInterval CSceneItemPlayerCustom::getStartTimeInterval() const
+const OV<UniversalTimeInterval>& CSceneItemPlayerCustom::getStartTimeInterval() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return getStartTimeInterval(getSceneItemCustom());
@@ -121,16 +79,14 @@ void CSceneItemPlayerCustom::update(UniversalTimeInterval deltaTimeInterval, boo
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::render(CGPU& gpu, const S2DPoint32& offset)
+void CSceneItemPlayerCustom::render(CGPU& gpu, const S2DPoint32& offset) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	render(getSceneItemCustom(), gpu, offset);
-
-	CSceneItemPlayer::render(gpu, offset);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerCustom::handlesTouchOrMouseAtPoint(const S2DPoint32& point)
+bool CSceneItemPlayerCustom::handlesTouchOrMouseAtPoint(const S2DPoint32& point) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return handlesTouchOrMouseAtPoint(getSceneItemCustom(), point);
@@ -226,140 +182,11 @@ bool CSceneItemPlayerCustom::handleCommand(const CString& command, const CDictio
 // MARK: Subclass methods
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DRect32 CSceneItemPlayerCustom::getCurrentScreenRect(const CSceneItemCustom& sceneItemCustom) const
+const OV<UniversalTimeInterval>& CSceneItemPlayerCustom::getStartTimeInterval(const CSceneItemCustom& sceneItemCustom)
+		const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return S2DRect32();
-}
+	static	OV<UniversalTimeInterval>	sStartTimeIntervalUndefined;
 
-//----------------------------------------------------------------------------------------------------------------------
-CActionArray CSceneItemPlayerCustom::getAllActions(const CSceneItemCustom& sceneItemCustom) const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return CActionArray();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::load(const CSceneItemCustom& sceneItemCustom)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::finishLoading(const CSceneItemCustom& sceneItemCustom)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::allPeersHaveLoaded(const CSceneItemCustom& sceneItemCustom)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::unload(const CSceneItemCustom& sceneItemCustom)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerCustom::getIsFullyLoaded(const CSceneItemCustom& sceneItemCustom) const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-UniversalTimeInterval CSceneItemPlayerCustom::getStartTimeInterval(const CSceneItemCustom& sceneItemCustom) const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return 0.0;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::reset(const CSceneItemCustom& sceneItemCustom)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::update(const CSceneItemCustom& sceneItemCustom, UniversalTimeInterval deltaTimeInterval,
-		bool isRunning)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::render(const CSceneItemCustom& sceneItemCustom, CGPU& gpu, const S2DPoint32& offset)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerCustom::handlesTouchOrMouseAtPoint(const CSceneItemCustom& sceneItemCustom,
-		const S2DPoint32& point)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return false;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::touchBeganOrMouseDownAtPoint(const CSceneItemCustom& sceneItemCustom,
-		const S2DPoint32& point, UInt32 tapOrClickCount, const void* reference)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::touchOrMouseMovedFromPoint(const CSceneItemCustom& sceneItemCustom,
-		const S2DPoint32& point1, const S2DPoint32& point2, const void* reference)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::touchEndedOrMouseUpAtPoint(const CSceneItemCustom& sceneItemCustom,
-		const S2DPoint32& point, const void* reference)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::touchOrMouseCancelled(const CSceneItemCustom& sceneItemCustom, const void* reference)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::shakeBegan(const CSceneItemCustom& sceneItemCustom)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::shakeEnded(const CSceneItemCustom& sceneItemCustom)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::shakeCancelled(const CSceneItemCustom& sceneItemCustom)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::setProperty(const CSceneItemCustom& sceneItemCustom, const CString& propertyName,
-		const SDictionaryValue& value)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerCustom::handleCommand(const CSceneItemCustom& sceneItemCustom, const CString& command,
-		const CDictionary& commandInfo, const S2DPoint32& point)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return false;
+	return sStartTimeIntervalUndefined;
 }

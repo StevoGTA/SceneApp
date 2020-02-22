@@ -11,30 +11,44 @@
 // MARK: SKeyframeAnimationPlayerProcsInfo
 
 class CKeyframeAnimationPlayer;
-typedef	bool	(*KeyframeAnimationPlayerShouldLoopProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+typedef	bool	(*CKeyframeAnimationPlayerShouldLoopProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
 						UInt32 currentLoopCount, void* userData);
-typedef	void	(*KeyframeAnimationPlayerLoopingProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+typedef	void	(*CKeyframeAnimationPlayerDidLoopProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
 						void* userData);
-typedef	void	(*KeyframeAnimationPlayerFinishedProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+typedef	void	(*CKeyframeAnimationPlayerDidFinishProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
 						void* userData);
-typedef	void	(*KeyframeAnimationPlayerActionArrayHandlerProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
-						const CActionArray& actionArray, void* userData);
+typedef	void	(*CKeyframeAnimationPlayerPerformActionsProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+						const CActions& actions, void* userData);
 
 struct SKeyframeAnimationPlayerProcsInfo {
-	// Lifecycle methods
-	SKeyframeAnimationPlayerProcsInfo(KeyframeAnimationPlayerShouldLoopProc shouldLoopProc,
-			KeyframeAnimationPlayerLoopingProc loopingProc, KeyframeAnimationPlayerFinishedProc finishedProc,
-			KeyframeAnimationPlayerActionArrayHandlerProc actionArrayHandlerProc, void* userData) :
-		mShouldLoopProc(shouldLoopProc), mLoopingProc(loopingProc), mFinishedProc(finishedProc),
-				mActionArrayHandlerProc(actionArrayHandlerProc), mUserData(userData)
-		{}
+			// Lifecycle methods
+			SKeyframeAnimationPlayerProcsInfo(CKeyframeAnimationPlayerShouldLoopProc shouldLoopProc,
+					CKeyframeAnimationPlayerDidLoopProc didLoopProc,
+					CKeyframeAnimationPlayerDidFinishProc didFinishProc,
+					CKeyframeAnimationPlayerPerformActionsProc performActionsProc, void* userData) :
+				mShouldLoopProc(shouldLoopProc), mDidLoopProc(didLoopProc), mDidFinishProc(didFinishProc),
+						mPerformActionsProc(performActionsProc), mUserData(userData)
+				{}
+
+			// Instance methods
+	bool	canPerformShouldLoop() const
+				{ return mShouldLoopProc != nil; }
+	bool	shouldLoop(CKeyframeAnimationPlayer& keyframeAnimationPlayer, UInt32 currentLoopCount) const
+				{ return mShouldLoopProc(keyframeAnimationPlayer, currentLoopCount, mUserData); }
+	void	didLoop(CKeyframeAnimationPlayer& keyframeAnimationPlayer) const
+				{ if (mDidLoopProc != nil) mDidLoopProc(keyframeAnimationPlayer, mUserData); }
+	void	didFinish(CKeyframeAnimationPlayer& keyframeAnimationPlayer) const
+				{ if (mDidFinishProc != nil) mDidFinishProc(keyframeAnimationPlayer, mUserData); }
+	void	performActions(CKeyframeAnimationPlayer& keyframeAnimationPlayer, const CActions& actions) const
+				{ if (mPerformActionsProc != nil) mPerformActionsProc(keyframeAnimationPlayer, actions, mUserData); }
 
 	// Properties
-	KeyframeAnimationPlayerShouldLoopProc			mShouldLoopProc;
-	KeyframeAnimationPlayerLoopingProc				mLoopingProc;
-	KeyframeAnimationPlayerFinishedProc				mFinishedProc;
-	KeyframeAnimationPlayerActionArrayHandlerProc	mActionArrayHandlerProc;
-	void*											mUserData;
+	private:
+		CKeyframeAnimationPlayerShouldLoopProc		mShouldLoopProc;
+		CKeyframeAnimationPlayerDidLoopProc			mDidLoopProc;
+		CKeyframeAnimationPlayerDidFinishProc		mDidFinishProc;
+		CKeyframeAnimationPlayerPerformActionsProc	mPerformActionsProc;
+		void*										mUserData;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -44,27 +58,26 @@ class CKeyframeAnimationPlayerInternals;
 class CKeyframeAnimationPlayer {
 	// Methods
 	public:
-								// Lifecycle methods
-								CKeyframeAnimationPlayer(const CKeyframeAnimationInfo& keyframeAnimationInfo,
-										const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-										const SKeyframeAnimationPlayerProcsInfo& keyframeAnimationPlayerProcsInfo,
-										bool makeCopy = false, UniversalTimeInterval startTimeInterval = 0.0);
-								~CKeyframeAnimationPlayer();
-						
-								// Instance methods
-				S2DRect32		getScreenRect();
+					// Lifecycle methods
+					CKeyframeAnimationPlayer(const CKeyframeAnimationInfo& keyframeAnimationInfo,
+							const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
+							const SKeyframeAnimationPlayerProcsInfo& keyframeAnimationPlayerProcsInfo,
+							const OV<UniversalTimeInterval>& startTimeInterval = OV<UniversalTimeInterval>());
+					~CKeyframeAnimationPlayer();
 
-				CActionArray	getAllActions() const;
+					// Instance methods
+		S2DRect32	getScreenRect();
 
-				void			load(bool start);
-				void			finishLoading();
-				void			unload();
-				bool			getIsFullyLoaded() const;
+		CActions	getAllActions() const;
 
-				void			reset(bool start);
-				void			update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
-				void			render(CGPU& gpu, const S2DPoint32& offset);
-				bool			getIsFinished() const;
+		void		load(bool start);
+		void		finishLoading();
+		void		unload();
+
+		void		reset(bool start);
+		void		update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
+		void		render(CGPU& gpu, const S2DPoint32& offset = S2DPoint32()) const;
+		bool		getIsFinished() const;
 
 	// Properties
 	private:

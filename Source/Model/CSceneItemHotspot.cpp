@@ -7,24 +7,24 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local data
 
-static	CString	sActionArrayInfoKey("actionInfo");
-static	CString	sScreenRectKey("screenRect");
+static	CString	sActionsInfoKey(OSSTR("actionInfo"));
+static	CString	sScreenRectKey(OSSTR("screenRect"));
 
-CString	CSceneItemHotspot::mType("hotspot");
+CString	CSceneItemHotspot::mType(OSSTR("hotspot"));
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItemHotspotInternals
 
-class CSceneItemHotspotInternals {
+class CSceneItemHotspotInternals : public TCopyOnWriteReferenceCountable<CSceneItemHotspotInternals> {
 	public:
-		CSceneItemHotspotInternals() : mActionArray(nil) {}
-		~CSceneItemHotspotInternals()
-			{
-				DisposeOf(mActionArray);
-			}
+		CSceneItemHotspotInternals() : TCopyOnWriteReferenceCountable() {}
+		CSceneItemHotspotInternals(const CSceneItemHotspotInternals& other) :
+			TCopyOnWriteReferenceCountable(),
+					mActions(other.mActions), mScreenRect(other.mScreenRect)
+			{}
 
-		CActionArray*	mActionArray;
+		OO<CActions>	mActions;
 		S2DRect32		mScreenRect;
 };
 
@@ -47,8 +47,8 @@ CSceneItemHotspot::CSceneItemHotspot(const CDictionary& info) : CSceneItem(info)
 {
 	mInternals = new CSceneItemHotspotInternals();
 
-	if (info.contains(sActionArrayInfoKey))
-		mInternals->mActionArray = new CActionArray(info.getDictionary(sActionArrayInfoKey));
+	if (info.contains(sActionsInfoKey))
+		mInternals->mActions = OO<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
 	mInternals->mScreenRect = S2DRect32(info.getString(sScreenRectKey));
 }
 
@@ -56,18 +56,14 @@ CSceneItemHotspot::CSceneItemHotspot(const CDictionary& info) : CSceneItem(info)
 CSceneItemHotspot::CSceneItemHotspot(const CSceneItemHotspot& other) : CSceneItem(other)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemHotspotInternals();
-
-	if (other.mInternals->mActionArray != nil)
-		mInternals->mActionArray = new CActionArray(*other.mInternals->mActionArray);
-	mInternals->mScreenRect = other.mInternals->mScreenRect;
+	mInternals = other.mInternals->addReference();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemHotspot::~CSceneItemHotspot()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	mInternals->removeReference();
 }
 
 // MARK: CSceneItem methods
@@ -81,13 +77,13 @@ TArray<CDictionary> CSceneItemHotspot::getProperties() const
 
 	// Add properties
 	CDictionary	actionPropertyInfo;
-	actionPropertyInfo.set(mPropertyTitleKey, CString("Action Array"));
-	actionPropertyInfo.set(mPropertyNameKey, sActionArrayInfoKey);
-	actionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActionArray);
+	actionPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Actions")));
+	actionPropertyInfo.set(mPropertyNameKey, sActionsInfoKey);
+	actionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActions);
 	properties += actionPropertyInfo;
 
 	CDictionary	screenRectPropertyInfo;
-	screenRectPropertyInfo.set(mPropertyTitleKey, CString("Screen Rect"));
+	screenRectPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Screen Rect")));
 	screenRectPropertyInfo.set(mPropertyNameKey, sScreenRectKey);
 	screenRectPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeScreenRect);
 	properties += screenRectPropertyInfo;
@@ -101,8 +97,8 @@ CDictionary CSceneItemHotspot::getInfo() const
 {
 	CDictionary	info = CSceneItem::getInfo();
 
-	if (mInternals->mActionArray != nil)
-		info.set(sActionArrayInfoKey, mInternals->mActionArray->getInfo());
+	if (mInternals->mActions.hasObject())
+		info.set(sActionsInfoKey, mInternals->mActions->getInfo());
 	info.set(sScreenRectKey, mInternals->mScreenRect.asString());
 
 	return info;
@@ -111,18 +107,21 @@ CDictionary CSceneItemHotspot::getInfo() const
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CActionArray> CSceneItemHotspot::getActionArray() const
+const OO<CActions>& CSceneItemHotspot::getActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return (mInternals->mActionArray != nil) ? OR<CActionArray>(*mInternals->mActionArray) : OR<CActionArray>();
+	return mInternals->mActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemHotspot::setActionArray(const CActionArray& actionArray)
+void CSceneItemHotspot::setActions(const OO<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mActionArray);
-	mInternals->mActionArray = new CActionArray(actionArray);
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
+	mInternals->mActions = actions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -136,5 +135,9 @@ const S2DRect32& CSceneItemHotspot::getScreenRect() const
 void CSceneItemHotspot::setScreenRect(const S2DRect32& rect)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mScreenRect = rect;
 }

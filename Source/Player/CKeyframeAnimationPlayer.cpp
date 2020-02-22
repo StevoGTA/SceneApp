@@ -4,9 +4,8 @@
 
 #include "CKeyframeAnimationPlayer.h"
 
-#include "CSceneAppX.h"
-
 #include "CGPURenderObject2D.h"
+#include "CImage.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local data
@@ -25,24 +24,26 @@ static	TPtrArray<CKeyframeAnimationPlayer*>	sDeadPlayerArray;
 
 class CKeyframeAnimationPlayerKeyframe {
 	public:
-											CKeyframeAnimationPlayerKeyframe(
-													const CAnimationKeyframe& animationKeyframe,
-													const CKeyframeAnimationPlayerKeyframe*
-														previousKeyframeAnimationPlayerKeyframe);
-											~CKeyframeAnimationPlayerKeyframe();
+														CKeyframeAnimationPlayerKeyframe(
+																const CAnimationKeyframe& animationKeyframe,
+																const OR<CKeyframeAnimationPlayerKeyframe>
+																		previousKeyframeAnimationPlayerKeyframe);
+														~CKeyframeAnimationPlayerKeyframe();
 
-		OR<CActionArray>					getActionArray() const;
-		UniversalTimeInterval				getDelay() const;
-		EAnimationKeyframeTransitionType	getTransitionType() const;
+		const	OO<CActions>&							getActions() const;
+		const	OV<UniversalTimeInterval>&				getDelay() const;
+		const	OV<EAnimationKeyframeTransitionType>&	getTransitionType() const;
 
-		void								load(const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo);
-		void								finishLoading();
-		void								unload();
-		bool								getIsFullyLoaded() const;
+				void									load(
+																const SSceneAppResourceManagementInfo&
+																		sceneAppResourceManagementInfo);
+				void									finishLoading();
+				void									unload();
 
-		void								setSpriteValuesToKeyframeValues();
-		void								setSpriteValuesToInterpolatedValues(Float32 transitionFactor,
-													const CKeyframeAnimationPlayerKeyframe& nextPlayerKeyframe);
+				void									setSpriteValuesToKeyframeValues();
+				void									setSpriteValuesToInterpolatedValues(Float32 transitionFactor,
+																const CKeyframeAnimationPlayerKeyframe&
+																		nextPlayerKeyframe);
 
 		const	CAnimationKeyframe&	mAnimationKeyframe;
 
@@ -56,123 +57,65 @@ class CKeyframeAnimationPlayerKeyframe {
 				CGPURenderObject2D*	mGPURenderObject2D;
 };
 
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CKeyframeAnimationPlayerInternals
-
-class CKeyframeAnimationPlayerInternals {
-	public:
-		CKeyframeAnimationPlayerInternals(const CKeyframeAnimationInfo& keyframeAnimationInfo,
-				const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-				const SKeyframeAnimationPlayerProcsInfo& keyframeAnimationPlayerProcsInfo, bool makeCopy,
-				UniversalTimeInterval startTimeInterval) :
-			mPlayerKeyframesArray(true), mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
-					mKeyframeAnimationPlayerProcsInfo(keyframeAnimationPlayerProcsInfo)
-			{
-				if (makeCopy) {
-					mDisposeKeyframeAnimationInfo = true;
-					mKeyframeAnimationInfo = new CKeyframeAnimationInfo(keyframeAnimationInfo);
-				} else {
-					mDisposeKeyframeAnimationInfo = false;
-					mKeyframeAnimationInfo = (CKeyframeAnimationInfo*) &keyframeAnimationInfo;
-				}
-
-				mIsStarted = false;
-				mIsFinished = false;
-				mNeedToAddToDeadPlayerArray = false;
-				mCurrentTimeInterval = 0.0;
-				mCurrentFrameTimeInterval = 0.0;
-				mStartTimeInterval = startTimeInterval;
-				mCurrentLoopCount = 0;
-
-				mPreviousPlayerKeyframe = nil;
-				mNextPlayerKeyframe = nil;
-			}
-		~CKeyframeAnimationPlayerInternals()
-			{
-				if (mDisposeKeyframeAnimationInfo) {
-					// Dispose cel animation info
-					DisposeOf(mKeyframeAnimationInfo);
-				}
-			}
-
-				bool											mDisposeKeyframeAnimationInfo;
-				CKeyframeAnimationInfo*							mKeyframeAnimationInfo;
-
-				bool											mIsStarted;
-				bool											mIsFinished;
-				bool											mNeedToAddToDeadPlayerArray;
-				UniversalTimeInterval							mCurrentTimeInterval;
-				UniversalTimeInterval							mCurrentFrameTimeInterval;
-				UniversalTimeInterval							mStartTimeInterval;
-				UInt32											mCurrentLoopCount;
-
-				CKeyframeAnimationPlayerKeyframe*				mPreviousPlayerKeyframe;
-				CKeyframeAnimationPlayerKeyframe*				mNextPlayerKeyframe;
-				TPtrArray<CKeyframeAnimationPlayerKeyframe*>	mPlayerKeyframesArray;
-
-		const	SSceneAppResourceManagementInfo&				mSceneAppResourceManagementInfo;
-		const	SKeyframeAnimationPlayerProcsInfo&				mKeyframeAnimationPlayerProcsInfo;
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CKeyframeAnimationPlayerKeyframe
-
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
 CKeyframeAnimationPlayerKeyframe::CKeyframeAnimationPlayerKeyframe(const CAnimationKeyframe& animationKeyframe,
-		const CKeyframeAnimationPlayerKeyframe* previousKeyframeAnimationPlayerKeyframe) :
-		mAnimationKeyframe(animationKeyframe)
+		const OR<CKeyframeAnimationPlayerKeyframe> previousKeyframeAnimationPlayerKeyframe) :
+		mAnimationKeyframe(animationKeyframe), mGPURenderObject2D(nil)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	if (animationKeyframe.hasAnchorPoint())
-		mAnchorPoint = animationKeyframe.getAnchorPoint();
-	else if (previousKeyframeAnimationPlayerKeyframe != nil)
+	// Anchor point
+	const	OV<S2DPoint32>&	anchorPoint = animationKeyframe.getAnchorPoint();
+	if (anchorPoint.hasValue())
+		mAnchorPoint = *anchorPoint;
+	else if (previousKeyframeAnimationPlayerKeyframe.hasReference())
 		mAnchorPoint = previousKeyframeAnimationPlayerKeyframe->mAnchorPoint;
 	else
 		mAnchorPoint = sAnchorPointDefault;
-	
+
 	// Screen Position Point
-	if (animationKeyframe.hasScreenPositionPoint())
-		mScreenPositionPoint = animationKeyframe.getScreenPositionPoint();
-	else if (previousKeyframeAnimationPlayerKeyframe != nil)
+	const	OV<S2DPoint32>&	screenPositionPoint = animationKeyframe.getScreenPositionPoint();
+	if (screenPositionPoint.hasValue())
+		mScreenPositionPoint = *screenPositionPoint;
+	else if (previousKeyframeAnimationPlayerKeyframe.hasReference())
 		mScreenPositionPoint = previousKeyframeAnimationPlayerKeyframe->mScreenPositionPoint;
 	else
 		mScreenPositionPoint = sScreenPositionPointDefault;
-	
+
 	// Angle
-	if (animationKeyframe.hasAngleDegrees())
-		mAngleDegrees = animationKeyframe.getAngleDegrees();
-	else if (previousKeyframeAnimationPlayerKeyframe != nil)
+	const	OV<Float32>&	angleDegrees = animationKeyframe.getAngleDegrees();
+	if (angleDegrees.hasValue())
+		mAngleDegrees = *angleDegrees;
+	else if (previousKeyframeAnimationPlayerKeyframe.hasReference())
 		mAngleDegrees = previousKeyframeAnimationPlayerKeyframe->mAngleDegrees;
 	else
 		mAngleDegrees = kAngleDegreesDefault;
-	
+
 	// Alpha
-	if (animationKeyframe.hasAlpha())
-		mAlpha = animationKeyframe.getAlpha();
-	else if (previousKeyframeAnimationPlayerKeyframe != nil)
+	const	OV<Float32>&	alpha = animationKeyframe.getAlpha();
+	if (alpha.hasValue())
+		mAlpha = *alpha;
+	else if (previousKeyframeAnimationPlayerKeyframe.hasReference())
 		mAlpha = previousKeyframeAnimationPlayerKeyframe->mAlpha;
 	else
 		mAlpha = kAlphaDefault;
-	
+
 	// Scale
-	if (animationKeyframe.hasScale())
-		mScale = animationKeyframe.getScale();
-	else if (previousKeyframeAnimationPlayerKeyframe != nil)
+	const	OV<Float32>&	scale = animationKeyframe.getScale();
+	if (scale.hasValue())
+		mScale = *scale;
+	else if (previousKeyframeAnimationPlayerKeyframe.hasReference())
 		mScale = previousKeyframeAnimationPlayerKeyframe->mScale;
 	else
 		mScale = kScaleDefault;
 
 	// Image Filename
-	mImageFilename = animationKeyframe.getImageResourceFilename();
-	if (mImageFilename.getLength() == 0)
+	const	OV<CString>&	imageResourceFilename = animationKeyframe.getImageResourceFilename();
+	if (imageResourceFilename.hasValue())
+		mImageFilename = *imageResourceFilename;
+	else
 		mImageFilename = previousKeyframeAnimationPlayerKeyframe->mImageFilename;
-
-	// GPU Render Object 2D
-	mGPURenderObject2D = nil;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -185,21 +128,21 @@ CKeyframeAnimationPlayerKeyframe::~CKeyframeAnimationPlayerKeyframe()
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CActionArray> CKeyframeAnimationPlayerKeyframe::getActionArray() const
+const OO<CActions>& CKeyframeAnimationPlayerKeyframe::getActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return mAnimationKeyframe.getActionArray();
+	return mAnimationKeyframe.getActions();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-UniversalTimeInterval CKeyframeAnimationPlayerKeyframe::getDelay() const
+const OV<UniversalTimeInterval>& CKeyframeAnimationPlayerKeyframe::getDelay() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mAnimationKeyframe.getDelay();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-EAnimationKeyframeTransitionType CKeyframeAnimationPlayerKeyframe::getTransitionType() const
+const OV<EAnimationKeyframeTransitionType>& CKeyframeAnimationPlayerKeyframe::getTransitionType() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mAnimationKeyframe.getTransitionType();
@@ -212,14 +155,15 @@ void CKeyframeAnimationPlayerKeyframe::load(const SSceneAppResourceManagementInf
 	mGPURenderObject2D =
 			new CGPURenderObject2D(
 					sceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
-							sceneAppResourceManagementInfo.mCreateByteParcellerProc(mImageFilename), mImageFilename));
+							sceneAppResourceManagementInfo.createByteParceller(mImageFilename), CImage::getBitmap,
+							mImageFilename));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void CKeyframeAnimationPlayerKeyframe::finishLoading()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mGPURenderObject2D->getGPUTextureReference().load();
+	mGPURenderObject2D->getGPUTextureReference().finishLoading();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -227,13 +171,6 @@ void CKeyframeAnimationPlayerKeyframe::unload()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	DisposeOf(mGPURenderObject2D);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool CKeyframeAnimationPlayerKeyframe::getIsFullyLoaded() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return mGPURenderObject2D->getGPUTextureReference().getIsLoaded();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -253,12 +190,12 @@ void CKeyframeAnimationPlayerKeyframe::setSpriteValuesToInterpolatedValues(Float
 //----------------------------------------------------------------------------------------------------------------------
 {
 	Float32	invertTransitionFactor = 1.0 - transitionFactor, x, y;
-	
+
 	// Anchor Point
 	x = invertTransitionFactor * mAnchorPoint.mX + transitionFactor * nextPlayerKeyframe.mAnchorPoint.mX;
 	y = invertTransitionFactor * mAnchorPoint.mY + transitionFactor * nextPlayerKeyframe.mAnchorPoint.mY;
 	mGPURenderObject2D->setAnchorPoint(S2DPoint32(x, y));
-	
+
 	// Screen Position Point
 	x =
 			invertTransitionFactor * mScreenPositionPoint.mX +
@@ -267,17 +204,52 @@ void CKeyframeAnimationPlayerKeyframe::setSpriteValuesToInterpolatedValues(Float
 			invertTransitionFactor * mScreenPositionPoint.mY +
 					transitionFactor * nextPlayerKeyframe.mScreenPositionPoint.mY;
 	mGPURenderObject2D->setScreenPositionPoint(S2DPoint32(x, y));
-	
+
 	// Angle
 	mGPURenderObject2D->setAngleAsDegrees(invertTransitionFactor * mAngleDegrees +
 			transitionFactor * nextPlayerKeyframe.mAngleDegrees);
-	
+
 	// Alpha
 	mGPURenderObject2D->setAlpha(invertTransitionFactor * mAlpha + transitionFactor * nextPlayerKeyframe.mAlpha);
-	
+
 	// Scale
 	mGPURenderObject2D->setScale(invertTransitionFactor * mScale + transitionFactor * nextPlayerKeyframe.mScale);
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------
+// MARK: - CKeyframeAnimationPlayerInternals
+
+class CKeyframeAnimationPlayerInternals {
+	public:
+		CKeyframeAnimationPlayerInternals(const CKeyframeAnimationInfo& keyframeAnimationInfo,
+				const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
+				const SKeyframeAnimationPlayerProcsInfo& keyframeAnimationPlayerProcsInfo,
+				const OV<UniversalTimeInterval>& startTimeInterval) :
+			mKeyframeAnimationInfo(keyframeAnimationInfo), mIsStarted(false), mIsFinished(false),
+					mNeedToAddToDeadPlayers(false), mCurrentTimeInterval(0.0), mCurrentFrameTimeInterval(0.0),
+					mStartTimeInterval(startTimeInterval), mCurrentLoopCount(0),
+			mPlayerKeyframesArray(true), mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
+					mKeyframeAnimationPlayerProcsInfo(keyframeAnimationPlayerProcsInfo)
+			{}
+
+		const	CKeyframeAnimationInfo&							mKeyframeAnimationInfo;
+
+				bool											mIsStarted;
+				bool											mIsFinished;
+				bool											mNeedToAddToDeadPlayers;
+				UniversalTimeInterval							mCurrentTimeInterval;
+				UniversalTimeInterval							mCurrentFrameTimeInterval;
+				OV<UniversalTimeInterval>						mStartTimeInterval;
+				UInt32											mCurrentLoopCount;
+
+				OR<CKeyframeAnimationPlayerKeyframe>			mPreviousPlayerKeyframe;
+				OR<CKeyframeAnimationPlayerKeyframe>			mNextPlayerKeyframe;
+				TPtrArray<CKeyframeAnimationPlayerKeyframe*>	mPlayerKeyframesArray;
+
+		const	SSceneAppResourceManagementInfo&				mSceneAppResourceManagementInfo;
+		const	SKeyframeAnimationPlayerProcsInfo&				mKeyframeAnimationPlayerProcsInfo;
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -288,27 +260,29 @@ void CKeyframeAnimationPlayerKeyframe::setSpriteValuesToInterpolatedValues(Float
 //----------------------------------------------------------------------------------------------------------------------
 CKeyframeAnimationPlayer::CKeyframeAnimationPlayer(const CKeyframeAnimationInfo& keyframeAnimationInfo,
 		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-		const SKeyframeAnimationPlayerProcsInfo& keyframeAnimationPlayerProcsInfo, bool makeCopy,
-		UniversalTimeInterval startTimeInterval)
+		const SKeyframeAnimationPlayerProcsInfo& keyframeAnimationPlayerProcsInfo,
+		const OV<UniversalTimeInterval>& startTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals =
 			new CKeyframeAnimationPlayerInternals(keyframeAnimationInfo, sceneAppResourceManagementInfo,
-					keyframeAnimationPlayerProcsInfo, makeCopy, startTimeInterval);
+					keyframeAnimationPlayerProcsInfo, startTimeInterval);
 
-	const	TPtrArray<CAnimationKeyframe*>&	array = mInternals->mKeyframeAnimationInfo->getAnimationKeyframesArray();
-	CKeyframeAnimationPlayerKeyframe*		previousPlayerKeyframe = nil;
+	const	TArray<CAnimationKeyframe>&				array =
+															mInternals->mKeyframeAnimationInfo.
+																	getAnimationKeyframesArray();
+			OR<CKeyframeAnimationPlayerKeyframe>	previousPlayerKeyframe;
 	for (CArrayItemIndex i = 0; i < array.getCount(); i++) {
 		CKeyframeAnimationPlayerKeyframe*	playerKeyframe =
-													new CKeyframeAnimationPlayerKeyframe(*array[i],
+													new CKeyframeAnimationPlayerKeyframe(array[i],
 															previousPlayerKeyframe);
 		mInternals->mPlayerKeyframesArray += playerKeyframe;
-		previousPlayerKeyframe = playerKeyframe;
+		previousPlayerKeyframe = OR<CKeyframeAnimationPlayerKeyframe>(*playerKeyframe);
 
 		if (i == 0)
-			mInternals->mPreviousPlayerKeyframe = playerKeyframe;
+			mInternals->mPreviousPlayerKeyframe = previousPlayerKeyframe;
 		else if (i == 1)
-			mInternals->mNextPlayerKeyframe = playerKeyframe;
+			mInternals->mNextPlayerKeyframe = previousPlayerKeyframe;
 	}
 }
 
@@ -316,7 +290,7 @@ CKeyframeAnimationPlayer::CKeyframeAnimationPlayer(const CKeyframeAnimationInfo&
 CKeyframeAnimationPlayer::~CKeyframeAnimationPlayer()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	if (mInternals->mNeedToAddToDeadPlayerArray)
+	if (mInternals->mNeedToAddToDeadPlayers)
 		sDeadPlayerArray += this;
 		
 	DisposeOf(mInternals);
@@ -329,7 +303,7 @@ S2DRect32 CKeyframeAnimationPlayer::getScreenRect()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check if have previous player key frame
-	if (mInternals->mPreviousPlayerKeyframe != nil) {
+	if (mInternals->mPreviousPlayerKeyframe.hasReference()) {
 		//
 		SGPUTextureSize	gpuTextureSize =
 								mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->getGPUTextureReference().
@@ -350,17 +324,17 @@ S2DRect32 CKeyframeAnimationPlayer::getScreenRect()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CActionArray CKeyframeAnimationPlayer::getAllActions() const
+CActions CKeyframeAnimationPlayer::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	CActionArray	allActionArray;
+	CActions	allActions;
 	for (CArrayItemIndex i = 0; i < mInternals->mPlayerKeyframesArray.getCount(); i++) {
-		OR<CActionArray>	actionArray = mInternals->mPlayerKeyframesArray[i]->mAnimationKeyframe.getActionArray();
-		if (actionArray.hasReference())
-			allActionArray.addFrom(*actionArray);
+		const	OO<CActions>&	actions = mInternals->mPlayerKeyframesArray[i]->mAnimationKeyframe.getActions();
+		if (actions.hasObject())
+			allActions.addFrom(*actions);
 	}
 
-	return allActionArray;
+	return allActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -377,7 +351,7 @@ void CKeyframeAnimationPlayer::load(bool start)
 void CKeyframeAnimationPlayer::finishLoading()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	if (mInternals->mPreviousPlayerKeyframe != nil)
+	if (mInternals->mPreviousPlayerKeyframe.hasReference())
 		mInternals->mPreviousPlayerKeyframe->finishLoading();
 }
 
@@ -387,14 +361,6 @@ void CKeyframeAnimationPlayer::unload()
 {
 	for (CArrayItemIndex i = 0; i < mInternals->mPlayerKeyframesArray.getCount(); i++)
 		mInternals->mPlayerKeyframesArray[i]->unload();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool CKeyframeAnimationPlayer::getIsFullyLoaded() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return (mInternals->mPreviousPlayerKeyframe != nil) ?
-			mInternals->mPreviousPlayerKeyframe->getIsFullyLoaded() : true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -408,8 +374,14 @@ void CKeyframeAnimationPlayer::reset(bool start)
 	mInternals->mCurrentLoopCount = 0;
 
 	TPtrArray<CKeyframeAnimationPlayerKeyframe*>&	playerKeyframesArray = mInternals->mPlayerKeyframesArray;
-	mInternals->mPreviousPlayerKeyframe = (playerKeyframesArray.getCount() > 0) ? playerKeyframesArray[0] : nil;
-	mInternals->mNextPlayerKeyframe = (playerKeyframesArray.getCount() > 1) ? playerKeyframesArray[1] : nil;
+	mInternals->mPreviousPlayerKeyframe =
+			(playerKeyframesArray.getCount() > 0) ?
+					OR<CKeyframeAnimationPlayerKeyframe>(*playerKeyframesArray[0]) :
+					OR<CKeyframeAnimationPlayerKeyframe>();
+	mInternals->mNextPlayerKeyframe =
+			(playerKeyframesArray.getCount() > 1) ?
+					OR<CKeyframeAnimationPlayerKeyframe>(*playerKeyframesArray[1]) :
+					OR<CKeyframeAnimationPlayerKeyframe>();
 
 	if (start)
 		update(0.0, false);
@@ -421,138 +393,142 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 {
 	if (!mInternals->mIsStarted) {
 		mInternals->mCurrentTimeInterval += deltaTimeInterval;
-		if (mInternals->mCurrentTimeInterval >= mInternals->mStartTimeInterval)
+		if (mInternals->mCurrentTimeInterval >= mInternals->mStartTimeInterval.getValue(0.0))
 			mInternals->mIsStarted = true;
 	}
 	
-	if (mInternals->mIsStarted && !mInternals->mIsFinished) {
-		if (isRunning || ((mInternals->mPreviousPlayerKeyframe != nil) &&
-				(mInternals->mPreviousPlayerKeyframe->getTransitionType() !=
-						kAnimationKeyframeTransitionTypeHoldUntilStart)))
+	if (mInternals->mIsStarted && !mInternals->mIsFinished && (mInternals->mPreviousPlayerKeyframe.hasReference())) {
+		// Ensure is running or transition is not hold until start
+		if (isRunning ||
+				(mInternals->mPreviousPlayerKeyframe->getTransitionType().hasValue() &&
+						(*mInternals->mPreviousPlayerKeyframe->getTransitionType() !=
+								kAnimationKeyframeTransitionTypeHoldUntilStart)))
 			// Update our current time
 			mInternals->mCurrentFrameTimeInterval += deltaTimeInterval;
 
+		// Setup
 		const	SKeyframeAnimationPlayerProcsInfo&				procsInfo =
 																		mInternals->mKeyframeAnimationPlayerProcsInfo;
 				TPtrArray<CKeyframeAnimationPlayerKeyframe*>&	playerKeyframesArray =
 																		mInternals->mPlayerKeyframesArray;
-		if (mInternals->mPreviousPlayerKeyframe != nil) {
-			// Get on the correct keyframe
-			while (
-					// Running or transition is not hold until start
-					(isRunning ||
-							(mInternals->mPreviousPlayerKeyframe->getTransitionType() !=
-									kAnimationKeyframeTransitionTypeHoldUntilStart)) &&
-					
-					// Delay is not delay forever
-					(mInternals->mPreviousPlayerKeyframe->getDelay() != kAnimationKeyframeDelayForever) &&
-					
-					// Current frame time is after the current frame delay
-					(mInternals->mCurrentFrameTimeInterval > mInternals->mPreviousPlayerKeyframe->getDelay())) {
-				// Update frame time
-				mInternals->mCurrentFrameTimeInterval -= mInternals->mPreviousPlayerKeyframe->getDelay();
-				
-				// Update keyframe pointers
-				mInternals->mPreviousPlayerKeyframe = mInternals->mNextPlayerKeyframe;
-				
-				// We have an action for this keyframe?
-				mInternals->mNeedToAddToDeadPlayerArray = true;
-				if (mInternals->mPreviousPlayerKeyframe != nil) {
-					OR<CActionArray>	actionArray = mInternals->mPreviousPlayerKeyframe->getActionArray();
-					if (actionArray.hasReference() && (procsInfo.mActionArrayHandlerProc != nil))
-						procsInfo.mActionArrayHandlerProc(*this, *actionArray, procsInfo.mUserData);
-				}
 
-				// Did we die?
-				if (sDeadPlayerArray.contains(this)) {
-					// Yes
-					sDeadPlayerArray -= this;
-					
-					return;
-				}
-				mInternals->mNeedToAddToDeadPlayerArray = false;
-				
-				// We done?
-				if (mInternals->mPreviousPlayerKeyframe == nil)
-					// Yes					
-					return;
+		// Get on the correct keyframe
+		while (
+				// Running or transition is not hold until start
+				(isRunning ||
+						(mInternals->mPreviousPlayerKeyframe->getTransitionType().hasValue() &&
+								(*mInternals->mPreviousPlayerKeyframe->getTransitionType() !=
+										kAnimationKeyframeTransitionTypeHoldUntilStart))) &&
 
-				OV<CArrayItemIndex>	index = playerKeyframesArray.getIndexOf(mInternals->mNextPlayerKeyframe);
-				if (*index < (playerKeyframesArray.getCount() - 1))
-					// Next keyframe please!
-					mInternals->mNextPlayerKeyframe = playerKeyframesArray[*index + 1];
-				else if ((procsInfo.mShouldLoopProc != nil) &&
-						procsInfo.mShouldLoopProc(*this, ++mInternals->mCurrentLoopCount, procsInfo.mUserData)) {
-					// Looping
-					mInternals->mNextPlayerKeyframe = playerKeyframesArray[0];
+				// Have delay
+				mInternals->mPreviousPlayerKeyframe->getDelay().hasValue() &&
 
-// May not be the correct location (untested)
-					if (procsInfo.mLoopingProc != nil)
-						procsInfo.mLoopingProc(*this, procsInfo.mUserData);
-				} else {
-					// Just about done
-					mInternals->mNextPlayerKeyframe = nil;
-					
-// May not be the correct location (untested)
-					if (procsInfo.mFinishedProc != nil)
-						procsInfo.mFinishedProc(*this, procsInfo.mUserData);
-				}
+				// Current frame time is after the current frame delay
+				(mInternals->mCurrentFrameTimeInterval > *mInternals->mPreviousPlayerKeyframe->getDelay())) {
+			// Update frame time
+			mInternals->mCurrentFrameTimeInterval -= *mInternals->mPreviousPlayerKeyframe->getDelay();
+
+			// Update keyframe pointers
+			mInternals->mPreviousPlayerKeyframe = mInternals->mNextPlayerKeyframe;
+			mInternals->mNextPlayerKeyframe = OR<CKeyframeAnimationPlayerKeyframe>();
+
+			// We done?
+			if (!mInternals->mPreviousPlayerKeyframe.hasReference())
+				// Yes
+				return;
+
+			// Process actions - this may cause us to go away
+			mInternals->mNeedToAddToDeadPlayers = true;
+			const	OO<CActions>&	actions = mInternals->mPreviousPlayerKeyframe->getActions();
+			if (actions.hasObject())
+				// Handle actions
+				procsInfo.performActions(*this, *actions);
+
+			// Did we die?
+			if (sDeadPlayerArray.contains(this)) {
+				// Yes
+				sDeadPlayerArray -= this;
+
+				return;
 			}
-			
-			// Now what to do!
-			Float32	percent, transitionFactor;
-			if ((mInternals->mNextPlayerKeyframe != nil) &&
-					(mInternals->mPreviousPlayerKeyframe->getTransitionType() ==
-							kAnimationKeyframeTransitionTypeLinear)) {
-				// Linear between keyframes
-				transitionFactor =
-						mInternals->mCurrentFrameTimeInterval / mInternals->mPreviousPlayerKeyframe->getDelay();
-				mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
-						*mInternals->mNextPlayerKeyframe);
-			} else if ((mInternals->mNextPlayerKeyframe != nil) &&
-					(mInternals->mPreviousPlayerKeyframe->getTransitionType() ==
-							kAnimationKeyframeTransitionTypeEaseIn)) {
-				// Linear, then ease in
-				percent = mInternals->mCurrentFrameTimeInterval / mInternals->mPreviousPlayerKeyframe->getDelay();
-				if (percent <= 0.5f)
-					transitionFactor = percent;
-				else
-					transitionFactor = 3.0f * percent * percent - 2.0f * percent * percent * percent;
-				mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
-						*mInternals->mNextPlayerKeyframe);
-			} else if ((mInternals->mNextPlayerKeyframe != nil) &&
-					(mInternals->mPreviousPlayerKeyframe->getTransitionType() ==
-							kAnimationKeyframeTransitionTypeEaseOut)) {
-				// Ease out, then linear
-				percent = mInternals->mCurrentFrameTimeInterval / mInternals->mPreviousPlayerKeyframe->getDelay();
-				if (percent <= 0.5f)
-					transitionFactor = 3.0f * percent * percent - 2.0f * percent * percent * percent;
-				else
-					transitionFactor = percent;
-				mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
-						*mInternals->mNextPlayerKeyframe);
-			} else if ((mInternals->mNextPlayerKeyframe != nil) &&
-					(mInternals->mPreviousPlayerKeyframe->getTransitionType() ==
-							kAnimationKeyframeTransitionTypeEaseInEaseOut)) {
-				// Ease out, then ease in
-				percent = mInternals->mCurrentFrameTimeInterval / mInternals->mPreviousPlayerKeyframe->getDelay();
-				transitionFactor = 3.0f * percent * percent - 2.0f * percent * percent * percent;
-				mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
-						*mInternals->mNextPlayerKeyframe);
-			} else {
-				// No next keyframe or no transition or jump between frames.
-				// Copy keyframe values to sprite values
-				mInternals->mPreviousPlayerKeyframe->setSpriteValuesToKeyframeValues();
+			mInternals->mNeedToAddToDeadPlayers = false;
+
+			// Update next keyframe
+			OV<CArrayItemIndex>	index = playerKeyframesArray.getIndexOf(&(*mInternals->mPreviousPlayerKeyframe));
+			if (*index < (playerKeyframesArray.getCount() - 1))
+				// Next keyframe please!
+				mInternals->mNextPlayerKeyframe =
+						OR<CKeyframeAnimationPlayerKeyframe>(*playerKeyframesArray[*index + 1]);
+			else if (procsInfo.canPerformShouldLoop() && procsInfo.shouldLoop(*this, ++mInternals->mCurrentLoopCount)) {
+				// Looping
+				mInternals->mNextPlayerKeyframe = OR<CKeyframeAnimationPlayerKeyframe>(*playerKeyframesArray[0]);
+
+				// Call proc
+				procsInfo.didLoop(*this);
+			} else if (mInternals->mPreviousPlayerKeyframe->getDelay().hasValue()) {
+				// Finshed
+				mInternals->mIsFinished = true;
+
+				// Call proc
+				procsInfo.didFinish(*this);
 			}
 		}
+
+		// Now what to do!
+				Float32									percent, transitionFactor;
+		const	OV<EAnimationKeyframeTransitionType>&	transitionType =
+																mInternals->mPreviousPlayerKeyframe->
+																		getTransitionType();
+		if ((mInternals->mNextPlayerKeyframe.hasReference()) &&
+				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeLinear)) {
+			// Linear between keyframes
+			transitionFactor =
+					mInternals->mCurrentFrameTimeInterval / *mInternals->mPreviousPlayerKeyframe->getDelay();
+			mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
+					*mInternals->mNextPlayerKeyframe);
+		} else if ((mInternals->mNextPlayerKeyframe.hasReference()) &&
+				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeEaseIn)) {
+			// Linear, then ease in
+			percent = mInternals->mCurrentFrameTimeInterval / *mInternals->mPreviousPlayerKeyframe->getDelay();
+			if (percent <= 0.5f)
+				transitionFactor = percent;
+			else
+				transitionFactor = 3.0f * percent * percent - 2.0f * percent * percent * percent;
+			mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
+					*mInternals->mNextPlayerKeyframe);
+		} else if ((mInternals->mNextPlayerKeyframe.hasReference()) &&
+				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeEaseOut)) {
+			// Ease out, then linear
+			percent = mInternals->mCurrentFrameTimeInterval / *mInternals->mPreviousPlayerKeyframe->getDelay();
+			if (percent <= 0.5f)
+				transitionFactor = 3.0f * percent * percent - 2.0f * percent * percent * percent;
+			else
+				transitionFactor = percent;
+			mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
+					*mInternals->mNextPlayerKeyframe);
+		} else if ((mInternals->mNextPlayerKeyframe.hasReference()) &&
+				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeEaseInEaseOut)) {
+			// Ease out, then ease in
+			percent = mInternals->mCurrentFrameTimeInterval / *mInternals->mPreviousPlayerKeyframe->getDelay();
+			transitionFactor = 3.0f * percent * percent - 2.0f * percent * percent * percent;
+			mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
+					*mInternals->mNextPlayerKeyframe);
+		} else {
+			// No next keyframe or no transition or jump between frames.
+			// Copy keyframe values to sprite values
+			mInternals->mPreviousPlayerKeyframe->setSpriteValuesToKeyframeValues();
+		}
+
+		// Make sure to finish loading
+		mInternals->mPreviousPlayerKeyframe->finishLoading();
 	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CKeyframeAnimationPlayer::render(CGPU& gpu, const S2DPoint32& offset)
+void CKeyframeAnimationPlayer::render(CGPU& gpu, const S2DPoint32& offset) const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	if (mInternals->mIsStarted && !mInternals->mIsFinished && (mInternals->mPreviousPlayerKeyframe != nil))
+	if (mInternals->mIsStarted && !mInternals->mIsFinished && (mInternals->mPreviousPlayerKeyframe.hasReference()))
 		// Draw
 		mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->render(gpu, offset);
 }

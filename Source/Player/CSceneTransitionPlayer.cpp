@@ -12,7 +12,6 @@ class CSceneTransitionPlayerInternals {
 		CSceneTransitionPlayerInternals(CScenePlayer& fromScenePlayer, CScenePlayer& toScenePlayer) :
 				mFromScenePlayer(fromScenePlayer), mToScenePlayer(toScenePlayer), mState(kSceneTransitionStateActive)
 			{}
-		~CSceneTransitionPlayerInternals() {}
 
 		CScenePlayer&			mFromScenePlayer;
 		CScenePlayer&			mToScenePlayer;
@@ -26,11 +25,10 @@ class CSceneTransitionPlayerInternals {
 
 // MARK: Properties
 
-CString	CSceneTransitionPlayer::mInfoDirectionUpValue("up");
-CString	CSceneTransitionPlayer::mInfoDirectionDownValue("down");
-CString	CSceneTransitionPlayer::mInfoDirectionLeftValue("left");
-CString	CSceneTransitionPlayer::mInfoDirectionRightValue("right");
-
+CString	CSceneTransitionPlayer::mInfoDirectionUpValue(OSSTR("up"));
+CString	CSceneTransitionPlayer::mInfoDirectionDownValue(OSSTR("down"));
+CString	CSceneTransitionPlayer::mInfoDirectionLeftValue(OSSTR("left"));
+CString	CSceneTransitionPlayer::mInfoDirectionRightValue(OSSTR("right"));
 
 // MARK: Lifecycle methods
 
@@ -84,32 +82,6 @@ void CSceneTransitionPlayer::update(UniversalTimeInterval deltaTimeInterval)
 {
 	mInternals->mFromScenePlayer.update(deltaTimeInterval);
 	mInternals->mToScenePlayer.update(deltaTimeInterval);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneTransitionPlayer::touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 tapOrClickCount,
-		const void* reference)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneTransitionPlayer::touchOrMouseMovedFromPoint(const S2DPoint32& point1, const S2DPoint32& point2,
-		const void* reference)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneTransitionPlayer::touchEndedOrMouseUpAtPoint(const S2DPoint32& point, const void* reference)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneTransitionPlayer::touchesOrMouseCancelled(const void* reference)
-//----------------------------------------------------------------------------------------------------------------------
-{
 }
 
 // MARK: Subclass methods

@@ -4,32 +4,8 @@
 
 #include "CSceneItemPlayerHotspot.h"
 
-////----------------------------------------------------------------------------------------------------------------------
-//// MARK: CSceneItemPlayerHotspotInternals
-//
-//class CSceneItemPlayerHotspotInternals {
-//	public:
-//		CSceneItemPlayerHotspotInternals() {}
-//		~CSceneItemPlayerHotspotInternals() {}
-//};
-
 //----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc declarations
-
-//static	CSceneItemPlayer*	sCreateSceneItemPlayer(const CSceneItem& sceneItem,
-//									const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-//									const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, bool makeCopy);
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Register Scene Item Player
-
-//REGISTER_SCENE_ITEM_PLAYER(CSceneItemPlayerHotspot, sCreateSceneItemPlayer, CSceneItemHotspot::mType);
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemPlayerHotspot
+// MARK: CSceneItemPlayerHotspot
 
 // MARK: Lifecycle methods
 
@@ -40,40 +16,25 @@ CSceneItemPlayerHotspot::CSceneItemPlayerHotspot(const CSceneItemHotspot& sceneI
 		CSceneItemPlayer(sceneItemHotspot, sceneItemPlayerProcsInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
-//	mInternals = new CSceneItemPlayerHotspotInternals();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerHotspot::~CSceneItemPlayerHotspot()
-//----------------------------------------------------------------------------------------------------------------------
-{
-//	DisposeOf(mInternals);
 }
 
 // MARK: CSceneItemPlayer methods
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DRect32 CSceneItemPlayerHotspot::getCurrentScreenRect() const
+CActions CSceneItemPlayerHotspot::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return getSceneItemHotspot().getScreenRect();
-}
+	CActions	actionsArray;
 
-//----------------------------------------------------------------------------------------------------------------------
-CActionArray CSceneItemPlayerHotspot::getAllActions() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	CActionArray	actionsArray;
-
-	OR<CActionArray>	actionArray = getSceneItemHotspot().getActionArray();
-	if (actionArray.hasReference())
-		actionsArray.addFrom(*actionArray);
+	const	OO<CActions>&	actions = getSceneItemHotspot().getActions();
+	if (actions.hasObject())
+		actionsArray.addFrom(*actions);
 
 	return actionsArray;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerHotspot::handlesTouchOrMouseAtPoint(const S2DPoint32& point)
+bool CSceneItemPlayerHotspot::handlesTouchOrMouseAtPoint(const S2DPoint32& point) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return getSceneItemHotspot().getScreenRect().contains(point);
@@ -84,21 +45,7 @@ void CSceneItemPlayerHotspot::touchBeganOrMouseDownAtPoint(const S2DPoint32& poi
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	OR<CActionArray>	actionArray = getSceneItemHotspot().getActionArray();
-	if (actionArray.hasReference())
-		perform(*actionArray, point);
+	const	OO<CActions>&	actions = getSceneItemHotspot().getActions();
+	if (actions.hasObject())
+		perform(*actions, point);
 }
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc definitions
-
-////----------------------------------------------------------------------------------------------------------------------
-//CSceneItemPlayer* sCreateSceneItemPlayer(const CSceneItem& sceneItem,
-//		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-//		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, bool makeCopy)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	return new CSceneItemPlayerHotspot(*((CSceneItemHotspot*) &sceneItem), sceneAppResourceManagementInfo,
-//			sceneItemPlayerProcsInfo, makeCopy);
-//}

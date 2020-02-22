@@ -4,7 +4,6 @@
 
 #include "CScenePlayer.h"
 
-#include "CScene.h"
 #include "CLogServices.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -15,13 +14,6 @@ static	const	Float32	kHSwipeDragMaxY = 4.0f;
 
 static	const	Float32	kVSwipeDragMaxX = 4.0f;
 static	const	Float32	kVSwipeDragMinY = 12.0f;
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc declarations
-
-//static	CImageX				sSceneItemPlayerGetCurrentViewportImage(const CSceneItemPlayer& sceneItemPlayer,
-//										bool performRedraw, void* userData);
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -36,10 +28,7 @@ class CScenePlayerInternals {
 											mIsLoaded(false), mIsRunning(false), mScene(scene),
 													mScenePlayer(scenePlayer),
 													mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
-													mSceneItemPlayerProcsInfo(sceneItemPlayerActionArrayPerformProc,
-//															sceneItemPlayerCreateSceneItemPlayerForSceneItemProc,
-//															sceneItemPlayerAddSceneItemPlayerProc,
-//															sceneItemPlayerGetPeerForSceneItemName,
+													mSceneItemPlayerProcsInfo(sceneItemPlayerActionsPerformProc,
 															this),
 													mScenePlayerProcsInfo(scenePlayerProcsInfo),
 													mSceneItemPlayersArray(true)
@@ -63,69 +52,15 @@ class CScenePlayerInternals {
 												return OR<CSceneItemPlayer>();
 											}
 
-		static	void					sceneItemPlayerActionArrayPerformProc(const CActionArray& actionArray,
+		static	void					sceneItemPlayerActionsPerformProc(const CActions& actions,
 												const S2DPoint32& point, void* userData)
 											{
 												// Setup
 												CScenePlayerInternals*	internals = (CScenePlayerInternals*) userData;
 
 												// Call proc
-												internals->mScenePlayerProcsInfo.mActionArrayPerformProc(actionArray,
-														point, internals->mScenePlayerProcsInfo.mUserData);
+												internals->mScenePlayerProcsInfo.performActions(actions, point);
 											}
-//		static	OV<CSceneItemPlayer*>	sceneItemPlayerCreateSceneItemPlayerForSceneItemProc(
-//												const CSceneItem& sceneItem, bool autoLoad, void* userData)
-//											{
-//												// Setup
-//												CScenePlayerInternals*	internals = (CScenePlayerInternals*) userData;
-//
-//												// Create scene item player
-//												OV<CSceneItemPlayer*>	sceneItemPlayer =
-//																				internals->mScenePlayerProcsInfo.
-//																						mCreateSceneItemPlayerProc(
-//																						sceneItem,
-//																						internals->
-//																								mSceneAppResourceManagementInfo,
-//																						internals->
-//																								mSceneItemPlayerProcsInfo,
-//																						internals->
-//																								mScenePlayerProcsInfo.mUserData);
-//												if (sceneItemPlayer.hasValue()) {
-//													// Add to array
-//													internals->mSceneItemPlayersArray += *sceneItemPlayer;
-//
-//													// Check if need to load
-//													if (autoLoad && internals->mIsLoaded)
-//														// Load
-//														(*sceneItemPlayer)->load();
-//												}
-//
-//												return sceneItemPlayer;
-//											}
-//
-//		static	void 					sceneItemPlayerAddSceneItemPlayerProc(CSceneItemPlayer& sceneItemPlayer,
-//												bool autoLoad, void* userData)
-//											{
-//												// Setup
-//												CScenePlayerInternals*	internals = (CScenePlayerInternals*) userData;
-//
-//												// Add to array
-//												internals->mSceneItemPlayersArray += &sceneItemPlayer;
-//
-//												// Check if need to load
-//												if (autoLoad && internals->mIsLoaded)
-//													// Load
-//													sceneItemPlayer.load();
-//											}
-//
-//		static	OR<CSceneItemPlayer>	sceneItemPlayerGetPeerForSceneItemName(CSceneItemPlayer& sceneItemPlayer,
-//												const CString& sceneItemName, void* userData)
-//											{
-//												// Setup
-//												CScenePlayerInternals*	internals = (CScenePlayerInternals*) userData;
-//
-//												return internals->getSceneItemPlayerForSceneItemWithName(sceneItemName);
-//											}
 
 				bool								mIsLoaded;
 				bool								mIsRunning;
@@ -171,19 +106,17 @@ const CScene& CScenePlayer::getScene() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CActionArray CScenePlayer::getAllActions() const
+CActions CScenePlayer::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Setup
-	CActionArray	allActionArray;
-
 	// Iterate all scene item players
+	CActions	allActions;
 	for (TIteratorS<CSceneItemPlayer*> iterator = mInternals->mSceneItemPlayersArray.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Add actions
-		allActionArray += iterator.getValue()->getAllActions();
+		allActions += iterator.getValue()->getAllActions();
 
-	return allActionArray;
+	return allActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -193,26 +126,28 @@ void CScenePlayer::load()
 	// Ensure is loaded
 	if (mInternals->mIsLoaded)
 		return;
+
 	// Iterate all scene items
-	for (UInt32 i = 0; i < mInternals->mScene.getSceneItemsCount(); i++) {
+	const	TArray<CSceneItem>&	sceneItems = mInternals->mScene.getSceneItems();
+	for (UInt32 i = 0; i < sceneItems.getCount(); i++) {
 		// Get scene
-		CSceneItem&	sceneItem = mInternals->mScene.getSceneItemAtIndex(i);
+		CSceneItem&	sceneItem = sceneItems[i];
 
-		// Try to create scene item player
-		OV<CSceneItemPlayer*>	sceneItemPlayer =
-										mInternals->mScenePlayerProcsInfo.mCreateSceneItemPlayerProc(sceneItem,
-												mInternals->mSceneAppResourceManagementInfo,
-												mInternals->mSceneItemPlayerProcsInfo,
-												mInternals->mScenePlayerProcsInfo.mUserData);
-		if (sceneItemPlayer.hasValue()) {
-			// Yes
-			mInternals->mSceneItemPlayersArray += *sceneItemPlayer;
+		// Create scene item player
+		CSceneItemPlayer*	sceneItemPlayer =
+									mInternals->mScenePlayerProcsInfo.createSceneItemPlayer(sceneItem,
+											mInternals->mSceneAppResourceManagementInfo,
+											mInternals->mSceneItemPlayerProcsInfo);
+if (sceneItemPlayer == nil) {
+CLogServices::logMessage(CString("No player created for ") + sceneItem.getType());
+	continue;
+}
+		mInternals->mSceneItemPlayersArray += sceneItemPlayer;
 
-			// Check if need to load
-			if (!(sceneItem.getOptions() & kSceneItemOptionsDontLoadWithScene))
-				// Load
-				(*sceneItemPlayer)->load();
-		}
+		// Check if need to load
+		if (!(sceneItem.getOptions() & kSceneItemOptionsDontLoadWithScene))
+			// Load
+			sceneItemPlayer->load();
 	}
 
 	// Iterate all created scene item players
@@ -232,7 +167,7 @@ void CScenePlayer::unload()
 	// Ensure is not loaded
 	if (!mInternals->mIsLoaded)
 		return;
-	CLogServices::logMessage(CString("Unloading ") + CString(this));
+	CLogServices::logMessage(CString(OSSTR("Unloading ")) + CString(this));
 
 	// Iterate all scene item players
 	for (TIteratorS<CSceneItemPlayer*> iterator = mInternals->mSceneItemPlayersArray.getIterator(); iterator.hasValue();
@@ -262,15 +197,14 @@ void CScenePlayer::start()
 void CScenePlayer::reset()
 //----------------------------------------------------------------------------------------------------------------------
 {
-CLogServices::logMessage(CString("Resetting ") + CString(this));
 	// Check if running
 	if (mInternals->mIsRunning) {
 		// No longer running
 		mInternals->mIsRunning = false;
 
 		// Iterate all scene item players
-		for (TIteratorS<CSceneItemPlayer*> iterator = mInternals->mSceneItemPlayersArray.getIterator(); iterator.hasValue();
-				iterator.advance())
+		for (TIteratorS<CSceneItemPlayer*> iterator = mInternals->mSceneItemPlayersArray.getIterator();
+				iterator.hasValue(); iterator.advance())
 			// Reset
 			iterator.getValue()->reset();
 	}
@@ -289,7 +223,7 @@ void CScenePlayer::update(UniversalTimeInterval deltaTimeInterval)
 		CSceneItemPlayer*	sceneItemPlayer = iterator.getValue();
 
 		// Check if need to update
-		if ((mInternals->mIsRunning || (sceneItemPlayer->getStartTimeInterval() == kSceneItemStartTimeStartAtLoad)) &&
+		if ((mInternals->mIsRunning || !sceneItemPlayer->getStartTimeInterval().hasValue()) &&
 				sceneItemPlayer->getIsVisible())
 			// Update
 			sceneItemPlayer->update(deltaTimeInterval, mInternals->mIsRunning);
@@ -297,7 +231,7 @@ void CScenePlayer::update(UniversalTimeInterval deltaTimeInterval)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CScenePlayer::render(CGPU& gpu, const S2DPoint32& offset)
+void CScenePlayer::render(CGPU& gpu, const S2DPoint32& offset) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
@@ -321,20 +255,6 @@ void CScenePlayer::render(CGPU& gpu, const S2DPoint32& offset)
 		}
 	}
 }
-
-////----------------------------------------------------------------------------------------------------------------------
-//CSceneItemPlayer* CScenePlayer::getSceneItemPlayerOrNilForItemName(const CString& itemName) const
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	for (CArrayItemIndex i = 0; i < mInternals->mSceneItemPlayersArray.getCount(); i++) {
-//		CSceneItemPlayer*	sceneItemPlayer = mInternals->mSceneItemPlayersArray[i];
-//		CSceneItem*			sceneItem = sceneItemPlayer->getSceneItemOrNil();
-//		if ((sceneItem != nil) && (sceneItem->getName() == itemName))
-//			return sceneItemPlayer;
-//	}
-//
-//	return nil;
-//}
 
 //----------------------------------------------------------------------------------------------------------------------
 void CScenePlayer::setItemPlayerProperty(const CString& itemName, const CString& property,
@@ -360,32 +280,6 @@ void CScenePlayer::handleItemPlayerCommand(const CString& itemName, const CStrin
 		sceneItemPlayer->handleCommand(command, commandInfo, point);
 }
 
-////----------------------------------------------------------------------------------------------------------------------
-//CSceneItemPlayer* CScenePlayer::getSceneItemPlayerOrNilForTouchOrMouseAtPoint(const S2DPoint32& point) const
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	S2DPoint32	offsetPoint(point.mX - mInternals->mCurrentOffsetPoint.mX,
-//						point.mY - mInternals->mCurrentOffsetPoint.mY);
-//
-//	// Search players from front to back
-//	for (CArrayItemIndex i = mInternals->mSceneItemPlayersArray.getCount(); i > 0; i--) {
-//		CSceneItemPlayer*	sceneItemPlayer = mInternals->mSceneItemPlayersArray[i - 1];
-//		if (!sceneItemPlayer->getIsVisible())
-//			continue;
-//
-//		S2DPoint32	testPoint =
-//							((sceneItemPlayer->getSceneItemOrNil() != nil) &&
-//									(sceneItemPlayer->getSceneItemOrNil()->getOptions() &
-//											kSceneItemOptionsAnchorToScreen)) ?
-//							point : offsetPoint;
-//		if (sceneItemPlayer->handlesTouchOrMouseAtPoint(testPoint))
-//			// Found it
-//			return sceneItemPlayer;
-//	}
-//
-//	return nil;
-//}
-
 //----------------------------------------------------------------------------------------------------------------------
 void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 tapOrClickCount, const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
@@ -393,49 +287,55 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 
 	// Store
 	mInternals->mInitialTouchPoint = point;
 
-	// Setup
-	S2DPoint32	offsetPoint(point.mX - mInternals->mCurrentOffsetPoint.mX,
-						point.mY - mInternals->mCurrentOffsetPoint.mY);
+	// Check for 2 taps/clicks and have double tap action
+	if ((tapOrClickCount == 2) && mInternals->mScene.getDoubleTapActions().hasObject())
+		// 2 taps or clicks and have double tap action
+		mInternals->mScenePlayerProcsInfo.performActions(*mInternals->mScene.getDoubleTapActions());
+	else {
+		// Setup
+		S2DPoint32	offsetPoint(point.mX - mInternals->mCurrentOffsetPoint.mX,
+							point.mY - mInternals->mCurrentOffsetPoint.mY);
 
-	// Search for target scene item player from front to back
-	CSceneItemPlayer*	targetSceneItemPlayer = nil;
-	for (CArrayItemIndex i = mInternals->mSceneItemPlayersArray.getCount(); i > 0; i--) {
-		// Get next scene item player
-		CSceneItemPlayer*	sceneItemPlayer = mInternals->mSceneItemPlayersArray[i - 1];
+		// Search for target scene item player from front to back
+		CSceneItemPlayer*	targetSceneItemPlayer = nil;
+		for (CArrayItemIndex i = mInternals->mSceneItemPlayersArray.getCount(); i > 0; i--) {
+			// Get next scene item player
+			CSceneItemPlayer*	sceneItemPlayer = mInternals->mSceneItemPlayersArray[i - 1];
 
-		// Check if visible
-		if (!sceneItemPlayer->getIsVisible())
-			// Not visible
-			continue;
+			// Check if visible
+			if (!sceneItemPlayer->getIsVisible())
+				// Not visible
+				continue;
 
-		// Compose test point
-		S2DPoint32	testPoint =
-							(sceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) ?
-									point : offsetPoint;
-		if (sceneItemPlayer->handlesTouchOrMouseAtPoint(testPoint)) {
-			// Found it
-			targetSceneItemPlayer = sceneItemPlayer;
-			break;
+			// Compose test point
+			S2DPoint32	testPoint =
+								(sceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) ?
+										point : offsetPoint;
+			if (sceneItemPlayer->handlesTouchOrMouseAtPoint(testPoint)) {
+				// Found it
+				targetSceneItemPlayer = sceneItemPlayer;
+				break;
+			}
 		}
+
+		// Check if found scene item player
+		if (targetSceneItemPlayer == nil)
+			// Nothing found
+			return;
+
+		// Store
+		mInternals->mTouchHandlingInfo.set(CString(reference), targetSceneItemPlayer);
+
+		// Prepare to adjust point if needed
+		S2DPoint32	adjustedPoint = point;
+		if ((targetSceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) == 0) {
+			adjustedPoint.mX -= mInternals->mCurrentOffsetPoint.mX;
+			adjustedPoint.mY -= mInternals->mCurrentOffsetPoint.mY;
+		}
+
+		// Pass to scene item player
+		targetSceneItemPlayer->touchBeganOrMouseDownAtPoint(adjustedPoint, tapOrClickCount, reference);
 	}
-
-	// Check if found scene item player
-	if (targetSceneItemPlayer == nil)
-		// Nothing found
-		return;
-
-	// Store
-	mInternals->mTouchHandlingInfo.set(CString(reference), targetSceneItemPlayer);
-
-	// Prepare to adjust point if needed
-	S2DPoint32	adjustedPoint = point;
-	if ((targetSceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) == 0) {
-		adjustedPoint.mX -= mInternals->mCurrentOffsetPoint.mX;
-		adjustedPoint.mY -= mInternals->mCurrentOffsetPoint.mY;
-	}
-
-	// Pass to scene item player
-	targetSceneItemPlayer->touchBeganOrMouseDownAtPoint(adjustedPoint, tapOrClickCount, reference);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -453,6 +353,7 @@ void CScenePlayer::touchOrMouseMovedFromPoint(const S2DPoint32& point1, const S2
 					(fabsf(point2.mY - mInternals->mInitialTouchPoint.mY) >= kVSwipeDragMinY)))) {
 		// Touch move has become a swipe
 		(*targetSceneItemPlayer)->touchOrMouseCancelled(reference);
+		targetSceneItemPlayer = OV<CSceneItemPlayer*>();
 		mInternals->mTouchHandlingInfo.remove(CString(reference));
 
 		// Update our current offset
@@ -481,18 +382,16 @@ void CScenePlayer::touchOrMouseMovedFromPoint(const S2DPoint32& point1, const S2
 		mInternals->mCurrentOffsetPoint.mY += point2.mY - point1.mY;
 		
 		// Bound
-		S2DSize32	viewportSize =
-							mInternals->mScenePlayerProcsInfo.mGetViewportSizeProc(
-									mInternals->mScenePlayerProcsInfo.mUserData);
-		Float32	minX = viewportSize.mWidth - mInternals->mScene.getBoundsRect().getMaxX();
-		Float32	maxX = mInternals->mScene.getBoundsRect().mOrigin.mX;
+		S2DSize32	viewportSize = mInternals->mScenePlayerProcsInfo.getViewportSize();
+		Float32		minX = viewportSize.mWidth - mInternals->mScene.getBoundsRect().getMaxX();
+		Float32		maxX = mInternals->mScene.getBoundsRect().mOrigin.mX;
 		if (mInternals->mCurrentOffsetPoint.mX < minX)
 			mInternals->mCurrentOffsetPoint.mX = minX;
 		else if (mInternals->mCurrentOffsetPoint.mX > maxX)
 			mInternals->mCurrentOffsetPoint.mX = maxX;
 
-		Float32	minY = viewportSize.mHeight - mInternals->mScene.getBoundsRect().getMaxY();
-		Float32	maxY = mInternals->mScene.getBoundsRect().mOrigin.mY;
+		Float32		minY = viewportSize.mHeight - mInternals->mScene.getBoundsRect().getMaxY();
+		Float32		maxY = mInternals->mScene.getBoundsRect().mOrigin.mY;
 		if (mInternals->mCurrentOffsetPoint.mY < minY)
 			mInternals->mCurrentOffsetPoint.mY = minY;
 		else if (mInternals->mCurrentOffsetPoint.mY > maxY)
@@ -573,33 +472,3 @@ void CScenePlayer::shakeCancelled()
 		// Pass to scene item player
 		iterator.getValue()->shakeCancelled();
 }
-
-////----------------------------------------------------------------------------------------------------------------------
-//CSceneItemPlayer* CScenePlayer::createAndAddSceneItemPlayerForSceneItem(const CSceneItem& sceneItem, bool makeCopy,
-//		bool autoLoad)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	return sSceneItemPlayerCreateSceneItemPlayerForSceneItemProc(sceneItem, makeCopy, autoLoad, mInternals);
-//}
-
-////----------------------------------------------------------------------------------------------------------------------
-//void CScenePlayer::addSceneItemPlayer(CSceneItemPlayer& sceneItemPlayer, bool autoLoad)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	sSceneItemPlayerAddSceneItemPlayerProc(sceneItemPlayer, autoLoad, mInternals);
-//}
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc definitions
-
-////----------------------------------------------------------------------------------------------------------------------
-//CImageX sSceneItemPlayerGetCurrentViewportImage(const CSceneItemPlayer& sceneItemPlayer, bool performRedraw,
-//		void* userData)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	CScenePlayerInternals*	internals = (CScenePlayerInternals*) userData;
-//
-//	return internals->mScenePlayerProcsInfo->mGetCurrentViewportImageProc(
-//			internals->mScenePlayer, performRedraw, internals->mScenePlayerProcsInfo->mUserData);
-//}

@@ -4,55 +4,31 @@
 
 #include "CSceneItemPlayerButtonArray.h"
 
-#include "CFileX.h"
+#include "CGPURenderObject2D.h"
+#include "CImage.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemPlayerButtonArrayInternals
 
-// Placeholders
-enum ABC { kCGLTextureReferencePixelFormatRGBA8888, };
-enum DEF { kCGLTextureReferenceOptionsNone, };
-
-class CGL2DRenderObject {
-public:
-	CGL2DRenderObject(const CFileX&, ABC, DEF) {}
-	void drawSubrect(Float32, Float32, Float32, Float32, Float32, Float32) {}
-};
-
 class CSceneItemPlayerButtonArrayInternals {
 	public:
-		CSceneItemPlayerButtonArrayInternals()
-			{
-				mGL2DRenderObject = nil;
-
-				mActiveButton = nil;
-				mActiveButtonDown = false;
-			}
+		CSceneItemPlayerButtonArrayInternals(const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
+			mGPURenderObject2D(nil), mActiveButtonDown(false),
+					mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo)
+			{}
 		~CSceneItemPlayerButtonArrayInternals()
 			{
-				DisposeOf(mGL2DRenderObject);
+				DisposeOf(mGPURenderObject2D);
 			}
 
-		CGL2DRenderObject*				mGL2DRenderObject;
+				CGPURenderObject2D*					mGPURenderObject2D;
 
-		CSceneItemButtonArrayButton*	mActiveButton;
-		bool							mActiveButtonDown;
-		S2DRect32						mActiveButtonScreenRect;
+				OR<CSceneItemButtonArrayButton>		mActiveButton;
+				bool								mActiveButtonDown;
+				S2DRect32							mActiveButtonScreenRect;
+
+		const	SSceneAppResourceManagementInfo&	mSceneAppResourceManagementInfo;
 };
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc declarations
-
-//static	CSceneItemPlayer*	sCreateSceneItemPlayer(const CSceneItem& sceneItem,
-//									const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-//									const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, bool makeCopy);
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: Register Scene Item Player
-
-//REGISTER_SCENE_ITEM_PLAYER(CSceneItemPlayerButtonArray, sCreateSceneItemPlayer, CSceneItemButtonArray::mType);
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -67,7 +43,7 @@ CSceneItemPlayerButtonArray::CSceneItemPlayerButtonArray(const CSceneItemButtonA
 		CSceneItemPlayer(sceneItemButtonArray, sceneItemPlayerProcsInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemPlayerButtonArrayInternals();
+	mInternals = new CSceneItemPlayerButtonArrayInternals(sceneAppResourceManagementInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -80,40 +56,39 @@ CSceneItemPlayerButtonArray::~CSceneItemPlayerButtonArray()
 // MARK: CSceneItemPlayer methods
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DRect32 CSceneItemPlayerButtonArray::getCurrentScreenRect() const
+CActions CSceneItemPlayerButtonArray::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-#warning finish
-	return S2DRect32();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-CActionArray CSceneItemPlayerButtonArray::getAllActions() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-			CActionArray								allActionArray;
-	const	TPtrArray<CSceneItemButtonArrayButton*>&	buttonsArray =
-															getSceneItemButtonArray().getSceneButtonArrayButtonArray();
-	for (CArrayItemIndex i = 0; i < buttonsArray.getCount(); i++) {
-		CSceneItemButtonArrayButton*	button = buttonsArray[i];
-		OR<CActionArray>				actionArray = button->getActionArray();
-		if (actionArray.hasReference())
-			allActionArray.addFrom(*actionArray);
+	// Collect all actions
+	CActions	allActions;
+	for (TIteratorD<CSceneItemButtonArrayButton> iterator =
+					getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
+			iterator.hasValue(); iterator.advance()) {
+		// Get actions for this button
+		const	OO<CActions>&	actions = iterator.getValue().getActions();
+		if (actions.hasObject())
+			// Add to all actions
+			allActions += *actions;
 	}
 
-	return allActionArray;
+	return allActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayerButtonArray::load()
 //----------------------------------------------------------------------------------------------------------------------
 {
-//	if (mInternals->mGL2DRenderObject == nil)
-//		mInternals->mGL2DRenderObject =
-//				new CGL2DRenderObject(
-//						CFileX(eGetURLForResourceFilename(getSceneItemButtonArray().getImageResourceFilename())),
-//								kCGLTextureReferencePixelFormatRGBA8888, kCGLTextureReferenceOptionsNone);
+	// Check if loaded
+	if (mInternals->mGPURenderObject2D == nil)
+		// Load
+		mInternals->mGPURenderObject2D =
+				new CGPURenderObject2D(
+						mInternals->mSceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
+								mInternals->mSceneAppResourceManagementInfo.createByteParceller(
+										getSceneItemButtonArray().getImageResourceFilename()),
+								CImage::getBitmap, getSceneItemButtonArray().getImageResourceFilename()));
 
+	// Do super
 	CSceneItemPlayer::load();
 }
 
@@ -121,7 +96,7 @@ void CSceneItemPlayerButtonArray::load()
 void CSceneItemPlayerButtonArray::unload()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mGL2DRenderObject);
+	DisposeOf(mInternals->mGPURenderObject2D);
 
 	CSceneItemPlayer::unload();
 }
@@ -130,49 +105,54 @@ void CSceneItemPlayerButtonArray::unload()
 void CSceneItemPlayerButtonArray::reset()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals->mActiveButton = nil;
+	// Reset
+	mInternals->mActiveButton = OR<CSceneItemButtonArrayButton>();
+	mInternals->mActiveButtonDown = false;
 
 	// Super
 	CSceneItemPlayer::reset();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButtonArray::render(CGPU& gpu, const S2DPoint32& offset)
+void CSceneItemPlayerButtonArray::update(UniversalTimeInterval deltaTimeInterval, bool isRunning)
 //----------------------------------------------------------------------------------------------------------------------
 {
-//	const	TPtrArray<CSceneItemButtonArrayButton*>&	buttonsArray =
-//															getSceneItemButtonArray().getSceneButtonArrayButtonArray();
-//	for (CArrayItemIndex i = 0; i < buttonsArray.getCount(); i++) {
-//		CSceneItemButtonArrayButton*	button = buttonsArray[i];
-//		S2DPoint32						point(button->getScreenPositionPoint().mX + offset.mX,
-//												button->getScreenPositionPoint().mY + offset.mY);
-//		S2DRect32						rect;
-//		if ((button != mInternals->mActiveButton) || !mInternals->mActiveButtonDown)
-//			rect = button->getUpImageRect();
-//		else
-//			rect = button->getDownImageRect();
-//		mInternals->mGL2DRenderObject->drawSubrect(rect.mOrigin.mX, rect.mOrigin.mY, rect.mSize.mWidth, rect.mSize.mHeight,
-//				point.mX, point.mY);
-//	}
+	mInternals->mGPURenderObject2D->getGPUTextureReference().finishLoading();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerButtonArray::handlesTouchOrMouseAtPoint(const S2DPoint32& point)
+void CSceneItemPlayerButtonArray::render(CGPU& gpu, const S2DPoint32& offset) const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	const	TPtrArray<CSceneItemButtonArrayButton*>&	buttonsArray =
-															getSceneItemButtonArray().getSceneButtonArrayButtonArray();
-	for (CArrayItemIndex i = 0; i < buttonsArray.getCount(); i++) {
-		// Construct screenRect
-		CSceneItemButtonArrayButton*	button = buttonsArray[i];
-		S2DRect32						screenRect;
-		screenRect.mOrigin = button->getScreenPositionPoint();
-		screenRect.mSize = button->getUpImageRect().mSize;
+	// Iterate all buttons
+	for (TIteratorD<CSceneItemButtonArrayButton> iterator =
+					getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
+			iterator.hasValue(); iterator.advance()) {
+		// Render this button
+		S2DPoint32	point = iterator.getValue().getScreenPositionPoint().offset(offset.mX, offset.mY);
+		S2DRect32	rect =
+							(!mInternals->mActiveButtonDown ||
+											!mInternals->mActiveButton.hasReference() ||
+											(&iterator.getValue() != &(*mInternals->mActiveButton))) ?
+									iterator.getValue().getUpImageRect() : iterator.getValue().getDownImageRect();
+		mInternals->mGPURenderObject2D->render(gpu, rect, point);
+	}
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+bool CSceneItemPlayerButtonArray::handlesTouchOrMouseAtPoint(const S2DPoint32& point) const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	// Iterate all buttons
+	for (TIteratorD<CSceneItemButtonArrayButton> iterator =
+					getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
+			iterator.hasValue(); iterator.advance()) {
 		// Do cover check
+		S2DRect32	screenRect(iterator.getValue().getScreenPositionPoint(),
+							iterator.getValue().getUpImageRect().mSize);
 		if (screenRect.contains(point)) {
 			// Got it
-			mInternals->mActiveButton = button;
+			mInternals->mActiveButton = OR<CSceneItemButtonArrayButton>(iterator.getValue());
 			mInternals->mActiveButtonDown = false;
 			mInternals->mActiveButtonScreenRect = screenRect;
 
@@ -203,12 +183,17 @@ void CSceneItemPlayerButtonArray::touchOrMouseMovedFromPoint(const S2DPoint32& p
 void CSceneItemPlayerButtonArray::touchEndedOrMouseUpAtPoint(const S2DPoint32& point, const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Check if active button is down
 	if (mInternals->mActiveButtonDown) {
-		OR<CActionArray>	actionArray = mInternals->mActiveButton->getActionArray();
-		if (actionArray.hasReference())
-			perform(*actionArray);
+		// Collect actions
+		OO<CActions>	actions = mInternals->mActiveButton->getActions();
+		if (actions.hasObject())
+			// Perform actions
+			perform(*actions);
 	}
-	
+
+	// Reset
+	mInternals->mActiveButton = OR<CSceneItemButtonArrayButton>();
 	mInternals->mActiveButtonDown = false;
 }
 
@@ -216,19 +201,7 @@ void CSceneItemPlayerButtonArray::touchEndedOrMouseUpAtPoint(const S2DPoint32& p
 void CSceneItemPlayerButtonArray::touchOrMouseCancelled(const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Reset
+	mInternals->mActiveButton = OR<CSceneItemButtonArrayButton>();
 	mInternals->mActiveButtonDown = false;
 }
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc definitions
-
-////----------------------------------------------------------------------------------------------------------------------
-//CSceneItemPlayer* sCreateSceneItemPlayer(const CSceneItem& sceneItem,
-//		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-//		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, bool makeCopy)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	return new CSceneItemPlayerButtonArray(*((CSceneItemButtonArray*) &sceneItem), sceneAppResourceManagementInfo,
-//			sceneItemPlayerProcsInfo, makeCopy);
-//}

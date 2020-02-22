@@ -10,22 +10,11 @@
 #include "CSceneItem.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Trigger types
-
-enum ESceneItemAnimationTriggerType {
-	// Animation will start automatically at the time indicated by mStartTimeInterval.
-	kSceneItemAnimationTriggerTypeTimed,
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Loop Count values
+// MARK: Loop Count values
 
 // 0: Loop Forever
-// 1: Play through once and stop
-// 2 - 0xFFFFFFFE: Loop that many times and then stop
-// 0xFFFFFFFF: Hold last frame
+// 1 - 0xFFFFFFFE: Loop that many times and then hold last frame
 const	UInt32	kSceneItemAnimationLoopForever = 0;
-const	UInt32	kSceneItemAnimationLoopHoldLastFrame = ~0;
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - Property info
@@ -38,7 +27,6 @@ enum {
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItemAnimation
 
-class CCelAnimationInfo;
 class CSceneItemAnimationInternals;
 class CSceneItemAnimation : public CSceneItem {
 	// Methods
@@ -59,27 +47,27 @@ class CSceneItemAnimation : public CSceneItem {
 				CDictionary					getInfo() const;
 
 											// Instance methods
-				OR<CActionArray>			getStartedActionArray() const;
-				void						setStartedActionArray(const CActionArray& actionArray);
+		const	OO<CActions>&				getStartedActions() const;
+				void						setStartedActions(const OO<CActions>& actions);
 
-				OR<CActionArray>			getFinishedActionArray() const;
-				void						setFinishedActionArray(const CActionArray& actionArray);
+		const	OO<CActions>&				getFinishedActions() const;
+				void						setFinishedActions(const OO<CActions>& actions);
 
-				OR<CAudioInfo>				getAudioInfo() const;
-				void						setAudioInfo(const CAudioInfo& audioInfo);
+		const	OO<CAudioInfo>&				getAudioInfo() const;
+				void						setAudioInfo(const OO<CAudioInfo>& audioInfo);
 
-				OR<CCelAnimationInfo>		getCelAnimationInfo() const;
-				void						setCelAnimationInfo(const CCelAnimationInfo& celAnimationInfo);
+//		const	OO<CCelAnimationInfo>&		getCelAnimationInfo() const;
+//				void						setCelAnimationInfo(const OO<CCelAnimationInfo>& celAnimationInfo);
 
-				OR<CKeyframeAnimationInfo>	getKeyframeAnimationInfo() const;
+		const	OO<CKeyframeAnimationInfo>&	getKeyframeAnimationInfo() const;
 				void						setKeyframeAnimationInfo(
-													const CKeyframeAnimationInfo& keyframeAnimationInfo);
+													const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo);
 
 				UInt32						getLoopCount() const;
 				void						setLoopCount(UInt32 loopCount);
 
-				UniversalTimeInterval		getStartTimeInterval() const;
-				void						setStartTimeInterval(UniversalTimeInterval startTimeInterval);
+		const	OV<UniversalTimeInterval>&	getStartTimeInterval() const;
+				void						setStartTimeInterval(const OV<UniversalTimeInterval>& startTimeInterval);
 
 	// Properties
 	public:

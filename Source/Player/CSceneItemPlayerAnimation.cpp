@@ -7,41 +7,11 @@
 //#include "CCelAnimationPlayer.h"
 #include "CKeyframeAnimationPlayer.h"
 
-#include "CAudioOutputTrackCache.h"
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneItemPlayerAnimationInternals
-
-class CSceneItemPlayerAnimationInternals {
-	public:
-		CSceneItemPlayerAnimationInternals(const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo,
-				CSceneItemPlayerAnimation& sceneItemPlayerAnimation);
-		~CSceneItemPlayerAnimationInternals();
-
-		CSceneItemPlayerAnimation&					mSceneItemPlayerAnimation;
-
-		CAudioOutputTrackReference*					mAudioOutputTrackReference;
-//		CCelAnimationPlayer*						mCelAnimationPlayer;
-		CKeyframeAnimationPlayer*					mKeyframeAnimationPlayer;
-
-		bool										mIsStarted;
-		bool										mIsAudioPlaying;
-		UniversalTimeInterval						mCurrentTimeInterval;
-
-		const	SSceneItemPlayerAnimationProcsInfo*	mSceneItemPlayerAnimationProcsInfo;
-//				SCelAnimationPlayerProcsInfo		mCelAnimationPlayerProcsInfo;
-				SKeyframeAnimationPlayerProcsInfo	mKeyframeAnimationPlayerProcsInfo;
-};
+//#include "CAudioOutputTrackCache.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc declarations
-
-//static	CSceneItemPlayer*					sCreateSceneItemPlayer(const CSceneItem& sceneItem,
-//													const SSceneAppResourceManagementInfo&
-//															sceneAppResourceManagementInfo,
-//													const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo,
-//													bool makeCopy);
+// MARK: Local proc declarations
 
 //static	ECelAnimationPlayerFinishedAction	sCelAnimationPlayerGetFinishedActionProc(
 //													CCelAnimationPlayer& celAnimationPlayer, UInt32 currentLoopCount,
@@ -54,49 +24,46 @@ static	bool								sKeyframeAnimationPlayerShouldLoopProc(
 													UInt32 currentLoopCount, void* userData);
 static	void								sKeyframeAnimationPlayerFinishedProc(
 													CKeyframeAnimationPlayer& keyframeAnimationPlayer, void* userData);
-static	void								sKeyframeAnimationPlayerActionArrayHandlerProc(
+static	void								sKeyframeAnimationPlayerActionsHandlerProc(
 													CKeyframeAnimationPlayer& keyframeAnimationPlayer,
-													const CActionArray& actionArray, void* userData);
+													const CActions& actions, void* userData);
 
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Register Scene Item Player
-
-//REGISTER_SCENE_ITEM_PLAYER(CSceneItemPlayerAnimation, sCreateSceneItemPlayer, CSceneItemAnimation::mType);
-
-//----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItemPlayerAnimationInternals
 
-//----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerAnimationInternals::CSceneItemPlayerAnimationInternals(
-		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, CSceneItemPlayerAnimation& sceneItemPlayerAnimation)
-		: mSceneItemPlayerAnimation(sceneItemPlayerAnimation),
-//		mCelAnimationPlayerProcsInfo(sCelAnimationPlayerGetFinishedActionProc, nil, sCelAnimationPlayerFinishedProc,
-//				nil, this),
-		mKeyframeAnimationPlayerProcsInfo(sKeyframeAnimationPlayerShouldLoopProc, nil,
-				sKeyframeAnimationPlayerFinishedProc, sKeyframeAnimationPlayerActionArrayHandlerProc, this)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	mAudioOutputTrackReference = nil;
-//	mCelAnimationPlayer = nil;
-	mKeyframeAnimationPlayer = nil;
+class CSceneItemPlayerAnimationInternals {
+	public:
+		CSceneItemPlayerAnimationInternals(const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo,
+				CSceneItemPlayerAnimation& sceneItemPlayerAnimation) :
+			mSceneItemPlayerAnimation(sceneItemPlayerAnimation),
+					mKeyframeAnimationPlayer(nil), mIsStarted(false), mIsAudioPlaying(false), mCurrentTimeInterval(0.0),
+					mSceneItemPlayerAnimationProcsInfo(nil),
+//					mCelAnimationPlayerProcsInfo(sCelAnimationPlayerGetFinishedActionProc, nil,
+//							sCelAnimationPlayerFinishedProc, nil, this),
+					mKeyframeAnimationPlayerProcsInfo(sKeyframeAnimationPlayerShouldLoopProc, nil,
+							sKeyframeAnimationPlayerFinishedProc, sKeyframeAnimationPlayerActionsHandlerProc, this)
+			{}
+		~CSceneItemPlayerAnimationInternals()
+			{
+//				DisposeOf(mAudioOutputTrackReference);
+//				DisposeOf(mCelAnimationPlayer);
+				DisposeOf(mKeyframeAnimationPlayer);
+			}
 
-	mIsStarted = false;
-	mIsAudioPlaying = false;
-	mCurrentTimeInterval = 0.0;
+				CSceneItemPlayerAnimation&			mSceneItemPlayerAnimation;
 
-	mSceneItemPlayerAnimationProcsInfo = nil;
-}
+//				CAudioOutputTrackReference*			mAudioOutputTrackReference;
+//				CCelAnimationPlayer*				mCelAnimationPlayer;
+				CKeyframeAnimationPlayer*			mKeyframeAnimationPlayer;
 
-//----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerAnimationInternals::~CSceneItemPlayerAnimationInternals()
-//----------------------------------------------------------------------------------------------------------------------
-{
-	DisposeOf(mAudioOutputTrackReference);
-//	DisposeOf(mCelAnimationPlayer);
-	DisposeOf(mKeyframeAnimationPlayer);
-}
+				bool								mIsStarted;
+				bool								mIsAudioPlaying;
+				UniversalTimeInterval				mCurrentTimeInterval;
+
+		const	SSceneItemPlayerAnimationProcsInfo*	mSceneItemPlayerAnimationProcsInfo;
+//				SCelAnimationPlayerProcsInfo		mCelAnimationPlayerProcsInfo;
+				SKeyframeAnimationPlayerProcsInfo	mKeyframeAnimationPlayerProcsInfo;
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -117,12 +84,11 @@ CSceneItemPlayerAnimation::CSceneItemPlayerAnimation(const CSceneItemAnimation& 
 //		mInternals->mCelAnimationPlayer =
 //				new CCelAnimationPlayer(*getSceneItemAnimation().getCelAnimationInfoOrNil(),
 //						sceneAppResourceManagementInfo, mInternals->mCelAnimationPlayerProcsInfo, 0.0);
-	OR<CKeyframeAnimationInfo>	keyframeAnimationInfo = sceneItemAnimation.getKeyframeAnimationInfo();
 	if (mInternals == nil) (void) mInternals;
-	else if (keyframeAnimationInfo.hasReference())
+	else if (sceneItemAnimation.getKeyframeAnimationInfo().hasObject())
 		mInternals->mKeyframeAnimationPlayer =
-				new CKeyframeAnimationPlayer(*keyframeAnimationInfo, sceneAppResourceManagementInfo,
-						mInternals->mKeyframeAnimationPlayerProcsInfo, 0.0);
+				new CKeyframeAnimationPlayer(*sceneItemAnimation.getKeyframeAnimationInfo(),
+						sceneAppResourceManagementInfo, mInternals->mKeyframeAnimationPlayerProcsInfo, 0.0);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -135,61 +101,51 @@ CSceneItemPlayerAnimation::~CSceneItemPlayerAnimation()
 // MARK: CSceneItemPlayer methods
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DRect32 CSceneItemPlayerAnimation::getCurrentScreenRect() const
+CActions CSceneItemPlayerAnimation::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 //	if (mInternals->mCelAnimationPlayer != nil)
-//#warning finish
-//		return S2DRect32::mZero;
-//	else
-		return mInternals->mKeyframeAnimationPlayer->getScreenRect();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-CActionArray CSceneItemPlayerAnimation::getAllActions() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-//	if (mInternals->mCelAnimationPlayer != nil)
-//		return CActionArray();
-	if (mInternals == nil) return CActionArray();
+//		return CActions();
+	if (mInternals == nil) return CActions();
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		return mInternals->mKeyframeAnimationPlayer->getAllActions();
 	else
-		return CActionArray();
+		return CActions();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayerAnimation::load()
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Setup
+	const	CSceneItemAnimation&	sceneItemAnimation = getSceneItemAnimation();
+	
 	// Load animation
 //	if (mInternals->mCelAnimationPlayer != nil)
-//		mInternals->mCelAnimationPlayer->load(
-//				getSceneItemAnimation().getStartTimeInterval() == kSceneItemStartTimeStartAtLoad);
+//		mInternals->mCelAnimationPlayer->load(!sceneItemAnimation.getStartTimeInterval().hasValue());
 	if (mInternals == nil) (void) mInternals;
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
-		mInternals->mKeyframeAnimationPlayer->load(
-				getSceneItemAnimation().getStartTimeInterval() == kSceneItemStartTimeStartAtLoad);
-	
+		mInternals->mKeyframeAnimationPlayer->load(!sceneItemAnimation.getStartTimeInterval().hasValue());
+
 	// Load audio
-	OR<CAudioInfo>	audioInfo = getSceneItemAnimation().getAudioInfo();
-	if ((mInternals->mAudioOutputTrackReference == nil) && audioInfo.hasReference() &&
-			(audioInfo->getResourceFilename().getLength() > 0)) {
-		EAudioOutputTrackReferenceOptions	options = kAudioOutputTrackReferenceOptionsNone;
-		if (audioInfo->getOptions() & kAudioInfoOptionsUseDefinedLoopInFile)
-			options =
-					(EAudioOutputTrackReferenceOptions)
-							(options | kAudioOutputTrackReferenceOptionsUseDefinedLoopInFile);
-		if (audioInfo->getOptions() & kAudioInfoOptionsLoadFileIntoMemory)
-			options = (EAudioOutputTrackReferenceOptions) (options | kAudioOutputTrackReferenceOptionsLoadIntoMemory);
+//	OR<CAudioInfo>	audioInfo = sceneItemAnimation.getAudioInfo();
+//	if ((mInternals->mAudioOutputTrackReference == nil) && audioInfo.hasReference() &&
+//			(audioInfo->getResourceFilename().getLength() > 0)) {
+//		EAudioOutputTrackReferenceOptions	options = kAudioOutputTrackReferenceOptionsNone;
+//		if (audioInfo->getOptions() & kAudioInfoOptionsUseDefinedLoopInFile)
+//			options =
+//					(EAudioOutputTrackReferenceOptions)
+//							(options | kAudioOutputTrackReferenceOptionsUseDefinedLoopInFile);
+//		if (audioInfo->getOptions() & kAudioInfoOptionsLoadFileIntoMemory)
+//			options = (EAudioOutputTrackReferenceOptions) (options | kAudioOutputTrackReferenceOptionsLoadIntoMemory);
 //		mInternals->mAudioOutputTrackReference =
 //				CAudioOutputTrackCache::newAudioOutputTrackReferenceFromURL(
 //						eGetURLForResourceFilename(audioInfo->getResourceFilename()),
 //								audioInfo->getLoopCount(), options);
 //		mInternals->mAudioOutputTrackReference->setGain(audioInfo->getGain());
-	}
+//	}
 
-	if (getSceneItemAnimation().getStartTimeInterval() == kSceneItemStartTimeStartAtLoad) {
+	if (!sceneItemAnimation.getStartTimeInterval().hasValue()) {
 		// Start
 		mInternals->mIsStarted = true;
 
@@ -201,18 +157,10 @@ void CSceneItemPlayerAnimation::load()
 //		}
 
 		// Started action
-		OR<CActionArray>	startedActionArray = getSceneItemAnimation().getStartedActionArray();
-		if (startedActionArray.hasReference())
-			perform(*startedActionArray);
+		const	OO<CActions>&	startedActions = sceneItemAnimation.getStartedActions();
+		if (startedActions.hasObject())
+			perform(*startedActions);
 	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerAnimation::finishLoading()
-//----------------------------------------------------------------------------------------------------------------------
-{
-//	if (mInternals->mCelAnimationPlayer != nil)
-//		mInternals->mCelAnimationPlayer->finishLoading();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -226,27 +174,14 @@ void CSceneItemPlayerAnimation::unload()
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		mInternals->mKeyframeAnimationPlayer->unload();
 	
-	// Unload audio
-	if (mInternals->mIsAudioPlaying)
-		mInternals->mAudioOutputTrackReference->reset();
-	DisposeOf(mInternals->mAudioOutputTrackReference);
+//	// Unload audio
+//	if (mInternals->mIsAudioPlaying)
+//		mInternals->mAudioOutputTrackReference->reset();
+//	DisposeOf(mInternals->mAudioOutputTrackReference);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerAnimation::getIsFullyLoaded() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-//	if (mInternals->mCelAnimationPlayer != nil)
-//		return mInternals->mCelAnimationPlayer->getIsFullyLoaded();
-	if (mInternals == nil) return true;
-	else if (mInternals->mKeyframeAnimationPlayer != nil)
-		return mInternals->mKeyframeAnimationPlayer->getIsFullyLoaded();
-	else
-		return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-UniversalTimeInterval CSceneItemPlayerAnimation::getStartTimeInterval() const
+const OV<UniversalTimeInterval>& CSceneItemPlayerAnimation::getStartTimeInterval() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return getSceneItemAnimation().getStartTimeInterval();
@@ -258,16 +193,14 @@ void CSceneItemPlayerAnimation::reset()
 {
 	// Reset animation
 //	if (mInternals->mCelAnimationPlayer != nil)
-//		mInternals->mCelAnimationPlayer->reset(
-//				getSceneItemAnimation().getStartTimeInterval() == kSceneItemStartTimeStartAtLoad);
+//		mInternals->mCelAnimationPlayer->reset(!getSceneItemAnimation().getStartTimeInterval().hasValue());
 	if (mInternals == nil) (void) mInternals;
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
-		mInternals->mKeyframeAnimationPlayer->reset(
-				getSceneItemAnimation().getStartTimeInterval() == kSceneItemStartTimeStartAtLoad);
+		mInternals->mKeyframeAnimationPlayer->reset(!getSceneItemAnimation().getStartTimeInterval().hasValue());
 	
 	// Reset audio
-	if (mInternals->mAudioOutputTrackReference != nil)
-		mInternals->mAudioOutputTrackReference->reset();
+//	if (mInternals->mAudioOutputTrackReference != nil)
+//		mInternals->mAudioOutputTrackReference->reset();
 	mInternals->mIsAudioPlaying = false;
 
 	// Reset the rest
@@ -284,7 +217,7 @@ void CSceneItemPlayerAnimation::update(UniversalTimeInterval deltaTimeInterval, 
 {
 	if (!mInternals->mIsStarted) {
 		mInternals->mCurrentTimeInterval += deltaTimeInterval;
-		if (mInternals->mCurrentTimeInterval >= getSceneItemAnimation().getStartTimeInterval()) {
+		if (mInternals->mCurrentTimeInterval >= getSceneItemAnimation().getStartTimeInterval().getValue(0.0)) {
 			// Start
 			mInternals->mIsStarted = true;
 			
@@ -295,20 +228,20 @@ void CSceneItemPlayerAnimation::update(UniversalTimeInterval deltaTimeInterval, 
 			else if (mInternals->mKeyframeAnimationPlayer != nil)
 				mInternals->mKeyframeAnimationPlayer->finishLoading();
 			
-			// Start audio
-			if (mInternals->mAudioOutputTrackReference != nil) {
-				mInternals->mAudioOutputTrackReference->setLoopCount(
-						getSceneItemAnimation().getAudioInfo()->getLoopCount());
-				if (getSceneItemAnimation().getAudioInfo()->getOptions() & kAudioInfoOptionsStopBeforePlay)
-					mInternals->mAudioOutputTrackReference->reset();
-				mInternals->mAudioOutputTrackReference->play();
-				mInternals->mIsAudioPlaying = true;
-			}
+//			// Start audio
+//			if (mInternals->mAudioOutputTrackReference != nil) {
+//				mInternals->mAudioOutputTrackReference->setLoopCount(
+//						getSceneItemAnimation().getAudioInfo()->getLoopCount());
+//				if (getSceneItemAnimation().getAudioInfo()->getOptions() & kAudioInfoOptionsStopBeforePlay)
+//					mInternals->mAudioOutputTrackReference->reset();
+//				mInternals->mAudioOutputTrackReference->play();
+//				mInternals->mIsAudioPlaying = true;
+//			}
 
 			// Started action
-			OR<CActionArray>	startedActionArray = getSceneItemAnimation().getStartedActionArray();
-			if (startedActionArray.hasReference())
-				perform(*startedActionArray);
+			const	OO<CActions>&	startedActions = getSceneItemAnimation().getStartedActions();
+			if (startedActions.hasObject())
+				perform(*startedActions);
 		}
 	}
 	
@@ -324,7 +257,7 @@ void CSceneItemPlayerAnimation::update(UniversalTimeInterval deltaTimeInterval, 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerAnimation::render(CGPU& gpu, const S2DPoint32& offset)
+void CSceneItemPlayerAnimation::render(CGPU& gpu, const S2DPoint32& offset) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 //	if (mInternals->mCelAnimationPlayer != nil)
@@ -345,8 +278,8 @@ bool CSceneItemPlayerAnimation::getIsFinished() const
 	if (mInternals == nil) return true;
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		return mInternals->mKeyframeAnimationPlayer->getIsFinished();
-	else if (mInternals->mAudioOutputTrackReference != nil)
-		return !mInternals->mAudioOutputTrackReference->isPlaying();
+//	else if (mInternals->mAudioOutputTrackReference != nil)
+//		return !mInternals->mAudioOutputTrackReference->isPlaying();
 	else
 		return true;
 }
@@ -355,16 +288,16 @@ bool CSceneItemPlayerAnimation::getIsFinished() const
 void CSceneItemPlayerAnimation::setAudioGain(Float32 gain)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	if (mInternals->mAudioOutputTrackReference != nil)
-		mInternals->mAudioOutputTrackReference->setGain(gain);
+//	if (mInternals->mAudioOutputTrackReference != nil)
+//		mInternals->mAudioOutputTrackReference->setGain(gain);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayerAnimation::resetAudioGain()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	if (mInternals->mAudioOutputTrackReference != nil)
-		mInternals->mAudioOutputTrackReference->setGain(getSceneItemAnimation().getAudioInfo()->getGain());
+//	if (mInternals->mAudioOutputTrackReference != nil)
+//		mInternals->mAudioOutputTrackReference->setGain(getSceneItemAnimation().getAudioInfo()->getGain());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -388,16 +321,6 @@ void CSceneItemPlayerAnimation::setSceneItemPlayerAnimationProcsInfo(
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - Local proc definitions
-
-////----------------------------------------------------------------------------------------------------------------------
-//CSceneItemPlayer* sCreateSceneItemPlayer(const CSceneItem& sceneItem,
-//		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-//		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, bool makeCopy)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	return new CSceneItemPlayerAnimation(*((CSceneItemAnimation*) &sceneItem), sceneAppResourceManagementInfo,
-//			sceneItemPlayerProcsInfo, makeCopy);
-//}
 
 ////----------------------------------------------------------------------------------------------------------------------
 //ECelAnimationPlayerFinishedAction sCelAnimationPlayerGetFinishedActionProc(CCelAnimationPlayer& celAnimationPlayer,
@@ -436,10 +359,10 @@ void CSceneItemPlayerAnimation::setSceneItemPlayerAnimationProcsInfo(
 //{
 //	CSceneItemPlayerAnimationInternals*	internals = (CSceneItemPlayerAnimationInternals*) userData;
 //
-//	CActionArray*	actionArray =
-//							internals->mSceneItemPlayerAnimation.getSceneItemAnimation().getFinishedActionArrayOrNil();
-//	if (actionArray != nil)
-//		internals->mSceneItemPlayerAnimation.perform(*actionArray);
+//	CActions*	actions =
+//							internals->mSceneItemPlayerAnimation.getSceneItemAnimation().getFinishedActionsOrNil();
+//	if (actions != nil)
+//		internals->mSceneItemPlayerAnimation.perform(*actions);
 //}
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -450,10 +373,10 @@ bool sKeyframeAnimationPlayerShouldLoopProc(CKeyframeAnimationPlayer& keyframeAn
 	CSceneItemPlayerAnimationInternals*	internals = (CSceneItemPlayerAnimationInternals*) userData;
 
 	if ((internals->mSceneItemPlayerAnimationProcsInfo != nil) &&
-			(internals->mSceneItemPlayerAnimationProcsInfo->mShouldLoopProc != nil))
+			internals->mSceneItemPlayerAnimationProcsInfo->canPerformShouldLoop())
 		// Ask
-		return internals->mSceneItemPlayerAnimationProcsInfo->mShouldLoopProc(internals->mSceneItemPlayerAnimation,
-				currentLoopCount, internals->mSceneItemPlayerAnimationProcsInfo->mUserData);
+		return internals->mSceneItemPlayerAnimationProcsInfo->shouldLoop(internals->mSceneItemPlayerAnimation,
+				currentLoopCount);
 	else {
 		// Figure
 		const	CSceneItemAnimation&	sceneItemAnimation =
@@ -469,18 +392,17 @@ void sKeyframeAnimationPlayerFinishedProc(CKeyframeAnimationPlayer& keyframeAnim
 {
 	CSceneItemPlayerAnimationInternals*	internals = (CSceneItemPlayerAnimationInternals*) userData;
 
-	OR<CActionArray>	actionArray =
-								internals->mSceneItemPlayerAnimation.getSceneItemAnimation().getFinishedActionArray();
-	if (actionArray.hasReference())
-		internals->mSceneItemPlayerAnimation.perform(*actionArray);
+	const	OO<CActions>&	actions = internals->mSceneItemPlayerAnimation.getSceneItemAnimation().getFinishedActions();
+	if (actions.hasObject())
+		internals->mSceneItemPlayerAnimation.perform(*actions);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void sKeyframeAnimationPlayerActionArrayHandlerProc(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
-		const CActionArray& actionArray, void* userData)
+void sKeyframeAnimationPlayerActionsHandlerProc(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+		const CActions& actions, void* userData)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	CSceneItemPlayerAnimationInternals*	internals = (CSceneItemPlayerAnimationInternals*) userData;
 
-	internals->mSceneItemPlayerAnimation.perform(actionArray);
+	internals->mSceneItemPlayerAnimation.perform(actions);
 }

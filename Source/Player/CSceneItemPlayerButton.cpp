@@ -6,24 +6,67 @@
 
 #include "CKeyframeAnimationPlayer.h"
 
-#include "CAudioOutputTrackCache.h"
+//#include "CAudioOutputTrackCache.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneItemPlayerButtonInternals
+//----------------------------------------------------------------------------------------------------------------------
+// MARK: Local proc declarations
+
+static	bool	sKeyframeAnimationPlayerShouldLoopProc(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+						UInt32 currentLoopCount, void* userData);
+static	void	sKeyframeAnimationPlayerActionsHandlerProc(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+						const CActions& actions, void* userData);
+
+//----------------------------------------------------------------------------------------------------------------------
+// MARK: - CSceneItemPlayerButtonInternals
 
 class CSceneItemPlayerButtonInternals {
 	public:
 				CSceneItemPlayerButtonInternals(const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo,
-						CSceneItemPlayerButton& sceneItemPlayerButton);
-				~CSceneItemPlayerButtonInternals();
+						CSceneItemPlayerButton& sceneItemPlayerButton) :
+					mSceneItemPlayerButton(sceneItemPlayerButton), mIsAudioPlaying(false), mIsEnabled(true),
+							mUpKeyframeAnimationPlayer(nil), mDownKeyframeAnimationPlayer(nil),
+							mDisabledKeyframeAnimationPlayer(nil), mCurrentKeyframeAnimationPlayer(nil),
+							mKeyframeAnimationPlayerProcsInfo(sKeyframeAnimationPlayerShouldLoopProc, nil, nil,
+									sKeyframeAnimationPlayerActionsHandlerProc, this)
+					{}
+				~CSceneItemPlayerButtonInternals()
+					{
+//						DisposeOf(mAudioOutputTrackReference);
 
-		bool	isPointInHitRect(const S2DPoint32& point);
+						if (mDownKeyframeAnimationPlayer != mUpKeyframeAnimationPlayer) {
+							DisposeOf(mUpKeyframeAnimationPlayer);
+							DisposeOf(mDownKeyframeAnimationPlayer);
+						} else
+							DisposeOf(mUpKeyframeAnimationPlayer);
+
+						DisposeOf(mDisabledKeyframeAnimationPlayer);
+					}
+
+		bool	isPointInHitRect(const S2DPoint32& point)
+					{
+						Float32	hitRadius = mSceneItemPlayerButton.getSceneItemButton().getHitRadius();
+						if (hitRadius == 0.0)
+							// Hit Radius 0 means use artwork
+							return mUpKeyframeAnimationPlayer->getScreenRect().contains(point);
+						else {
+							// Calculate hit test rect based on radius from screen center
+							S2DRect32	screenRect = mUpKeyframeAnimationPlayer->getScreenRect();
+							Float32		centerX = screenRect.getMidX();
+							Float32		centerY = screenRect.getMidY();
+							S2DRect32	hitTestRect =
+												S2DRect32(centerX - hitRadius, centerY - hitRadius, hitRadius * 2.0,
+														hitRadius * 2.0);
+
+							return hitTestRect.contains(point);
+						}
+					}
 
 		CSceneItemPlayerButton&				mSceneItemPlayerButton;
 
 		bool								mIsAudioPlaying;
 		bool								mIsEnabled;
-		CAudioOutputTrackReference*			mAudioOutputTrackReference;
+//		CAudioOutputTrackReference*			mAudioOutputTrackReference;
 
 		CKeyframeAnimationPlayer*			mUpKeyframeAnimationPlayer;
 		CKeyframeAnimationPlayer*			mDownKeyframeAnimationPlayer;
@@ -33,87 +76,13 @@ class CSceneItemPlayerButtonInternals {
 		SKeyframeAnimationPlayerProcsInfo	mKeyframeAnimationPlayerProcsInfo;
 };
 
-CString	CSceneItemPlayerButton::mPropertyNameEnabled("enabled");
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc declarations
-
-//static	CSceneItemPlayer*	sCreateSceneItemPlayer(const CSceneItem& sceneItem,
-//									const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-//									const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, bool makeCopy);
-
-static	bool				sKeyframeAnimationPlayerShouldLoopProc(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
-									UInt32 currentLoopCount, void* userData);
-static	void				sKeyframeAnimationPlayerActionArrayHandlerProc(
-									CKeyframeAnimationPlayer& keyframeAnimationPlayer, const CActionArray& actionArray,
-									void* userData);
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: Register Scene Item Player
-
-//REGISTER_SCENE_ITEM_PLAYER(CSceneItemPlayerButton, sCreateSceneItemPlayer, CSceneItemButton::mType);
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemPlayerButtonInternals
-
-//----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerButtonInternals::CSceneItemPlayerButtonInternals(
-		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, CSceneItemPlayerButton& sceneItemPlayerButton) :
-		mSceneItemPlayerButton(sceneItemPlayerButton),
-		mKeyframeAnimationPlayerProcsInfo(sKeyframeAnimationPlayerShouldLoopProc, nil, nil,
-				sKeyframeAnimationPlayerActionArrayHandlerProc, this)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	mIsAudioPlaying = false;
-	mIsEnabled = true;
-	mAudioOutputTrackReference = nil;
-
-	mUpKeyframeAnimationPlayer = nil;
-	mDownKeyframeAnimationPlayer = nil;
-	mDisabledKeyframeAnimationPlayer = nil;
-	mCurrentKeyframeAnimationPlayer = nil;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerButtonInternals::~CSceneItemPlayerButtonInternals()
-//----------------------------------------------------------------------------------------------------------------------
-{
-	DisposeOf(mAudioOutputTrackReference);
-
-	if (mDownKeyframeAnimationPlayer != mUpKeyframeAnimationPlayer) {
-		DisposeOf(mUpKeyframeAnimationPlayer);
-		DisposeOf(mDownKeyframeAnimationPlayer);
-	} else
-		DisposeOf(mUpKeyframeAnimationPlayer);
-	
-	DisposeOf(mDisabledKeyframeAnimationPlayer);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerButtonInternals::isPointInHitRect(const S2DPoint32& point)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	Float32	hitRadius = mSceneItemPlayerButton.getSceneItemButton().getHitRadius();
-	if (hitRadius == 0.0)
-		// Hit Radius 0 means use artwork
-		return mUpKeyframeAnimationPlayer->getScreenRect().contains(point);
-	else {
-		// Calculate hit test rect based on radius from screen center
-		S2DRect32	screenRect = mUpKeyframeAnimationPlayer->getScreenRect();
-		Float32		centerX = screenRect.getMidX();
-		Float32		centerY = screenRect.getMidY();
-		S2DRect32	hitTestRect = S2DRect32(centerX - hitRadius, centerY - hitRadius, hitRadius * 2.0, hitRadius * 2.0);
-
-		return hitTestRect.contains(point);
-	}
-}
-
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItemPlayerButton
+
+// MARK: Properties
+
+CString	CSceneItemPlayerButton::mPropertyNameEnabled(OSSTR("enabled"));
 
 // MARK: Lifecycle methods
 
@@ -126,24 +95,24 @@ CSceneItemPlayerButton::CSceneItemPlayerButton(const CSceneItemButton& sceneItem
 {
 	mInternals = new CSceneItemPlayerButtonInternals(sceneItemPlayerProcsInfo, *this);
 
-	OR<CKeyframeAnimationInfo>	upKeyframeAnimationInfo = sceneItemButton.getUpKeyframeAnimationInfo();
-	if (upKeyframeAnimationInfo.hasReference()) {
+	OO<CKeyframeAnimationInfo>	upKeyframeAnimationInfo = sceneItemButton.getUpKeyframeAnimationInfo();
+	if (upKeyframeAnimationInfo.hasObject()) {
 		mInternals->mUpKeyframeAnimationPlayer =
 				new CKeyframeAnimationPlayer(*upKeyframeAnimationInfo, sceneAppResourceManagementInfo,
 						mInternals->mKeyframeAnimationPlayerProcsInfo, sceneItemButton.getStartTimeInterval());
 		mInternals->mCurrentKeyframeAnimationPlayer = mInternals->mUpKeyframeAnimationPlayer;
 	}
 	
-	OR<CKeyframeAnimationInfo>	downKeyframeAnimationInfo = sceneItemButton.getDownKeyframeAnimationInfo();
-	if (downKeyframeAnimationInfo.hasReference())
+	OO<CKeyframeAnimationInfo>	downKeyframeAnimationInfo = sceneItemButton.getDownKeyframeAnimationInfo();
+	if (downKeyframeAnimationInfo.hasObject())
 		mInternals->mDownKeyframeAnimationPlayer =
 				new CKeyframeAnimationPlayer(*downKeyframeAnimationInfo, sceneAppResourceManagementInfo,
 						mInternals->mKeyframeAnimationPlayerProcsInfo, sceneItemButton.getStartTimeInterval());
 	else
 		mInternals->mDownKeyframeAnimationPlayer = mInternals->mUpKeyframeAnimationPlayer;
 
-	OR<CKeyframeAnimationInfo>	disabledKeyframeAnimationInfo = sceneItemButton.getDisabledKeyframeAnimationInfo();
-	if (disabledKeyframeAnimationInfo.hasReference()) {
+	OO<CKeyframeAnimationInfo>	disabledKeyframeAnimationInfo = sceneItemButton.getDisabledKeyframeAnimationInfo();
+	if (disabledKeyframeAnimationInfo.hasObject()) {
 		mInternals->mDisabledKeyframeAnimationPlayer =
 				new CKeyframeAnimationPlayer(*disabledKeyframeAnimationInfo, sceneAppResourceManagementInfo,
 						mInternals->mKeyframeAnimationPlayerProcsInfo, sceneItemButton.getStartTimeInterval());
@@ -160,26 +129,12 @@ CSceneItemPlayerButton::~CSceneItemPlayerButton()
 // MARK: CSceneItemPlayer methods
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DRect32 CSceneItemPlayerButton::getCurrentScreenRect() const
+CActions CSceneItemPlayerButton::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	if (mInternals->mUpKeyframeAnimationPlayer != nil)
-		return mInternals->mUpKeyframeAnimationPlayer->getScreenRect();
-	else
-		return S2DRect32();
-}
+	OO<CActions>	actions = getSceneItemButton().getActions();
 
-//----------------------------------------------------------------------------------------------------------------------
-CActionArray CSceneItemPlayerButton::getAllActions() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	CActionArray	actionsArray;
-
-	OR<CActionArray>	actionArray = getSceneItemButton().getActionArray();
-	if (actionArray.hasReference())
-		actionsArray.addFrom(*actionArray);
-
-	return actionsArray;
+	return actions.hasObject() ? *actions : CActions();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -188,55 +143,40 @@ void CSceneItemPlayerButton::load()
 {
 	const	CSceneItemButton&	sceneItemButton = getSceneItemButton();
 	
-	// Load audio
-	OR<CAudioInfo>	audioInfo = sceneItemButton.getAudioInfo();
-	if ((mInternals->mAudioOutputTrackReference == nil) && audioInfo.hasReference() &&
-			(audioInfo->getResourceFilename().getLength() > 0)) {
-		EAudioOutputTrackReferenceOptions	options = kAudioOutputTrackReferenceOptionsNone;
-		if (audioInfo->getOptions() & kAudioInfoOptionsUseDefinedLoopInFile)
-			options =
-					(EAudioOutputTrackReferenceOptions)
-							(options | kAudioOutputTrackReferenceOptionsUseDefinedLoopInFile);
-		if (audioInfo->getOptions() & kAudioInfoOptionsLoadFileIntoMemory)
-			options = (EAudioOutputTrackReferenceOptions) (options | kAudioOutputTrackReferenceOptionsLoadIntoMemory);
+//	// Load audio
+//	OR<CAudioInfo>	audioInfo = sceneItemButton.getAudioInfo();
+//	if ((mInternals->mAudioOutputTrackReference == nil) && audioInfo.hasReference() &&
+//			(audioInfo->getResourceFilename().getLength() > 0)) {
+//		EAudioOutputTrackReferenceOptions	options = kAudioOutputTrackReferenceOptionsNone;
+//		if (audioInfo->getOptions() & kAudioInfoOptionsUseDefinedLoopInFile)
+//			options =
+//					(EAudioOutputTrackReferenceOptions)
+//							(options | kAudioOutputTrackReferenceOptionsUseDefinedLoopInFile);
+//		if (audioInfo->getOptions() & kAudioInfoOptionsLoadFileIntoMemory)
+//			options = (EAudioOutputTrackReferenceOptions) (options | kAudioOutputTrackReferenceOptionsLoadIntoMemory);
 //		mInternals->mAudioOutputTrackReference =
 //				CAudioOutputTrackCache::newAudioOutputTrackReferenceFromURL(
 //						eGetURLForResourceFilename(sceneItemButton.getAudioInfoOrNil()->getResourceFilename()),
 //						sceneItemButton.getAudioInfoOrNil()->getLoopCount(), options);
-	}
+//	}
 
 	// Load animations
 	if (mInternals->mUpKeyframeAnimationPlayer != nil)
-		mInternals->mUpKeyframeAnimationPlayer->load(
-				sceneItemButton.getStartTimeInterval() == kSceneItemStartTimeStartAtLoad);
+		mInternals->mUpKeyframeAnimationPlayer->load(!sceneItemButton.getStartTimeInterval().hasValue());
 	if (mInternals->mDownKeyframeAnimationPlayer != nil)
-		mInternals->mDownKeyframeAnimationPlayer->load(
-				sceneItemButton.getStartTimeInterval() == kSceneItemStartTimeStartAtLoad);
+		mInternals->mDownKeyframeAnimationPlayer->load(!sceneItemButton.getStartTimeInterval().hasValue());
 	if (mInternals->mDisabledKeyframeAnimationPlayer != nil)
-		mInternals->mDisabledKeyframeAnimationPlayer->load(
-				sceneItemButton.getStartTimeInterval() == kSceneItemStartTimeStartAtLoad);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButton::finishLoading()
-//----------------------------------------------------------------------------------------------------------------------
-{
-	if (mInternals->mUpKeyframeAnimationPlayer != nil)
-		mInternals->mUpKeyframeAnimationPlayer->finishLoading();
-	if (mInternals->mDownKeyframeAnimationPlayer != nil)
-		mInternals->mDownKeyframeAnimationPlayer->finishLoading();
-	if (mInternals->mDisabledKeyframeAnimationPlayer != nil)
-		mInternals->mDisabledKeyframeAnimationPlayer->finishLoading();
+		mInternals->mDisabledKeyframeAnimationPlayer->load(!sceneItemButton.getStartTimeInterval().hasValue());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayerButton::unload()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Unload audio
-	if (mInternals->mIsAudioPlaying)
-		mInternals->mAudioOutputTrackReference->reset();
-	DisposeOf(mInternals->mAudioOutputTrackReference);
+//	// Unload audio
+//	if (mInternals->mIsAudioPlaying)
+//		mInternals->mAudioOutputTrackReference->reset();
+//	DisposeOf(mInternals->mAudioOutputTrackReference);
 
 	// Unload animations
 	if (mInternals->mUpKeyframeAnimationPlayer != nil)
@@ -248,42 +188,23 @@ void CSceneItemPlayerButton::unload()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerButton::getIsFullyLoaded() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	bool	isFullyLoaded = true;
-
-	if (mInternals->mUpKeyframeAnimationPlayer != nil)
-		isFullyLoaded &= mInternals->mUpKeyframeAnimationPlayer->getIsFullyLoaded();
-	if (mInternals->mDownKeyframeAnimationPlayer != nil)
-		isFullyLoaded &= mInternals->mDownKeyframeAnimationPlayer->getIsFullyLoaded();
-	if (mInternals->mDisabledKeyframeAnimationPlayer != nil)
-		isFullyLoaded &= mInternals->mDisabledKeyframeAnimationPlayer->getIsFullyLoaded();
-
-	return isFullyLoaded;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayerButton::reset()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	const	CSceneItemButton&	sceneItemButton = getSceneItemButton();
 	
 	// Reset audio
-	if (mInternals->mAudioOutputTrackReference != nil)
-		mInternals->mAudioOutputTrackReference->reset();
+//	if (mInternals->mAudioOutputTrackReference != nil)
+//		mInternals->mAudioOutputTrackReference->reset();
 	mInternals->mIsAudioPlaying = false;
 
 	// Reset animation
 	if (mInternals->mUpKeyframeAnimationPlayer != nil)
-		mInternals->mUpKeyframeAnimationPlayer->reset(
-				sceneItemButton.getStartTimeInterval() == kSceneItemStartTimeStartAtLoad);
+		mInternals->mUpKeyframeAnimationPlayer->reset(!sceneItemButton.getStartTimeInterval().hasValue());
 	if (mInternals->mDownKeyframeAnimationPlayer != nil)
-		mInternals->mDownKeyframeAnimationPlayer->reset(
-				sceneItemButton.getStartTimeInterval() == kSceneItemStartTimeStartAtLoad);
+		mInternals->mDownKeyframeAnimationPlayer->reset(!sceneItemButton.getStartTimeInterval().hasValue());
 	if (mInternals->mDisabledKeyframeAnimationPlayer != nil)
-		mInternals->mDisabledKeyframeAnimationPlayer->reset(
-				sceneItemButton.getStartTimeInterval() == kSceneItemStartTimeStartAtLoad);
+		mInternals->mDisabledKeyframeAnimationPlayer->reset(!sceneItemButton.getStartTimeInterval().hasValue());
 
 	// Super
 	CSceneItemPlayer::reset();
@@ -293,6 +214,12 @@ void CSceneItemPlayerButton::reset()
 void CSceneItemPlayerButton::update(UniversalTimeInterval deltaTimeInterval, bool isRunning)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	if (mInternals->mIsEnabled) {
+		if (mInternals->mCurrentKeyframeAnimationPlayer != nil)
+			mInternals->mCurrentKeyframeAnimationPlayer->finishLoading();
+	} else if (mInternals->mDisabledKeyframeAnimationPlayer != nil)
+		mInternals->mDisabledKeyframeAnimationPlayer->finishLoading();
+
 	if (mInternals->mUpKeyframeAnimationPlayer != nil)
 		mInternals->mUpKeyframeAnimationPlayer->update(deltaTimeInterval, isRunning);
 	if (mInternals->mDownKeyframeAnimationPlayer != nil)
@@ -302,7 +229,7 @@ void CSceneItemPlayerButton::update(UniversalTimeInterval deltaTimeInterval, boo
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButton::render(CGPU& gpu, const S2DPoint32& offset)
+void CSceneItemPlayerButton::render(CGPU& gpu, const S2DPoint32& offset) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	if (mInternals->mIsEnabled) {
@@ -313,7 +240,7 @@ void CSceneItemPlayerButton::render(CGPU& gpu, const S2DPoint32& offset)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerButton::handlesTouchOrMouseAtPoint(const S2DPoint32& point)
+bool CSceneItemPlayerButton::handlesTouchOrMouseAtPoint(const S2DPoint32& point) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mIsEnabled && (mInternals->mUpKeyframeAnimationPlayer != nil) &&
@@ -379,9 +306,9 @@ void CSceneItemPlayerButton::touchEndedOrMouseUpAtPoint(const S2DPoint32& point,
 		mInternals->mCurrentKeyframeAnimationPlayer = mInternals->mUpKeyframeAnimationPlayer;
 
 		if (mInternals->isPointInHitRect(point)) {
-			OR<CActionArray>	actionArray = getSceneItemButton().getActionArray();
-			if (actionArray.hasReference())
-				perform(*actionArray, point);
+			OO<CActions>	actions = getSceneItemButton().getActions();
+			if (actions.hasObject())
+				perform(*actions, point);
 		}
 	}
 }
@@ -419,16 +346,6 @@ void CSceneItemPlayerButton::setIsEnabled(bool isEnabled)
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - Local proc definitions
 
-////----------------------------------------------------------------------------------------------------------------------
-//CSceneItemPlayer* sCreateSceneItemPlayer(const CSceneItem& sceneItem,
-//		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-//		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, bool makeCopy)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	return new CSceneItemPlayerButton(*((CSceneItemButton*) &sceneItem), sceneAppResourceManagementInfo,
-//			sceneItemPlayerProcsInfo, makeCopy);
-//}
-//
 //----------------------------------------------------------------------------------------------------------------------
 bool sKeyframeAnimationPlayerShouldLoopProc(CKeyframeAnimationPlayer& keyframeAnimationPlayer, UInt32 currentLoopCount,
 		void* userData)
@@ -438,11 +355,11 @@ bool sKeyframeAnimationPlayerShouldLoopProc(CKeyframeAnimationPlayer& keyframeAn
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void sKeyframeAnimationPlayerActionArrayHandlerProc(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
-		const CActionArray& actionArray, void* userData)
+void sKeyframeAnimationPlayerActionsHandlerProc(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+		const CActions& actions, void* userData)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	CSceneItemPlayerButtonInternals*	internals = (CSceneItemPlayerButtonInternals*) userData;
 
-	internals->mSceneItemPlayerButton.perform(actionArray);
+	internals->mSceneItemPlayerButton.perform(actions);
 }

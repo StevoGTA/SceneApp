@@ -10,41 +10,9 @@
 #include "TimeAndDate.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Point values
-
-const	S2DPoint32	kAnimationKeyframeAnchorPointUseCurrent = {INFINITY, INFINITY};
-const	S2DPoint32	kAnimationKeyframeScreenPositionPointUseCurrent = {INFINITY, INFINITY};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Angle values
-
-// Don't change the angle at this keyframe
-const	Float32	kAnimationKeyframeAngleDegreesUseCurrent = INFINITY;
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Alpha values
-
-// Don't change the alpha at this keyframe
-const	Float32	kAnimationKeyframeAlphaUseCurrent = -1.0;
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Scale values
-
-// Don't change the scale at this keyframe
-const	Float32	kAnimationKeyframeScaleUseCurrent = -1.0;
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Delay values
-
-const	UniversalTimeInterval	kAnimationKeyframeDelayForever = -1.0;
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Frame transition types
+// MARK: Frame transition types
 
 enum EAnimationKeyframeTransitionType {
-	// No transition and values stay constant
-	kAnimationKeyframeTransitionTypeNone			= 0,
-	
 	// Values hold current values and then snap to next values
 	kAnimationKeyframeTransitionTypeJump			= 1,
 	
@@ -70,7 +38,7 @@ enum EAnimationKeyframeTransitionType {
 enum EAnimationKeyframeOptions {
 	kAnimationKeyframeOptionsNone					= 0,
 
-	kAnimationKeyframeOptionsTextureWillChangeAlpha	= 1 << 0,
+//	kAnimationKeyframeOptionsTextureWillChangeAlpha	= 1 << 0,
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -95,52 +63,49 @@ class CAnimationKeyframeInternals;
 class CAnimationKeyframe {
 	// Methods
 	public:
-													// Lifecycle methods
-													CAnimationKeyframe();
-													CAnimationKeyframe(const CDictionary& info);
-													CAnimationKeyframe(const CAnimationKeyframe& other);
-													~CAnimationKeyframe();
+														// Lifecycle methods
+														CAnimationKeyframe();
+														CAnimationKeyframe(const CDictionary& info);
+														CAnimationKeyframe(const CAnimationKeyframe& other);
+														~CAnimationKeyframe();
 
-													// Instance methods
-				TArray<CDictionary>					getProperties() const;
-				CDictionary							getInfo() const;
+														// Instance methods
+				TArray<CDictionary>						getProperties() const;
+				CDictionary								getInfo() const;
 
-				OR<CActionArray>					getActionArray() const;
-				void								setActionArray(OR<CActionArray> actionArray);
+		const	OO<CActions>&							getActions() const;
+				void									setActions(const OO<CActions>& actions);
 
-				bool								hasAnchorPoint() const;
-		const	S2DPoint32&							getAnchorPoint() const;
-				void								setAnchorPoint(const S2DPoint32& anchorPoint);
+		const	OV<S2DPoint32>&							getAnchorPoint() const;
+				void									setAnchorPoint(const OV<S2DPoint32>& anchorPoint);
 
-				bool								hasScreenPositionPoint() const;
-		const	S2DPoint32&							getScreenPositionPoint() const;
-				void								setScreenPositionPoint(const S2DPoint32& screenPositionPoint);
+		const	OV<S2DPoint32>&							getScreenPositionPoint() const;
+				void									setScreenPositionPoint(
+																const OV<S2DPoint32>& screenPositionPoint);
 
-				bool								hasAngleDegrees() const;
-				Float32								getAngleDegrees() const;
-				void								setAngleDegrees(Float32 angleDegrees);
+		const	OV<Float32>&							getAngleDegrees() const;
+				void									setAngleDegrees(const OV<Float32>& angleDegrees);
 
-				bool								hasAlpha() const;
-				Float32								getAlpha() const;
-				void								setAlpha(Float32 alpha);
+		const	OV<Float32>&							getAlpha() const;
+				void									setAlpha(const OV<Float32>& alpha);
 
-				bool								hasScale() const;
-				Float32								getScale() const;
-				void								setScale(Float32 scale);
+		const	OV<Float32>&							getScale() const;
+				void									setScale(const OV<Float32>& scale);
 
-				UniversalTimeInterval				getDelay() const;
-				void								setDelay(UniversalTimeInterval delay);
+		const	OV<UniversalTimeInterval>&				getDelay() const;
+				void									setDelay(const OV<UniversalTimeInterval>& delay);
 
-				bool								hasTransitionType() const;
-				EAnimationKeyframeTransitionType	getTransitionType() const;
-				void								setTransitionType(EAnimationKeyframeTransitionType transitionType);
+		const	OV<EAnimationKeyframeTransitionType>&	getTransitionType() const;
+				void									setTransitionType(
+																const OV<EAnimationKeyframeTransitionType>&
+																		transitionType);
 
-				bool								hasImageResourceFilename() const;
-		const	CString&							getImageResourceFilename() const;
-				void								setImageResourceFilename(const CString& imageResourceFilename);
+		const	OV<CString>&							getImageResourceFilename() const;
+				void									setImageResourceFilename(
+																const OV<CString>& imageResourceFilename);
 
-				EAnimationKeyframeOptions			getOptions() const;
-				void								setOptions(EAnimationKeyframeOptions options);
+				EAnimationKeyframeOptions				getOptions() const;
+				void									setOptions(EAnimationKeyframeOptions options);
 
 	// Properties
 	private:

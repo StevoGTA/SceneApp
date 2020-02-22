@@ -42,15 +42,23 @@
 			duration: duration in seconds
 		dontPreload: don't preload the connected scene
 
-	Scene Slide: "sceneSlide"
+	Scene Cover: "sceneCover"
 		sceneIndex*: index of next scene
 			loadSceneIndexFrom**: load index of next scene from
 			sceneName**: name of next scene
 		direction*: "up", "down", "left", or "right"
-		layering: "covers" or "uncovers"
 		auto: not user controller
 			duration: duration in seconds
 		dontPreload: don't preload the connected scene
+
+	 Scene Uncover: "sceneUncover"
+		 sceneIndex*: index of next scene
+			 loadSceneIndexFrom**: load index of next scene from
+			 sceneName**: name of next scene
+		 direction*: "up", "down", "left", or "right"
+		 auto: not user controller
+			 duration: duration in seconds
+		 dontPreload: don't preload the connected scene
 
 	Set Item Name/Value: "setItemNameValue"
 		itemName*: name of SceneItem
@@ -86,15 +94,23 @@ struct SScenePackageInfo {
 
 typedef	CByteParceller	(*SSceneAppResourceManagementInfoCreateByteParcellerProc)(const CString& resourceFilename);
 struct SSceneAppResourceManagementInfo {
-	// Lifecycle methods
-	SSceneAppResourceManagementInfo(SSceneAppResourceManagementInfoCreateByteParcellerProc createByteParcellerProc,
-			CGPUTextureManager& gpuTextureManager) :
-		mCreateByteParcellerProc(createByteParcellerProc), mGPUTextureManager(gpuTextureManager)
-		{}
+					// Lifecycle methods
+					SSceneAppResourceManagementInfo(
+							SSceneAppResourceManagementInfoCreateByteParcellerProc createByteParcellerProc,
+							CGPUTextureManager& gpuTextureManager) :
+						mCreateByteParcellerProc(createByteParcellerProc), mGPUTextureManager(gpuTextureManager)
+						{}
+
+					// Instance methods
+	CByteParceller	createByteParceller(const CString& resourceFilename) const
+						{ return mCreateByteParcellerProc(resourceFilename); }
 
 	// Properties
-	SSceneAppResourceManagementInfoCreateByteParcellerProc	mCreateByteParcellerProc;
-	CGPUTextureManager&										mGPUTextureManager;
+	public:
+		CGPUTextureManager&										mGPUTextureManager;
+
+	private:
+		SSceneAppResourceManagementInfoCreateByteParcellerProc	mCreateByteParcellerProc;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

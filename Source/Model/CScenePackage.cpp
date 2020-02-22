@@ -1,42 +1,26 @@
-//
-//  CScenePackage.cpp
-//  StevoBrock-Core
-//
-//  Created by Stevo on 10/4/19.
-//
+//----------------------------------------------------------------------------------------------------------------------
+//	CScenePackage.cpp			©2019 Stevo Brock		All rights reserved.
+//----------------------------------------------------------------------------------------------------------------------
 
 #include "CScenePackage.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local data
 
-static	CString	sInitialSceneIndexKey("initialSceneIndex");
-static	CString	sViewportZoomKey("viewportZoom");
-static	CString	sScenesKey("scenes");
+static	CString	sInitialSceneIndexKey(OSSTR("initialSceneIndex"));
+static	CString	sViewportZoomKey(OSSTR("viewportZoom"));
+static	CString	sScenesKey(OSSTR("scenes"));
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CScenePackageInternals
 
-class CScenePackageInternals {
+class CScenePackageInternals : public TReferenceCountable<CScenePackageInternals> {
 	public:
-		CScenePackageInternals() : mScenes(true), mReferenceCount(1) {}
+		CScenePackageInternals() : TReferenceCountable() {}
 
-		CScenePackageInternals*	addReference()
-									{ mReferenceCount++; return this; }
-		void					removeReference()
-									{
-										// Remove reference and see if we are the last one
-										if (--mReferenceCount == 0) {
-											// Last one
-											CScenePackageInternals*	THIS = this;
-											DisposeOf(THIS);
-										}
-									}
-
-		TPtrArray<CScene*>	mScenes;
-		OV<SceneIndex>		mInitialSceneIndex;
-		UInt32				mReferenceCount;
+		TNArray<CScene>	mScenes;
+		OV<CSceneIndex>	mInitialSceneIndex;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -58,18 +42,16 @@ CScenePackage::CScenePackage(const CDictionary& info)
 {
 	mInternals = new CScenePackageInternals();
 
+	mInternals->mScenes =
+			TNArray<CScene>(info.getArrayOfDictionaries(sScenesKey), (CScene (*)(CArrayItemRef item)) CScene::makeFrom);
 	mInternals->mInitialSceneIndex = info.getSInt32(sInitialSceneIndexKey, 0);
-
-	TArray<CDictionary>	sceneInfos = info.getArrayOfDictionaries(sScenesKey);
-	for (CArrayItemIndex i = 0; i < sceneInfos.getCount(); i++)
-		mInternals->mScenes += new CScene(sceneInfos[i]);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CScenePackage::CScenePackage(const CScenePackage& other)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = mInternals->addReference();
+	mInternals = other.mInternals->addReference();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -87,25 +69,22 @@ CDictionary CScenePackage::getInfo() const
 {
 	CDictionary	info;
 
+	info.set(sScenesKey,
+			TNArray<CDictionary>(mInternals->mScenes, (CDictionary (*)(CArrayItemRef item)) CScene::getInfoFrom));
 	if (mInternals->mInitialSceneIndex.hasValue())
 		info.set(sInitialSceneIndexKey, *mInternals->mInitialSceneIndex);
-
-	TArray<CDictionary>	sceneInfos;
-	for (CArrayItemIndex i = 0; i < mInternals->mScenes.getCount(); i++)
-		sceneInfos += mInternals->mScenes[i]->getInfo();
-	info.set(sScenesKey, sceneInfos);
 
 	return info;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CScene& CScenePackage::getInitialScene() const
+const CScene& CScenePackage::getInitialScene() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Validation check
 	AssertFailIf(!mInternals->mInitialSceneIndex.hasValue());
 
-	return *mInternals->mScenes[*mInternals->mInitialSceneIndex];
+	return mInternals->mScenes[*mInternals->mInitialSceneIndex];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -116,20 +95,20 @@ UInt32 CScenePackage::getScenesCount() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CScene& CScenePackage::getSceneAtIndex(SceneIndex index) const
+const CScene& CScenePackage::getSceneAtIndex(CSceneIndex index) const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return *mInternals->mScenes[index];
+	return mInternals->mScenes[index];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-OV<SceneIndex> CScenePackage::getIndexOfScene(const CScene& scene)
+OV<CSceneIndex> CScenePackage::getIndexOfScene(const CScene& scene)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Get index
-	OV<CArrayItemIndex>	index = mInternals->mScenes.getIndexOf((CScene*) &scene);
+	OV<CArrayItemIndex>	index = mInternals->mScenes.getIndexOf(scene);
 
-	return index.hasValue() ? OV<SceneIndex>(*index) : OV<SceneIndex>();
+	return index.hasValue() ? OV<CSceneIndex>(*index) : OV<CSceneIndex>();
 }
 
 //----------------------------------------------------------------------------------------------------------------------

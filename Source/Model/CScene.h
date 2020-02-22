@@ -11,9 +11,9 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Scene Index values
 
-typedef SInt32 SceneIndex;
+typedef SInt32 CSceneIndex;
 
-const	SceneIndex	kSceneIndexLastViewed = -1;
+const	CSceneIndex	kSceneIndexLastViewed = -1;
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - Scene Options
@@ -30,36 +30,41 @@ class CSceneInternals;
 class CScene : public CEquatable {
 	// Methods
 	public:
-									// Lifecycle methods
-									CScene();
-									CScene(const CDictionary& info);
-									~CScene();
+										// Lifecycle methods
+										CScene();
+										CScene(const CDictionary& info);
+										CScene(const CScene& other);
+										~CScene();
 
-									// CEquatable methods
-				bool				operator==(const CEquatable& other) const
-										{ return this == &other; }
+										// CEquatable methods
+					bool				operator==(const CEquatable& other) const;
 
-									// Instance methods
-				TArray<CDictionary>	getProperties() const;
-				CDictionary			getInfo() const;
+										// Instance methods
+					TArray<CDictionary>	getProperties() const;
+					CDictionary			getInfo() const;
 
-		const	CString&			getName() const;
-				void				setName(const CString& name);
+			const	CString&			getName() const;
+					void				setName(const CString& name);
 
-		const	S2DRect32&			getBoundsRect() const;
-				void				setBoundsRect(const S2DRect32& rect);
+			const	S2DRect32&			getBoundsRect() const;
+					void				setBoundsRect(const S2DRect32& rect);
 
-				OR<CActionArray>	getDoubleTapActionArray() const;
-				void				setDoubleTapActionArray(OR<CActionArray> doubleTapActionArray);
+			const	OO<CActions>&		getDoubleTapActions() const;
+					void				setDoubleTapActions(const OO<CActions>& doubleTapActions);
 
-				ESceneOptions		getOptions() const;
-				void				setOptions(ESceneOptions options);
+					ESceneOptions		getOptions() const;
+					void				setOptions(ESceneOptions options);
 
-		const	CString&			getStoreSceneIndexAsString() const;
-				void				setStoreSceneIndexAsString(const CString& string);
+			const	CString&			getStoreSceneIndexAsString() const;
+					void				setStoreSceneIndexAsString(const CString& string);
 
-				UInt32				getSceneItemsCount() const;
-				CSceneItem&			getSceneItemAtIndex(UInt32 index) const;
+			const	TArray<CSceneItem>&	getSceneItems() const;
+
+										// Class methods
+	static			CScene				makeFrom(const CDictionary& info)
+											{ return CScene(info); }
+	static			CDictionary			getInfoFrom(const CScene& scene)
+											{ return scene.getInfo(); }
 
 	// Properties
 	private:

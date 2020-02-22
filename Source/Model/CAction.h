@@ -6,24 +6,13 @@
 
 #include "CDictionary.h"
 
-/*
-	This class may seem a little weird at first.  Historically an action was only 1 thing.  But
-	eventually the need arose to do multiple things from the same slot as a single action.  At
-	that time, the "Action" class expanded to handle storage of a single action or multiple actions.
-	The interface to query now forces to check for multiple even if the most often scenario is a
-	single action.
-
-	11/20/12 update: will now only support action array stored as a dictionary.  Please update
-		all stored PLIST files.
-*/
-
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Action Options
 
 enum EActionOptions {
 	kActionOptionsNone			= 0,
 	kActionOptionsDontPreload	= 1 << 0,
-	kActionOptionsUnloadCurrent	= 1 << 1,
+//	kActionOptionsUnloadCurrent	= 1 << 1,
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -34,10 +23,9 @@ class CAction {
 	// Methods
 	public:
 								// Lifecycle methods
-								CAction();
-								CAction(const CDictionary& info);
 								CAction(const CString& name, const CDictionary& info,
 										EActionOptions options = kActionOptionsNone);
+								CAction(const CDictionary& info);
 								CAction(const CAction& other);
 								~CAction();
 
@@ -45,13 +33,13 @@ class CAction {
 				CDictionary		getInfo() const;
 
 		const	CString&		getName() const;
-				void			setName(const CString& name);
+//				void			setName(const CString& name);
 
 		const	CDictionary&	getActionInfo() const;
-				void			setActionInfo(const CDictionary& info);
+//				void			setActionInfo(const CDictionary& info);
 
 				EActionOptions	getOptions() const;
-				void			setOptions(EActionOptions options);
+//				void			setOptions(EActionOptions options);
 
 	// Properties
 	public:
@@ -86,15 +74,16 @@ class CAction {
 };
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - CActionArray
+// MARK: - CActions
 
-class CActionArray : public TPtrArray<CAction*> {
+class CActions : public TNArray<CAction> {
 	// Methods
 	public:
 					// Lifecycle methods
-					CActionArray();
-					CActionArray(const CDictionary& info);
-					CActionArray(const CActionArray& other);
+					CActions();
+					CActions(const CAction& action);
+					CActions(const CDictionary& info);
+					CActions(const CActions& other);
 
 					// Instance methods
 		CDictionary	getInfo() const;

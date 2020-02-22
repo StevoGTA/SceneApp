@@ -9,74 +9,41 @@
 #include "CSceneItemButtonArray.h"
 #include "CSceneItemCustom.h"
 #include "CSceneItemHotspot.h"
-#include "CSceneItemMovie.h"
-#include "CSceneItemText.h"
+//#include "CSceneItemMovie.h"
+//#include "CSceneItemText.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local data
 
-static	CString	sBoundsRectKey("bounds");
-static	CString	sDontUnloadKey("dontUnload");
-static	CString	sDoubleTapActionArrayInfoKey("doubleTapAction");
-static	CString	sItemsKey("items");
-static	CString	sItemTypeKey("itemType");
-static	CString	sNameKey("name");
-static	CString	sStoreSceneIndexAsKey("storeSceneIndexAs");
+static	CString	sBoundsRectKey(OSSTR("bounds"));
+static	CString	sDontUnloadKey(OSSTR("dontUnload"));
+static	CString	sDoubleTapActionsInfoKey(OSSTR("doubleTapAction"));
+static	CString	sItemsKey(OSSTR("items"));
+static	CString	sItemTypeKey(OSSTR("itemType"));
+static	CString	sNameKey(OSSTR("name"));
+static	CString	sStoreSceneIndexAsKey(OSSTR("storeSceneIndexAs"));
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneInternals
 
-class CSceneInternals {
+class CSceneInternals : public TCopyOnWriteReferenceCountable<CSceneInternals> {
 	public:
-		CSceneInternals() : mItemsArray(true), mDoubleTapActionArray(nil), mOptions(kSceneOptionsNone) {}
-		~CSceneInternals()
-			{
-				DisposeOf(mDoubleTapActionArray);
-			}
+		CSceneInternals() : TCopyOnWriteReferenceCountable(), mOptions(kSceneOptionsNone) {}
+		CSceneInternals(const CSceneInternals& other) :
+			TCopyOnWriteReferenceCountable(),
+					mDoubleTapActions(other.mDoubleTapActions), mOptions(other.mOptions), mName(other.mName),
+							mStoreSceneIndexAsString(other.mStoreSceneIndexAsString), mBoundsRect(other.mBoundsRect),
+							mSceneItems(other.mSceneItems)
+					{}
 
-		CActionArray*			mDoubleTapActionArray;
-		ESceneOptions			mOptions;
-		CString					mName;
-		CString					mStoreSceneIndexAsString;
-		S2DRect32				mBoundsRect;
-		TPtrArray<CSceneItem*>	mItemsArray;
+		OO<CActions>		mDoubleTapActions;
+		ESceneOptions		mOptions;
+		CString				mName;
+		CString				mStoreSceneIndexAsString;
+		S2DRect32			mBoundsRect;
+		TCArray<CSceneItem>	mSceneItems;
 };
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneApp methods
-
-//----------------------------------------------------------------------------------------------------------------------
-CSceneItem*	eCreateSceneItemFromInfo(const CDictionary& sceneItemInfo)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	CString		itemType = sceneItemInfo.getString(sItemTypeKey);
-	CDictionary	itemInfo = sceneItemInfo.getDictionary(CSceneItem::mItemInfoKey);
-
-	// What we get?
-	if (itemType == CSceneItemAnimation::mType)
-		// Animation
-		return new CSceneItemAnimation(itemInfo);
-	else if (itemType == CSceneItemButton::mType)
-		// Button
-		return new CSceneItemButton(itemInfo);
-	else if (itemType == CSceneItemButtonArray::mType)
-		// Button Array
-		return new CSceneItemButtonArray(itemInfo);
-	else if (itemType == CSceneItemHotspot::mType)
-		// Hotspot
-		return new CSceneItemHotspot(itemInfo);
-	else if (itemType == CSceneItemMovie::mType)
-		// Movie
-		return new CSceneItemMovie(itemInfo);
-	else if (itemType == CSceneItemText::mType)
-		// Text
-		return new CSceneItemText(itemInfo);
-	else
-		// Custom
-		return new CSceneItemCustom(itemType, itemInfo);
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -99,24 +66,66 @@ CScene::CScene(const CDictionary& info)
 
 	mInternals->mName = info.getString(sNameKey);
 	mInternals->mBoundsRect = S2DRect32(info.getString(sBoundsRectKey));
-	if (info.contains(sDoubleTapActionArrayInfoKey))
-		mInternals->mDoubleTapActionArray = new CActionArray(info.getDictionary(sDoubleTapActionArrayInfoKey));
+	if (info.contains(sDoubleTapActionsInfoKey))
+		mInternals->mDoubleTapActions = new CActions(info.getDictionary(sDoubleTapActionsInfoKey));
 	mInternals->mStoreSceneIndexAsString = info.getString(sStoreSceneIndexAsKey);
 
 	if (info.contains(sDontUnloadKey))
 		mInternals->mOptions = (ESceneOptions) (mInternals->mOptions | kSceneOptionsDontUnload);
 
 	TArray<CDictionary>	itemInfos = info.getArrayOfDictionaries(sItemsKey);
-	for (CArrayItemIndex i = 0; i < itemInfos.getCount(); i++)
+	for (CArrayItemIndex i = 0; i < itemInfos.getCount(); i++) {
 		// Create and add item
-		mInternals->mItemsArray += eCreateSceneItemFromInfo(itemInfos[i]);
+		const	CDictionary&	sceneItemInfo = itemInfos[i];
+		const	CString			itemType = sceneItemInfo.getString(sItemTypeKey);
+		const	CDictionary		itemInfo = sceneItemInfo.getDictionary(CSceneItem::mItemInfoKey);
+
+		// What we get?
+		if (itemType == CSceneItemAnimation::mType)
+			// Animation
+			mInternals->mSceneItems += CSceneItemAnimation(itemInfo);
+		else if (itemType == CSceneItemButton::mType)
+			// Button
+			mInternals->mSceneItems += CSceneItemButton(itemInfo);
+		else if (itemType == CSceneItemButtonArray::mType)
+			// Button Array
+			mInternals->mSceneItems += CSceneItemButtonArray(itemInfo);
+		else if (itemType == CSceneItemHotspot::mType)
+			// Hotspot
+			mInternals->mSceneItems += CSceneItemHotspot(itemInfo);
+//		else if (itemType == CSceneItemMovie::mType)
+//			// Movie
+//			mInternals->mSceneItems += CSceneItemMovie(itemInfo);
+//		else if (itemType == CSceneItemText::mType)
+//			// Text
+//			mInternals->mSceneItems += CSceneItemText(itemInfo);
+		else
+			// Custom
+			mInternals->mSceneItems += CSceneItemCustom(itemType, itemInfo);
+	}
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+CScene::CScene(const CScene& other)
+//----------------------------------------------------------------------------------------------------------------------
+{
+	mInternals = other.mInternals->addReference();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CScene::~CScene()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	mInternals->removeReference();
+}
+
+// MARK: CEquatable methods
+
+//----------------------------------------------------------------------------------------------------------------------
+bool CScene::operator==(const CEquatable& other) const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	return mInternals == ((const CScene&) other).mInternals;
 }
 
 // MARK: Instance methods
@@ -126,7 +135,7 @@ TArray<CDictionary> CScene::getProperties() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	TArray<CDictionary>	properties;
+	TNArray<CDictionary>	properties;
 
 	// Add properties
 
@@ -141,17 +150,17 @@ CDictionary CScene::getInfo() const
 
 	info.set(sNameKey, mInternals->mName);
 	info.set(sBoundsRectKey, mInternals->mBoundsRect.asString());
-	if (mInternals->mDoubleTapActionArray != nil)
-		info.set(sDoubleTapActionArrayInfoKey, mInternals->mDoubleTapActionArray->getInfo());
+	if (mInternals->mDoubleTapActions.hasObject())
+		info.set(sDoubleTapActionsInfoKey, mInternals->mDoubleTapActions->getInfo());
 	if (mInternals->mOptions & kSceneOptionsDontUnload)
 		info.set(sDontUnloadKey, (UInt32) 1);
 	info.set(sStoreSceneIndexAsKey, mInternals->mStoreSceneIndexAsString);
 
-	TArray<CDictionary>	itemInfos;
-	for (CArrayItemIndex i = 0; i < mInternals->mItemsArray.getCount(); i++) {
+	TNArray<CDictionary>	itemInfos;
+	for (CArrayItemIndex i = 0; i < mInternals->mSceneItems.getCount(); i++) {
 		CDictionary	sceneItemInfo;
-		sceneItemInfo.set(sItemTypeKey, mInternals->mItemsArray[i]->getType());
-		sceneItemInfo.set(CSceneItem::mItemInfoKey, mInternals->mItemsArray[i]->getInfo());
+		sceneItemInfo.set(sItemTypeKey, mInternals->mSceneItems[i].getType());
+		sceneItemInfo.set(CSceneItem::mItemInfoKey, mInternals->mSceneItems[i].getInfo());
 		itemInfos += sceneItemInfo;
 	}
 	info.set(sItemsKey, itemInfos);
@@ -170,6 +179,10 @@ const CString& CScene::getName() const
 void CScene::setName(const CString& name)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mName = name;
 }
 
@@ -184,24 +197,29 @@ const S2DRect32& CScene::getBoundsRect() const
 void CScene::setBoundsRect(const S2DRect32& rect)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mBoundsRect = rect;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CActionArray> CScene::getDoubleTapActionArray() const
+const OO<CActions>& CScene::getDoubleTapActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return (mInternals->mDoubleTapActionArray != nil) ?
-			OR<CActionArray>(*mInternals->mDoubleTapActionArray) : OR<CActionArray>();
+	return mInternals->mDoubleTapActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CScene::setDoubleTapActionArray(OR<CActionArray> doubleTapActionArray)
+void CScene::setDoubleTapActions(const OO<CActions>& doubleTapActions)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mDoubleTapActionArray);
-	if (doubleTapActionArray.hasReference())
-		mInternals->mDoubleTapActionArray = new CActionArray(*doubleTapActionArray);
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
+	mInternals->mDoubleTapActions = doubleTapActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -215,6 +233,10 @@ ESceneOptions CScene::getOptions() const
 void CScene::setOptions(ESceneOptions options)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mOptions = options;
 }
 
@@ -229,19 +251,16 @@ const CString& CScene::getStoreSceneIndexAsString() const
 void CScene::setStoreSceneIndexAsString(const CString& string)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mStoreSceneIndexAsString = string;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-UInt32 CScene::getSceneItemsCount() const
+const TArray<CSceneItem>& CScene::getSceneItems() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return mInternals->mItemsArray.getCount();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-CSceneItem& CScene::getSceneItemAtIndex(UInt32 index) const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return *mInternals->mItemsArray[index];
+	return mInternals->mSceneItems;
 }

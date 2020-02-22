@@ -1,37 +1,34 @@
-//
-//  CScenePackage.h
-//  StevoBrock-Core
-//
-//  Created by Stevo on 10/4/19.
-//
+//----------------------------------------------------------------------------------------------------------------------
+//	CScenePackage.h			©2019 Stevo Brock		All rights reserved.
+//----------------------------------------------------------------------------------------------------------------------
 
 #pragma once
 
 #include "CScene.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - CScenePackage
+// MARK: CScenePackage
 
 class CScenePackageInternals;
 class CScenePackage {
 	// Methods
 	public:
-						// Lifecycle methods
-						CScenePackage();
-						CScenePackage(const CDictionary& info);
-						CScenePackage(const CScenePackage& other);
-						~CScenePackage();
+								// Lifecycle methods
+								CScenePackage();
+								CScenePackage(const CDictionary& info);
+								CScenePackage(const CScenePackage& other);
+								~CScenePackage();
 
-						// Instance methods
-		CDictionary		getInfo() const;
+								// Instance methods
+				CDictionary		getInfo() const;
 
-		CScene&			getInitialScene() const;
-		UInt32			getScenesCount() const;
-		CScene&			getSceneAtIndex(SceneIndex index) const;
-		OV<SceneIndex>	getIndexOfScene(const CScene& scene);
+		const	CScene&			getInitialScene() const;
+				UInt32			getScenesCount() const;
+		const	CScene&			getSceneAtIndex(CSceneIndex index) const;
+				OV<CSceneIndex>	getIndexOfScene(const CScene& scene);
 
 
-		CScenePackage&	operator=(const CScenePackage& other);
+				CScenePackage&	operator=(const CScenePackage& other);
 
 	// Properties
 	private:

@@ -9,47 +9,48 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local data
 
-static	CString	sActionArrayInfoKey("actionInfo");
-static	CString	sAudioInfoKey("audioInfo");
-static	CString	sHitRadiusKey("hitRadius");
-static	CString	sDisabledKeyframeAnimationInfoKey("disabledAnimationInfo");
-static	CString	sDownKeyframeAnimationInfoKey("downAnimationInfo");
-static	CString	sStartTimeIntervalKey("startTime");
-static	CString	sUpKeyframeAnimationInfoKey("upAnimationInfo");
-
-CString	CSceneItemButton::mType("button");
+static	CString	sActionsInfoKey(OSSTR("actionInfo"));
+static	CString	sAudioInfoKey(OSSTR("audioInfo"));
+static	CString	sHitRadiusKey(OSSTR("hitRadius"));
+static	CString	sDisabledKeyframeAnimationInfoKey(OSSTR("disabledAnimationInfo"));
+static	CString	sDownKeyframeAnimationInfoKey(OSSTR("downAnimationInfo"));
+static	CString	sStartTimeIntervalKey(OSSTR("startTime"));
+static	CString	sUpKeyframeAnimationInfoKey(OSSTR("upAnimationInfo"));
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItemButtonInternals
 
-class CSceneItemButtonInternals {
+class CSceneItemButtonInternals : public TCopyOnWriteReferenceCountable<CSceneItemButtonInternals> {
 	public:
-		CSceneItemButtonInternals() :
-			mActionArray(nil), mAudioInfo(nil), mUpKeyframeAnimationInfo(nil), mDownKeyframeAnimationInfo(nil),
-					mDisabledKeyframeAnimationInfo(nil), mHitRadius(0.0), mStartTimeInterval(0.0)
+		CSceneItemButtonInternals() : TCopyOnWriteReferenceCountable(), mHitRadius(0.0) {}
+		CSceneItemButtonInternals(const CSceneItemButtonInternals& other) :
+			TCopyOnWriteReferenceCountable(),
+					mActions(other.mActions), mAudioInfo(other.mAudioInfo),
+							mUpKeyframeAnimationInfo(other.mUpKeyframeAnimationInfo),
+							mDownKeyframeAnimationInfo(other.mDownKeyframeAnimationInfo),
+							mDisabledKeyframeAnimationInfo(other.mDisabledKeyframeAnimationInfo),
+							mHitRadius(other.mHitRadius), mStartTimeInterval(other.mStartTimeInterval)
 			{}
-		~CSceneItemButtonInternals()
-			{
-				DisposeOf(mActionArray);
-				DisposeOf(mAudioInfo);
-				DisposeOf(mUpKeyframeAnimationInfo);
-				DisposeOf(mDownKeyframeAnimationInfo);
-				DisposeOf(mDisabledKeyframeAnimationInfo);
-			}
 
-		CActionArray*			mActionArray;
-		CAudioInfo*				mAudioInfo;
-		CKeyframeAnimationInfo*	mUpKeyframeAnimationInfo;
-		CKeyframeAnimationInfo*	mDownKeyframeAnimationInfo;
-		CKeyframeAnimationInfo*	mDisabledKeyframeAnimationInfo;
-		Float32					mHitRadius;
-		UniversalTimeInterval	mStartTimeInterval;
+		OO<CActions>				mActions;
+		OO<CAudioInfo>				mAudioInfo;
+		OO<CKeyframeAnimationInfo>	mUpKeyframeAnimationInfo;
+		OO<CKeyframeAnimationInfo>	mDownKeyframeAnimationInfo;
+		OO<CKeyframeAnimationInfo>	mDisabledKeyframeAnimationInfo;
+		Float32						mHitRadius;
+		OV<UniversalTimeInterval>	mStartTimeInterval;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - Lifecycle methods
+// MARK: - CSceneItemButton
+
+// MARK: Properties
+
+CString	CSceneItemButton::mType(OSSTR("button"));
+
+// MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemButton::CSceneItemButton() : CSceneItem()
@@ -64,23 +65,21 @@ CSceneItemButton::CSceneItemButton(const CDictionary& info) : CSceneItem(info)
 {
 	mInternals = new CSceneItemButtonInternals();
 
-	if (info.contains(sActionArrayInfoKey))
-		mInternals->mActionArray = new CActionArray(info.getDictionary(sActionArrayInfoKey));
-
+	if (info.contains(sActionsInfoKey))
+		mInternals->mActions = OO<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
 	if (info.contains(sAudioInfoKey))
-		mInternals->mAudioInfo = new CAudioInfo(info.getDictionary(sAudioInfoKey));
-
-	mInternals->mUpKeyframeAnimationInfo = new CKeyframeAnimationInfo(info.getDictionary(sUpKeyframeAnimationInfoKey));
-
+		mInternals->mAudioInfo = OO<CAudioInfo>(CAudioInfo(info.getDictionary(sAudioInfoKey)));
+	mInternals->mUpKeyframeAnimationInfo =
+			OO<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(info.getDictionary(sUpKeyframeAnimationInfoKey)));
 	if (info.contains(sDownKeyframeAnimationInfoKey))
 		mInternals->mDownKeyframeAnimationInfo =
-				new CKeyframeAnimationInfo(info.getDictionary(sDownKeyframeAnimationInfoKey));
-
+				OO<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(info.getDictionary(sDownKeyframeAnimationInfoKey)));
 	if (info.contains(sDisabledKeyframeAnimationInfoKey))
 		mInternals->mDisabledKeyframeAnimationInfo =
-				new CKeyframeAnimationInfo(info.getDictionary(sDisabledKeyframeAnimationInfoKey));
-
-	mInternals->mStartTimeInterval = info.getFloat64(sStartTimeIntervalKey);
+				OO<CKeyframeAnimationInfo>(
+						CKeyframeAnimationInfo(info.getDictionary(sDisabledKeyframeAnimationInfoKey)));
+	if (info.contains(sStartTimeIntervalKey))
+		mInternals->mStartTimeInterval = OV<UniversalTimeInterval>(info.getFloat64(sStartTimeIntervalKey));
 	mInternals->mHitRadius = info.getFloat32(sHitRadiusKey);
 }
 
@@ -88,29 +87,14 @@ CSceneItemButton::CSceneItemButton(const CDictionary& info) : CSceneItem(info)
 CSceneItemButton::CSceneItemButton(const CSceneItemButton& other) : CSceneItem(other)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemButtonInternals();
-
-	if (other.mInternals->mActionArray != nil)
-		mInternals->mActionArray = new CActionArray(*other.mInternals->mActionArray);
-	if (other.mInternals->mAudioInfo != nil)
-		mInternals->mAudioInfo = new CAudioInfo(*other.mInternals->mAudioInfo);
-	if (other.mInternals->mUpKeyframeAnimationInfo != nil)
-		mInternals->mUpKeyframeAnimationInfo = new CKeyframeAnimationInfo(*other.mInternals->mUpKeyframeAnimationInfo);
-	if (other.mInternals->mDownKeyframeAnimationInfo != nil)
-		mInternals->mDownKeyframeAnimationInfo =
-				new CKeyframeAnimationInfo(*other.mInternals->mDownKeyframeAnimationInfo);
-	if (other.mInternals->mDisabledKeyframeAnimationInfo != nil)
-		mInternals->mDisabledKeyframeAnimationInfo =
-				new CKeyframeAnimationInfo(*other.mInternals->mDisabledKeyframeAnimationInfo);
-	mInternals->mStartTimeInterval = other.mInternals->mStartTimeInterval;
-	mInternals->mHitRadius = other.mInternals->mHitRadius;
+	mInternals = other.mInternals->addReference();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemButton::~CSceneItemButton()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	mInternals->removeReference();
 }
 
 // MARK: CSceneItem methods
@@ -124,43 +108,43 @@ TArray<CDictionary> CSceneItemButton::getProperties() const
 
 	// Add properties
 	CDictionary	actionPropertyInfo;
-	actionPropertyInfo.set(mPropertyTitleKey, CString("Action Array"));
-	actionPropertyInfo.set(mPropertyNameKey, sActionArrayInfoKey);
-	actionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActionArray);
+	actionPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Actions")));
+	actionPropertyInfo.set(mPropertyNameKey, sActionsInfoKey);
+	actionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActions);
 	properties += actionPropertyInfo;
 
 	CDictionary	audioInfoPropertyInfo;
-	audioInfoPropertyInfo.set(mPropertyTitleKey, CString("Audio"));
+	audioInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Audio")));
 	audioInfoPropertyInfo.set(mPropertyNameKey, sAudioInfoKey);
 	audioInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeAudioInfo);
 	properties += audioInfoPropertyInfo;
 
 	CDictionary	upKeyframeAnimationInfoPropertyInfo;
-	upKeyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString("Up Keyframe Animation"));
+	upKeyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Up Keyframe Animation")));
 	upKeyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, sUpKeyframeAnimationInfoKey);
 	upKeyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeKeyframeAnimationInfo);
 	properties += upKeyframeAnimationInfoPropertyInfo;
 
 	CDictionary	downKeyframeAnimationInfoPropertyInfo;
-	downKeyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString("Down Keyframe Animation"));
+	downKeyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Down Keyframe Animation")));
 	downKeyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, sDownKeyframeAnimationInfoKey);
 	downKeyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeKeyframeAnimationInfo);
 	properties += downKeyframeAnimationInfoPropertyInfo;
 
 	CDictionary	disabledKeyframeAnimationInfoPropertyInfo;
-	disabledKeyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString("Disabled Keyframe Animation"));
+	disabledKeyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Disabled Keyframe Animation")));
 	disabledKeyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, sDisabledKeyframeAnimationInfoKey);
 	disabledKeyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeKeyframeAnimationInfo);
 	properties += disabledKeyframeAnimationInfoPropertyInfo;
 
 	CDictionary	startTimeIntervalPropertyInfo;
-	startTimeIntervalPropertyInfo.set(mPropertyTitleKey, CString("Start Time Interval"));
+	startTimeIntervalPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Start Time Interval")));
 	startTimeIntervalPropertyInfo.set(mPropertyNameKey, sStartTimeIntervalKey);
 	startTimeIntervalPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeStartTimeInterval);
 	properties += startTimeIntervalPropertyInfo;
 
 	CDictionary	hitRadiusPropertyInfo;
-	hitRadiusPropertyInfo.set(mPropertyTitleKey, CString("Hit Radius"));
+	hitRadiusPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Hit Radius")));
 	hitRadiusPropertyInfo.set(mPropertyNameKey, sHitRadiusKey);
 	hitRadiusPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypePixelWidth);
 	properties += hitRadiusPropertyInfo;
@@ -174,17 +158,18 @@ CDictionary CSceneItemButton::getInfo() const
 {
 	CDictionary	info = CSceneItem::getInfo();
 
-	if (mInternals->mActionArray != nil)
-		info.set(sActionArrayInfoKey, mInternals->mActionArray->getInfo());
-	if (mInternals->mAudioInfo != nil)
+	if (mInternals->mActions.hasObject())
+		info.set(sActionsInfoKey, mInternals->mActions->getInfo());
+	if (mInternals->mAudioInfo.hasObject())
 		info.set(sAudioInfoKey, mInternals->mAudioInfo->getInfo());
-	if (mInternals->mUpKeyframeAnimationInfo != nil)
+	if (mInternals->mUpKeyframeAnimationInfo.hasObject())
 		info.set(sUpKeyframeAnimationInfoKey, mInternals->mUpKeyframeAnimationInfo->getInfo());
-	if (mInternals->mDownKeyframeAnimationInfo != nil)
+	if (mInternals->mDownKeyframeAnimationInfo.hasObject())
 		info.set(sDownKeyframeAnimationInfoKey, mInternals->mDownKeyframeAnimationInfo->getInfo());
-	if (mInternals->mDisabledKeyframeAnimationInfo != nil)
+	if (mInternals->mDisabledKeyframeAnimationInfo.hasObject())
 		info.set(sDisabledKeyframeAnimationInfoKey, mInternals->mDisabledKeyframeAnimationInfo->getInfo());
-	info.set(sStartTimeIntervalKey, mInternals->mStartTimeInterval);
+	if (mInternals->mStartTimeInterval.hasValue())
+		info.set(sStartTimeIntervalKey, *mInternals->mStartTimeInterval);
 	info.set(sHitRadiusKey, mInternals->mHitRadius);
 
 	return info;
@@ -193,94 +178,110 @@ CDictionary CSceneItemButton::getInfo() const
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CActionArray> CSceneItemButton::getActionArray() const
+const OO<CActions>& CSceneItemButton::getActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return (mInternals->mActionArray != nil) ? OR<CActionArray>(*mInternals->mActionArray) : OR<CActionArray>();
+	return mInternals->mActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButton::setActionArray(const CActionArray& actionArray)
+void CSceneItemButton::setActions(const OO<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mActionArray);
-	mInternals->mActionArray = new CActionArray(actionArray);
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
+	mInternals->mActions = actions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CAudioInfo> CSceneItemButton::getAudioInfo() const
+const OO<CAudioInfo>& CSceneItemButton::getAudioInfo() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return (mInternals->mAudioInfo != nil) ? OR<CAudioInfo>(*mInternals->mAudioInfo) : OR<CAudioInfo>();
+	return mInternals->mAudioInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButton::setAudioInfo(const CAudioInfo& audioInfo)
+void CSceneItemButton::setAudioInfo(const OO<CAudioInfo>& audioInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mAudioInfo);
-	mInternals->mAudioInfo = new CAudioInfo(audioInfo);
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
+	mInternals->mAudioInfo = audioInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CKeyframeAnimationInfo> CSceneItemButton::getUpKeyframeAnimationInfo() const
+const OO<CKeyframeAnimationInfo>& CSceneItemButton::getUpKeyframeAnimationInfo() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return (mInternals->mUpKeyframeAnimationInfo != nil) ?
-			OR<CKeyframeAnimationInfo>(*mInternals->mUpKeyframeAnimationInfo) : OR<CKeyframeAnimationInfo>();
+	return mInternals->mUpKeyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButton::setUpKeyframeAnimationInfo(const CKeyframeAnimationInfo& keyframeAnimationInfo)
+void CSceneItemButton::setUpKeyframeAnimationInfo(const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mUpKeyframeAnimationInfo);
-	mInternals->mUpKeyframeAnimationInfo = new CKeyframeAnimationInfo(keyframeAnimationInfo);
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
+	mInternals->mUpKeyframeAnimationInfo = keyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CKeyframeAnimationInfo> CSceneItemButton::getDownKeyframeAnimationInfo() const
+const OO<CKeyframeAnimationInfo>& CSceneItemButton::getDownKeyframeAnimationInfo() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return (mInternals->mDownKeyframeAnimationInfo != nil) ?
-			OR<CKeyframeAnimationInfo>(*mInternals->mDownKeyframeAnimationInfo) : OR<CKeyframeAnimationInfo>();
+	return mInternals->mDownKeyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButton::setDownKeyframeAnimationInfo(const CKeyframeAnimationInfo& keyframeAnimationInfo)
+void CSceneItemButton::setDownKeyframeAnimationInfo(const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mDownKeyframeAnimationInfo);
-	mInternals->mDownKeyframeAnimationInfo = new CKeyframeAnimationInfo(keyframeAnimationInfo);
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
+	mInternals->mDownKeyframeAnimationInfo = keyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CKeyframeAnimationInfo> CSceneItemButton::getDisabledKeyframeAnimationInfo() const
+const OO<CKeyframeAnimationInfo>& CSceneItemButton::getDisabledKeyframeAnimationInfo() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return (mInternals->mDisabledKeyframeAnimationInfo != nil) ?
-			OR<CKeyframeAnimationInfo>(*mInternals->mDisabledKeyframeAnimationInfo) : OR<CKeyframeAnimationInfo>();
+	return mInternals->mDisabledKeyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButton::setDisabledKeyframeAnimationInfo(const CKeyframeAnimationInfo& keyframeAnimationInfo)
+void CSceneItemButton::setDisabledKeyframeAnimationInfo(const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mDisabledKeyframeAnimationInfo);
-	mInternals->mDisabledKeyframeAnimationInfo = new CKeyframeAnimationInfo(keyframeAnimationInfo);
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
+	mInternals->mDisabledKeyframeAnimationInfo = keyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-UniversalTimeInterval CSceneItemButton::getStartTimeInterval() const
+const OV<UniversalTimeInterval>& CSceneItemButton::getStartTimeInterval() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mStartTimeInterval;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButton::setStartTimeInterval(UniversalTimeInterval startTimeInterval)
+void CSceneItemButton::setStartTimeInterval(const OV<UniversalTimeInterval>& startTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mStartTimeInterval = startTimeInterval;
 }
 
@@ -295,5 +296,9 @@ Float32 CSceneItemButton::getHitRadius() const
 void CSceneItemButton::setHitRadius(Float32 hitRadius)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mHitRadius = hitRadius;
 }

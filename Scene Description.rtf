@@ -64,14 +64,13 @@ CelAnimationInfo Dictionary\
 \
 KeyframeAnimationInfo Dictionary\
 	keyframes: Array of Dictionary\
-		anchorPt: Point String (optional)\
-		screenPositionPt: Point String (optional)\
-		angle: Number (optional)\
-		alpha: Number between 0.0 and 1.0 (optional)\
-		scale: Number (1.0 is full size) (optional)\
-		delay: Delay Number (optional, defaults to 0.0)\
-		transitionType: Number (optional, defaults to None)\
-			0: None\
+		anchorPt: Point String relative to lower left (optional)\
+		screenPositionPt: Point String on screen of anchor point (optional)\
+		angle: Float32 Degress of image rotation around anchor point (optional)\
+		alpha: Float32 Between 0.0 (fully transparent) and 1.0 (fully opaque) (optional)\
+		scale: Float32 (1.0 is full size) (optional)\
+		delay: Float32 Delay between this keyframe and the next keyframe (if not specified, then will freeze on this frame)\
+		transitionType: Enumeration (optional)\
 			1: Jump\
 			2: Linear\
 			3: Ease In\
@@ -80,23 +79,17 @@ KeyframeAnimationInfo Dictionary\
 			6: Hold Until Start\
 		imageFilename: String (required for first keyframe, optional thereafter)\
 		actionInfo: Dictionary (optional)\
-		options: Number (optional, defaults to 0)\
-			1: Texture will use transparency\
+		options: Enumeration (optional, defaults to 0)\
 \
 AudioInfo Dictionary\
 	filename: String\
-	gain: Number between 0.0 and 1.0 (default is 1.0)\
-	loopCount: Loop Number (default is 1)\
-	options: Number according to (or together):\
+	gain: Float32 between 0.0 (silent) and 1.0 (original) (default is 1.0)\
+	loopCount: Loop Number (optional, default is 1)\
+	options: Options (can combine together):\
 		0: None\
 		1: Use Defined Loop in File\
 		2: Load into Memory\
 		4: Wants Unique Track\
-\
-		old 0: None\
-		old 1: Stop Before Play\
-		old 2: Use Defined Loop in File\
-		old 4: Load File Into Memory\
 \
 RGB Color Dictionary:\
 	r: value of red component, 0.0 - 1.0\
@@ -110,22 +103,13 @@ HSV Color Dictionary:\
 	v: value of value component, 0.0 - 1.0\
 	a: value of alpha component, 0.0 - 1.0\
 \
-Delay Number:\
-	-1: Delay Forever\
-	otherwise: time in seconds\
-\
-Loop Number:\
+Loop Number\
 	0: Repeat forever\
-	1: Normal for single playthrough\
-	>1: Specific number of loops\
-	4294967295: Hold last frame\
+	#: Specific number of loops\
 \
 Point String: \{x,y\}\
 \
 Rect String: \{\{x,y\},\{w,h\}\}\
-\
-Time Number:\
-	-1: Display when scene is loaded\
 \
 Trigger Number:\
 	0: Trigger based on time\
@@ -172,7 +156,7 @@ Root: Dictionary\
 				keyframeAnimationInfo: KeyframeAnimationInfo Dictionary (optional)\
 				loopCount: Loop Number (optional, default is 1)\
 				startActionInfo: Action Info\
-				startTime: Time Number (optional, default is 0.0)\
+				startTime: Time Number (will start at load if not specified)\
 				trigger: Trigger Number (optional, default is timed)\
 \
 			itemInfo for button\
@@ -181,7 +165,7 @@ Root: Dictionary\
 				hitRadius: pixel radius for detecting touch or mouse hits on button.  0 to use artwork size.\
 				disabledAnimationInfo: KeyframeAnimationInfo Dictionary\
 				downAnimationInfo (optional): KeyframeAnimationInfo Dictionary\
-				startTime: Time Number\
+				startTime: Time Number (will start at load if not specified)\
 				upAnimationInfo: KeyframeAnimationInfo Dictionary\
 \
 			itemInfo for buttonArray\
@@ -191,7 +175,7 @@ Root: Dictionary\
 					screenPositionPt: Point String\
 					upImageRect: Rect String\
 				imageFilename: String\
-				startTime: Time Number\
+				startTime: Time Number (will start at load if not specified)\
 \
 			itemInfo for hotspot\
 				actionInfo: Action Info\
@@ -206,7 +190,7 @@ Root: Dictionary\
 				hotspots: Array of Dictionary with the list of hotspots\
 				inBackgroundFilename: String\
 				screenRect: Rect String\
-				startTime: Time Number\
+				startTime: Time Number (will start at load if not specified)\
 \
 			itemInfo for pdf\
 				filename: String\
@@ -275,19 +259,19 @@ sceneCover\
 	duration: Number\
 	sceneIndex: Number\
 	dontPreload: Anything - presence of key indicates to activate\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
-\cf0 sceneUncover\
+sceneUncover\
 	auto: Anything - presence of key indicates to activate\
 	direction: String of "up", "down", "left", or "right"\
 	duration: Number\
 	sceneIndex: Number\
 	dontPreload: Anything - presence of key indicates to activate\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
-\cf0 setItemNameValue\
+setItemNameValue\
+	sceneName: String\
 	itemName: String\
 	propertyName: String\
 	propertyValue: String or Number\
 sendItemCommand\
+	sceneName: String\
 	itemName: String\
 	command: String\
 sendAppCommand\

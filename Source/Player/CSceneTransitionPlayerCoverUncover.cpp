@@ -16,7 +16,6 @@ class CSceneTransitionPlayerCoverUncoverInternals {
 					mSceneTransitionPlayerProcsInfo(sceneTransitionPlayerProcsInfo),
 					mDurationTimeInterval(durationTimeInterval)
 			{}
-		~CSceneTransitionPlayerCoverUncoverInternals() {}
 
 				bool								mIsAuto;
 				bool								mIsCover;
@@ -32,9 +31,9 @@ class CSceneTransitionPlayerCoverUncoverInternals {
 
 // MARK: Properties
 
-CString	CSceneTransitionPlayerCoverUncover::mInfoIsAutoKey("auto");
-CString	CSceneTransitionPlayerCoverUncover::mInfoDirectionKey("direction");
-CString	CSceneTransitionPlayerCoverUncover::mInfoDurationKey("duration");
+CString	CSceneTransitionPlayerCoverUncover::mInfoIsAutoKey(OSSTR("auto"));
+CString	CSceneTransitionPlayerCoverUncover::mInfoDirectionKey(OSSTR("direction"));
+CString	CSceneTransitionPlayerCoverUncover::mInfoDurationKey(OSSTR("duration"));
 
 // MARK: Lifecycle methods
 
@@ -115,7 +114,7 @@ AssertFailUnimplemented();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneTransitionPlayerCoverUncover::render(CGPU& gpu)
+void CSceneTransitionPlayerCoverUncover::render(CGPU& gpu) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup

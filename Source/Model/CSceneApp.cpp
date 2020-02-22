@@ -17,12 +17,12 @@ TArray<SScenePackageInfo> CSceneApp::scenePackageInfosForScenePackageFilenames(
 		const TArray<CString>& scenePackageFilenames)
 {
 	// Iterate all scene package filenames
-	TArray<SScenePackageInfo>	scenePackageInfos;
+	TNArray<SScenePackageInfo>	scenePackageInfos;
 	for (TIteratorD<CString> iterator = scenePackageFilenames.getIterator(); iterator.hasValue(); iterator.advance()) {
 		// Collect info
 		TArray<CString>	dimensions =
-								iterator.getValue().breakUp(CString("."))[0].breakUp(CString("_"))[2]
-										.breakUp(CString("x"));
+								iterator.getValue().breakUp(CString(OSSTR(".")))[0].breakUp(CString(OSSTR("_")))[2]
+										.breakUp(CString(OSSTR("x")));
 		Float32			width = dimensions[0].getFloat32();
 		Float32			height = dimensions[1].getFloat32();
 		Float32			totalPixels = width * height;

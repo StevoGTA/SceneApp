@@ -4,56 +4,51 @@
 
 #include "CSceneItemAnimation.h"
 
-#include "CCelAnimationInfo.h"
+//#include "CCelAnimationInfo.h"
 #include "CKeyframeAnimationInfo.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local data
 
-static	CString	sAudioInfoKey("audioInfo");
-static	CString	sCelAnimationInfoKey("celAnimationInfo");
-static	CString	sFinishedActionArrayInfoKey("finishedActionInfo");
-static	CString	sKeyframeAnimationInfoKey("keyframeAnimationInfo");
-static	CString	sLoopCountKey("loopCount");
-static	CString	sStartedActionArrayInfoKey("startedActionInfo");
-static	CString	sStartTimeIntervalKey("startTime");
-static	CString	sTriggerTypeKey("triggerType");
-
-CString	CSceneItemAnimation::mType("animation");
+static	CString	sAudioInfoKey(OSSTR("audioInfo"));
+static	CString	sCelAnimationInfoKey(OSSTR("celAnimationInfo"));
+static	CString	sFinishedActionsInfoKey(OSSTR("finishedActionInfo"));
+static	CString	sKeyframeAnimationInfoKey(OSSTR("keyframeAnimationInfo"));
+static	CString	sLoopCountKey(OSSTR("loopCount"));
+static	CString	sStartedActionsInfoKey(OSSTR("startedActionInfo"));
+static	CString	sStartTimeIntervalKey(OSSTR("startTime"));
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItemAnimationInternals
 
-class CSceneItemAnimationInternals {
+class CSceneItemAnimationInternals : public TCopyOnWriteReferenceCountable<CSceneItemAnimationInternals> {
 	public:
-		CSceneItemAnimationInternals() :
-			mStartedActionArray(nil), mFinishedActionArray(nil), mAudioInfo(nil), mCelAnimationInfo(nil),
-					mKeyframeAnimationInfo(nil), mTriggerType(kSceneItemAnimationTriggerTypeTimed), mLoopCount(1),
-					mStartTimeInterval(0.0)
+		CSceneItemAnimationInternals() : TCopyOnWriteReferenceCountable(), mLoopCount(1) {}
+		CSceneItemAnimationInternals(const CSceneItemAnimationInternals& other) :
+			TCopyOnWriteReferenceCountable(),
+					mStartedActions(other.mStartedActions), mFinishedActions(other.mFinishedActions),
+					mAudioInfo(other.mAudioInfo), /* mCelAnimationInfo(other.mCelAnimationInfo), */
+					mKeyframeAnimationInfo(other.mKeyframeAnimationInfo), mLoopCount(other.mLoopCount),
+					mStartTimeInterval(other.mStartTimeInterval)
 			{}
-		~CSceneItemAnimationInternals()
-			{
-				DisposeOf(mStartedActionArray);
-				DisposeOf(mFinishedActionArray);
-				DisposeOf(mAudioInfo);
-				DisposeOf(mCelAnimationInfo);
-				DisposeOf(mKeyframeAnimationInfo);
-			}
 
-		CActionArray*					mStartedActionArray;
-		CActionArray*					mFinishedActionArray;
-		CAudioInfo*						mAudioInfo;
-		CCelAnimationInfo*				mCelAnimationInfo;
-		CKeyframeAnimationInfo*			mKeyframeAnimationInfo;
-		ESceneItemAnimationTriggerType	mTriggerType;
-		UInt32							mLoopCount;
-		UniversalTimeInterval			mStartTimeInterval;
+		OO<CActions>				mStartedActions;
+		OO<CActions>				mFinishedActions;
+		OO<CAudioInfo>				mAudioInfo;
+//		OO<CCelAnimationInfo>		mCelAnimationInfo;
+		OO<CKeyframeAnimationInfo>	mKeyframeAnimationInfo;
+		UInt32						mLoopCount;
+		OV<UniversalTimeInterval>	mStartTimeInterval;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItemAnimation
+
+// MARK: Properties
+
+CString	CSceneItemAnimation::mType(OSSTR("animation"));
 
 // MARK: Lifecycle methods
 
@@ -70,48 +65,35 @@ CSceneItemAnimation::CSceneItemAnimation(const CDictionary& info) : CSceneItem(i
 {
 	mInternals = new CSceneItemAnimationInternals();
 
-	if (info.contains(sStartedActionArrayInfoKey))
-		mInternals->mStartedActionArray = new CActionArray(info.getDictionary(sStartedActionArrayInfoKey));
-	if (info.contains(sFinishedActionArrayInfoKey))
-		mInternals->mFinishedActionArray = new CActionArray(info.getDictionary(sFinishedActionArrayInfoKey));
+	if (info.contains(sStartedActionsInfoKey))
+		mInternals->mStartedActions = OO<CActions>(CActions(info.getDictionary(sStartedActionsInfoKey)));
+	if (info.contains(sFinishedActionsInfoKey))
+		mInternals->mFinishedActions = OO<CActions>(CActions(info.getDictionary(sFinishedActionsInfoKey)));
 	if (info.contains(sAudioInfoKey))
-		mInternals->mAudioInfo = new CAudioInfo(info.getDictionary(sAudioInfoKey));
-	if (info.contains(sCelAnimationInfoKey))
-		mInternals->mCelAnimationInfo = new CCelAnimationInfo(info.getDictionary(sCelAnimationInfoKey));
+		mInternals->mAudioInfo = OO<CAudioInfo>(CAudioInfo(info.getDictionary(sAudioInfoKey)));
+//	if (info.contains(sCelAnimationInfoKey))
+//		mInternals->mCelAnimationInfo =
+//				OO<CCelAnimationInfo>(CCelAnimationInfo(info.getDictionary(sCelAnimationInfoKey)));
 	if (info.contains(sKeyframeAnimationInfoKey))
-		mInternals->mKeyframeAnimationInfo = new CKeyframeAnimationInfo(info.getDictionary(sKeyframeAnimationInfoKey));
-	mInternals->mTriggerType =
-			(ESceneItemAnimationTriggerType) info.getUInt8(sTriggerTypeKey, mInternals->mTriggerType);
-	mInternals->mLoopCount = info.getUInt32(sLoopCountKey, mInternals->mLoopCount);
-	mInternals->mStartTimeInterval = info.getFloat64(sStartTimeIntervalKey);
+		mInternals->mKeyframeAnimationInfo =
+				OO<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(info.getDictionary(sKeyframeAnimationInfoKey)));
+	mInternals->mLoopCount = info.getUInt32(sLoopCountKey, 1);
+	if (info.contains(sStartTimeIntervalKey))
+		mInternals->mStartTimeInterval = OV<UniversalTimeInterval>(info.getFloat64(sStartTimeIntervalKey));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemAnimation::CSceneItemAnimation(const CSceneItemAnimation& other) : CSceneItem(other)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemAnimationInternals();
-
-	if (other.mInternals->mStartedActionArray != nil)
-		mInternals->mStartedActionArray = new CActionArray(*other.mInternals->mStartedActionArray);
-	if (other.mInternals->mFinishedActionArray != nil)
-		mInternals->mFinishedActionArray = new CActionArray(*other.mInternals->mFinishedActionArray);
-	if (other.mInternals->mAudioInfo != nil)
-		mInternals->mAudioInfo = new CAudioInfo(*other.mInternals->mAudioInfo);
-	if (other.mInternals->mCelAnimationInfo != nil)
-		mInternals->mCelAnimationInfo = other.mInternals->mCelAnimationInfo->copy();
-	if (other.mInternals->mKeyframeAnimationInfo != nil)
-		mInternals->mKeyframeAnimationInfo = new CKeyframeAnimationInfo(*other.mInternals->mKeyframeAnimationInfo);
-	mInternals->mTriggerType = other.mInternals->mTriggerType;
-	mInternals->mLoopCount = other.mInternals->mLoopCount;
-	mInternals->mStartTimeInterval = other.mInternals->mStartTimeInterval;
+	mInternals = other.mInternals->addReference();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemAnimation::~CSceneItemAnimation()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	mInternals->removeReference();
 }
 
 // MARK: CSceneItem methods
@@ -125,43 +107,43 @@ TArray<CDictionary> CSceneItemAnimation::getProperties() const
 
 	// Add properties
 	CDictionary	startedActionPropertyInfo;
-	startedActionPropertyInfo.set(mPropertyTitleKey, CString("Started Action Array"));
-	startedActionPropertyInfo.set(mPropertyNameKey, sStartedActionArrayInfoKey);
-	startedActionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActionArray);
+	startedActionPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Started Actions")));
+	startedActionPropertyInfo.set(mPropertyNameKey, sStartedActionsInfoKey);
+	startedActionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActions);
 	properties += startedActionPropertyInfo;
 
 	CDictionary	finishedActionPropertyInfo;
-	finishedActionPropertyInfo.set(mPropertyTitleKey, CString("Finished Action Array"));
-	finishedActionPropertyInfo.set(mPropertyNameKey, sFinishedActionArrayInfoKey);
-	finishedActionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActionArray);
+	finishedActionPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Finished Actions")));
+	finishedActionPropertyInfo.set(mPropertyNameKey, sFinishedActionsInfoKey);
+	finishedActionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActions);
 	properties += finishedActionPropertyInfo;
 
 	CDictionary	audioInfoPropertyInfo;
-	audioInfoPropertyInfo.set(mPropertyTitleKey, CString("Audio"));
+	audioInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Audio")));
 	audioInfoPropertyInfo.set(mPropertyNameKey, sAudioInfoKey);
 	audioInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeAudioInfo);
 	properties += audioInfoPropertyInfo;
 
-	CDictionary	celAnimationInfoPropertyInfo;
-	celAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString("Cel Animation"));
-	celAnimationInfoPropertyInfo.set(mPropertyNameKey, sCelAnimationInfoKey);
-	celAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeCelAnimationInfo);
-	properties += celAnimationInfoPropertyInfo;
+//	CDictionary	celAnimationInfoPropertyInfo;
+//	celAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Cel Animation")));
+//	celAnimationInfoPropertyInfo.set(mPropertyNameKey, sCelAnimationInfoKey);
+//	celAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeCelAnimationInfo);
+//	properties += celAnimationInfoPropertyInfo;
 
 	CDictionary	keyframeAnimationInfoPropertyInfo;
-	keyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString("Keyframe Animation"));
+	keyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Keyframe Animation")));
 	keyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, sKeyframeAnimationInfoKey);
 	keyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeKeyframeAnimationInfo);
 	properties += keyframeAnimationInfoPropertyInfo;
 
 	CDictionary	loopCountPropertyInfo;
-	loopCountPropertyInfo.set(mPropertyTitleKey, CString("Loop Count"));
+	loopCountPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Loop Count")));
 	loopCountPropertyInfo.set(mPropertyNameKey, sLoopCountKey);
 	loopCountPropertyInfo.set(mPropertyTypeKey, kSceneItemAnimationPropertyTypeLoopCount);
 	properties += loopCountPropertyInfo;
 
 	CDictionary	startTimeIntervalPropertyInfo;
-	startTimeIntervalPropertyInfo.set(mPropertyTitleKey, CString("Start Time"));
+	startTimeIntervalPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Start Time")));
 	startTimeIntervalPropertyInfo.set(mPropertyNameKey, sStartTimeIntervalKey);
 	startTimeIntervalPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeStartTimeInterval);
 	properties += startTimeIntervalPropertyInfo;
@@ -175,19 +157,19 @@ CDictionary CSceneItemAnimation::getInfo() const
 {
 	CDictionary	info = CSceneItem::getInfo();
 
-	if (mInternals->mStartedActionArray != nil)
-		info.set(sStartedActionArrayInfoKey, mInternals->mStartedActionArray->getInfo());
-	if (mInternals->mFinishedActionArray != nil)
-		info.set(sFinishedActionArrayInfoKey, mInternals->mFinishedActionArray->getInfo());
-	if (mInternals->mAudioInfo != nil)
+	if (mInternals->mStartedActions.hasObject())
+		info.set(sStartedActionsInfoKey, mInternals->mStartedActions->getInfo());
+	if (mInternals->mFinishedActions.hasObject())
+		info.set(sFinishedActionsInfoKey, mInternals->mFinishedActions->getInfo());
+	if (mInternals->mAudioInfo.hasObject())
 		info.set(sAudioInfoKey, mInternals->mAudioInfo->getInfo());
-	if (mInternals->mCelAnimationInfo != nil)
-		info.set(sCelAnimationInfoKey, mInternals->mCelAnimationInfo->getInfo());
-	if (mInternals->mKeyframeAnimationInfo != nil)
+//	if (mInternals->mCelAnimationInfo.hasObject())
+//		info.set(sCelAnimationInfoKey, mInternals->mCelAnimationInfo->getInfo());
+	if (mInternals->mKeyframeAnimationInfo.hasObject())
 		info.set(sKeyframeAnimationInfoKey, mInternals->mKeyframeAnimationInfo->getInfo());
-	info.set(sTriggerTypeKey, (UInt8) mInternals->mTriggerType);
 	info.set(sLoopCountKey, mInternals->mLoopCount);
-	info.set(sStartTimeIntervalKey, mInternals->mStartTimeInterval);
+	if (mInternals->mStartTimeInterval.hasValue())
+		info.set(sStartTimeIntervalKey, *mInternals->mStartTimeInterval);
 
 	return info;
 }
@@ -195,84 +177,95 @@ CDictionary CSceneItemAnimation::getInfo() const
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CActionArray> CSceneItemAnimation::getStartedActionArray() const
+const OO<CActions>& CSceneItemAnimation::getStartedActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return (mInternals->mStartedActionArray != nil) ?
-			OR<CActionArray>(*mInternals->mStartedActionArray) : OR<CActionArray>();
+	return mInternals->mStartedActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemAnimation::setStartedActionArray(const CActionArray& actionArray)
+void CSceneItemAnimation::setStartedActions(const OO<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mStartedActionArray);
-	mInternals->mStartedActionArray = new CActionArray(actionArray);
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
+	mInternals->mStartedActions = actions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CActionArray> CSceneItemAnimation::getFinishedActionArray() const
+const OO<CActions>& CSceneItemAnimation::getFinishedActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return (mInternals->mFinishedActionArray != nil) ?
-			OR<CActionArray>(*mInternals->mFinishedActionArray) : OR<CActionArray>();
+	return mInternals->mFinishedActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemAnimation::setFinishedActionArray(const CActionArray& actionArray)
+void CSceneItemAnimation::setFinishedActions(const OO<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mFinishedActionArray);
-	mInternals->mFinishedActionArray = new CActionArray(actionArray);
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
+	mInternals->mFinishedActions = actions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CAudioInfo> CSceneItemAnimation::getAudioInfo() const
+const OO<CAudioInfo>& CSceneItemAnimation::getAudioInfo() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return (mInternals->mAudioInfo != nil) ? OR<CAudioInfo>(*mInternals->mAudioInfo) : OR<CAudioInfo>();
+	return mInternals->mAudioInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemAnimation::setAudioInfo(const CAudioInfo& audioInfo)
+void CSceneItemAnimation::setAudioInfo(const OO<CAudioInfo>& audioInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mAudioInfo);
-	mInternals->mAudioInfo = new CAudioInfo(audioInfo);
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
+	mInternals->mAudioInfo = audioInfo;
+}
+
+////----------------------------------------------------------------------------------------------------------------------
+//const OO<CCelAnimationInfo>& CSceneItemAnimation::getCelAnimationInfo() const
+////----------------------------------------------------------------------------------------------------------------------
+//{
+//	return mInternals->mCelAnimationInfo;
+//}
+
+////----------------------------------------------------------------------------------------------------------------------
+//void CSceneItemAnimation::setCelAnimationInfo(const OO<CCelAnimationInfo>& celAnimationInfo)
+////----------------------------------------------------------------------------------------------------------------------
+//{
+//	// Prepare to write
+//	mInternals->prepareForWrite();
+//
+//	// Update
+//	mInternals->mCelAnimationInfo = celAnimationInfo;
+//	mInternals->mKeyframeAnimationInfo = OO<CKeyframeAnimationInfo>();
+//}
+
+//----------------------------------------------------------------------------------------------------------------------
+const OO<CKeyframeAnimationInfo>& CSceneItemAnimation::getKeyframeAnimationInfo() const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	return mInternals->mKeyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-OR<CCelAnimationInfo> CSceneItemAnimation::getCelAnimationInfo() const
+void CSceneItemAnimation::setKeyframeAnimationInfo(const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return (mInternals->mCelAnimationInfo != nil) ?
-			OR<CCelAnimationInfo>(*mInternals->mCelAnimationInfo) : OR<CCelAnimationInfo>();
-}
+	// Prepare to write
+	mInternals->prepareForWrite();
 
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemAnimation::setCelAnimationInfo(const CCelAnimationInfo& celAnimationInfo)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	DisposeOf(mInternals->mCelAnimationInfo);
-	DisposeOf(mInternals->mKeyframeAnimationInfo);
-	mInternals->mCelAnimationInfo = celAnimationInfo.copy();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-OR<CKeyframeAnimationInfo> CSceneItemAnimation::getKeyframeAnimationInfo() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return (mInternals->mKeyframeAnimationInfo != nil) ?
-			OR<CKeyframeAnimationInfo>(*mInternals->mKeyframeAnimationInfo) : OR<CKeyframeAnimationInfo>();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemAnimation::setKeyframeAnimationInfo(const CKeyframeAnimationInfo& keyframeAnimationInfo)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	DisposeOf(mInternals->mCelAnimationInfo);
-	DisposeOf(mInternals->mKeyframeAnimationInfo);
-	mInternals->mKeyframeAnimationInfo = new CKeyframeAnimationInfo(keyframeAnimationInfo);
+	// Update
+//	mInternals->mCelAnimationInfo = mInternals->mCelAnimationInfo();
+	mInternals->mKeyframeAnimationInfo = keyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -286,19 +279,27 @@ UInt32 CSceneItemAnimation::getLoopCount() const
 void CSceneItemAnimation::setLoopCount(UInt32 loopCount)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mLoopCount = loopCount;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-UniversalTimeInterval CSceneItemAnimation::getStartTimeInterval() const
+const OV<UniversalTimeInterval>& CSceneItemAnimation::getStartTimeInterval() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mStartTimeInterval;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemAnimation::setStartTimeInterval(UniversalTimeInterval startTimeInterval)
+void CSceneItemAnimation::setStartTimeInterval(const OV<UniversalTimeInterval>& startTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Prepare to write
+	mInternals->prepareForWrite();
+
+	// Update
 	mInternals->mStartTimeInterval = startTimeInterval;
 }

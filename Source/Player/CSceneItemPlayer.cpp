@@ -4,7 +4,7 @@
 
 #include "CSceneItemPlayer.h"
 
-#include "CAudioSession.h"
+//#include "CAudioSession.h"
 #include "CLogServices.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -12,14 +12,11 @@
 
 //const	Float32	kCSceneItemPlayerTapOrClickMaxPixelDelta = 5.0;
 
-//static	SceneItemPlayerActionArrayHandlerProc	sSceneItemPlayerActionArrayHandlerProc = nil;
-//static	void*									sSceneItemPlayerActionArrayHandlerUserData = nil;
+CString	CSceneItemPlayer::mIsVisiblePropertyName(OSSTR("visible"));
 
-CString	CSceneItemPlayer::mIsVisiblePropertyName("visible");
-
-CString	CSceneItemPlayer::mCommandNameLoad("load");
-CString	CSceneItemPlayer::mCommandNameUnload("unload");
-CString	CSceneItemPlayer::mCommandNameReset("reset");
+CString	CSceneItemPlayer::mCommandNameLoad(OSSTR("load"));
+CString	CSceneItemPlayer::mCommandNameUnload(OSSTR("unload"));
+CString	CSceneItemPlayer::mCommandNameReset(OSSTR("reset"));
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -39,36 +36,12 @@ class CSceneItemPlayerInternals {
 			SSceneItemPlayerProcsInfo	mSceneItemPlayerProcsInfo;
 };
 
-////----------------------------------------------------------------------------------------------------------------------
-////----------------------------------------------------------------------------------------------------------------------
-//// MARK: - CSceneItemPlayerCreateInfo
-//
-//class CSceneItemPlayerCreateInfo {
-//	public:
-//		CSceneItemPlayerCreateInfo(const CString& itemType, SceneItemPlayerCreateProc createProc) :
-//			mItemType(itemType), mCreateProc(createProc)
-//			{}
-//		~CSceneItemPlayerCreateInfo() {}
-//
-//		const	CString&					mItemType;
-//				SceneItemPlayerCreateProc	mCreateProc;
-//};
-
-//static	TPtrArray<CSceneItemPlayerCreateInfo*>*	sSceneItemPlayerInfosArray = nil;
-
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItemPlayer
 
 // MARK: Lifecycle methods
 
-////----------------------------------------------------------------------------------------------------------------------
-//CSceneItemPlayer::CSceneItemPlayer()
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	mInternals = new CSceneItemPlayerInternals(nil, false);
-//}
-//
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemPlayer::CSceneItemPlayer(const CSceneItem& sceneItem,
 		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo)
@@ -88,15 +61,6 @@ CSceneItemPlayer::~CSceneItemPlayer()
 	DisposeOf(mInternals);
 }
 
-// MARK: CEventHandler methods
-
-////----------------------------------------------------------------------------------------------------------------------
-//UError CSceneItemPlayer::handleEvent(CEvent& event)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	return kEventEventNotHandled;
-//}
-//
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -121,19 +85,18 @@ void CSceneItemPlayer::setIsVisible(bool isVisible)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CActionArray CSceneItemPlayer::getAllActions() const
+CActions CSceneItemPlayer::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return CActionArray();
+	return CActions();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::perform(const CActionArray& actionArray, const S2DPoint32& point)
+void CSceneItemPlayer::perform(const CActions& actions, const S2DPoint32& point)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Call proc
-	mInternals->mSceneItemPlayerProcsInfo.mActionArrayPerformProc(actionArray, point,
-			mInternals->mSceneItemPlayerProcsInfo.mUserData);
+	mInternals->mSceneItemPlayerProcsInfo.performActions(actions, point);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -142,13 +105,6 @@ void CSceneItemPlayer::load()
 {
 	mInternals->mIsLoaded = true;
 }
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::finishLoading()
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayer::allPeersHaveLoaded()
 //----------------------------------------------------------------------------------------------------------------------
@@ -161,19 +117,13 @@ void CSceneItemPlayer::unload()
 {
 	mInternals->mIsLoaded = false;
 }
-
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayer::getIsFullyLoaded() const
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-UniversalTimeInterval CSceneItemPlayer::getStartTimeInterval() const
+const OV<UniversalTimeInterval>& CSceneItemPlayer::getStartTimeInterval() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return 0.0;
+	static	OV<UniversalTimeInterval>	sStartTimeIntervalUndefined;
+
+	return sStartTimeIntervalUndefined;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -182,8 +132,8 @@ void CSceneItemPlayer::reset()
 {
 	// Update visible
 	mInternals->mIsVisible = mInternals->mSceneItem.getIsVisible();
-	if (mInternals->mSceneItem.getOptions() & kSceneItemOptionsHideIfNoAudioInput)
-		mInternals->mIsVisible &= CAudioSession::audioInputIsAvailable();
+//	if (mInternals->mSceneItem.getOptions() & kSceneItemOptionsHideIfNoAudioInput)
+//		mInternals->mIsVisible &= CAudioSession::audioInputIsAvailable();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -193,13 +143,7 @@ void CSceneItemPlayer::update(UniversalTimeInterval deltaTimeInterval, bool isRu
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::render(CGPU& gpu, const S2DPoint32& offset)
-//----------------------------------------------------------------------------------------------------------------------
-{
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayer::handlesTouchOrMouseAtPoint(const S2DPoint32& point)
+bool CSceneItemPlayer::handlesTouchOrMouseAtPoint(const S2DPoint32& point) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return false;
@@ -287,72 +231,6 @@ bool CSceneItemPlayer::handleCommand(const CString& command, const CDictionary& 
 // MARK: Subclass methods
 
 ////----------------------------------------------------------------------------------------------------------------------
-//CImageX CSceneItemPlayer::getCurrentViewportImage(bool performRedraw) const
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	return mInternals->mSceneItemPlayerProcsInfo->mGetCurrentViewportImageProc(*this, performRedraw,
-//			mInternals->mSceneItemPlayerProcsInfo->mUserData);
-//}
-
-////----------------------------------------------------------------------------------------------------------------------
-//CSceneItemPlayer* CSceneItemPlayer::getSceneItemPlayerForSceneItemName(const CString& sceneItemName)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	return mInternals->mSceneItemPlayerProcsInfo.mGetPeerForSceneItemNameProc(*this, sceneItemName,
-//			mInternals->mSceneItemPlayerProcsInfo.mUserData);
-//}
-
-// MARK: Class methods
-
-////----------------------------------------------------------------------------------------------------------------------
-//void CSceneItemPlayer::setActionArrayHandler(
-//		SceneItemPlayerActionArrayHandlerProc sceneItemPlayerActionArrayHandlerProc, void* userData)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	sSceneItemPlayerActionArrayHandlerProc = sceneItemPlayerActionArrayHandlerProc;
-//	sSceneItemPlayerActionArrayHandlerUserData = userData;
-//}
-
-////----------------------------------------------------------------------------------------------------------------------
-//void CSceneItemPlayer::registerSceneItemPlayerCreateProc(SceneItemPlayerCreateProc sceneItemPlayerCreateProc,
-//		const CString& itemType)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	if (sSceneItemPlayerInfosArray == nil)
-//		sSceneItemPlayerInfosArray = new TPtrArray<CSceneItemPlayerCreateInfo*>();
-//
-//	(*sSceneItemPlayerInfosArray) += new CSceneItemPlayerCreateInfo(itemType, sceneItemPlayerCreateProc);
-//}
-
-////----------------------------------------------------------------------------------------------------------------------
-//CSceneItemPlayer* CSceneItemPlayer::createSceneItemPlayerForSceneItem(const CSceneItem& sceneItem,
-//		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-//		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, bool makeCopy)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	for (CArrayItemIndex i = 0; i < sSceneItemPlayerInfosArray->getCount(); i++) {
-//		CSceneItemPlayerCreateInfo*	info = (*sSceneItemPlayerInfosArray)[i];
-//		if (info->mItemType == sceneItem.getType())
-//			return info->mCreateProc(sceneItem, sceneAppResourceManagementInfo, sceneItemPlayerProcsInfo, makeCopy);
-//	}
-//
-//#if defined(DEBUG)
-//	CLogServices::logMessage(CString("CSceneItemPlayer unable to create player for itemType ") + sceneItem.getType());
-//#endif
-//
-//	return nil;
-//}
-
-// MARK: Subclass methods
-
-////----------------------------------------------------------------------------------------------------------------------
-//const SSceneAppResourceManagementInfo& CSceneItemPlayer::getSceneAppResourceManagementInfo() const
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	return mInternals->mSceneAppResourceManagementInfo;
-//}
-
-////----------------------------------------------------------------------------------------------------------------------
 //bool CSceneItemPlayer::isTapOrMouseClick(const S2DPoint32& startPoint, const S2DPoint32& endPoint)
 ////----------------------------------------------------------------------------------------------------------------------
 //{
@@ -360,19 +238,33 @@ bool CSceneItemPlayer::handleCommand(const CString& command, const CDictionary& 
 //			(fabs(endPoint.mY - startPoint.mY) <= kCSceneItemPlayerTapOrClickMaxPixelDelta);
 //}
 
-////----------------------------------------------------------------------------------------------------------------------
-//CSceneItemPlayer* CSceneItemPlayer::createAndAddSceneItemPlayerForSceneItem(
-//		const CSceneItem& sceneItem, bool makeCopy, bool autoLoad)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	return mInternals->mSceneItemPlayerProcsInfo.mCreateSceneItemPlayerForSceneItemProc(sceneItem, makeCopy, autoLoad,
-//			mInternals->mSceneItemPlayerProcsInfo.mUserData);
-//}
+//----------------------------------------------------------------------------------------------------------------------
+void CSceneItemPlayer::setPeerProperty(const CString& sceneName, const CString& name, const CString& property,
+		const SDictionaryValue& value) const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	// Setup
+	CDictionary	info;
+	info.set(CAction::mInfoSceneNameKey, sceneName);
+	info.set(CAction::mInfoItemNameKey, name);
+	info.set(CAction::mInfoPropertyNameKey, property);
+	info.set(CAction::mInfoPropertyValueKey, value);
 
-////----------------------------------------------------------------------------------------------------------------------
-//void CSceneItemPlayer::addSceneItemPlayer(CSceneItemPlayer& sceneItemPlayer, bool autoLoad)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	mInternals->mSceneItemPlayerProcsInfo.mAddSceneItemPlayerProc(sceneItemPlayer, autoLoad,
-//			mInternals->mSceneItemPlayerProcsInfo.mUserData);
-//}
+	// Call proc
+	mInternals->mSceneItemPlayerProcsInfo.performActions(CActions(CAction(CAction::mNameSetItemNameValue, info)));
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void CSceneItemPlayer::setPeerProperty(const CString& name, const CString& property, const SDictionaryValue& value)
+		const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	// Setup
+	CDictionary	info;
+	info.set(CAction::mInfoItemNameKey, name);
+	info.set(CAction::mInfoPropertyNameKey, property);
+	info.set(CAction::mInfoPropertyValueKey, value);
+
+	// Call proc
+	mInternals->mSceneItemPlayerProcsInfo.performActions(CActions(CAction(CAction::mNameSetItemNameValue, info)));
+}

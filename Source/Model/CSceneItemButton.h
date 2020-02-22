@@ -10,7 +10,7 @@
 #include "CSceneItem.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemButton
+// MARK: CSceneItemButton
 
 class CSceneItemButtonInternals;
 class CSceneItemButton : public CSceneItem {
@@ -32,26 +32,26 @@ class CSceneItemButton : public CSceneItem {
 				CDictionary					getInfo() const;
 
 											// Instance methods
-				OR<CActionArray>			getActionArray() const;
-				void						setActionArray(const CActionArray& actionArray);
+		const	OO<CActions>&				getActions() const;
+				void						setActions(const OO<CActions>& actions);
 
-				OR<CAudioInfo>				getAudioInfo() const;
-				void						setAudioInfo(const CAudioInfo& audioInfo);
+		const	OO<CAudioInfo>&				getAudioInfo() const;
+				void						setAudioInfo(const OO<CAudioInfo>& audioInfo);
 
-				OR<CKeyframeAnimationInfo>	getUpKeyframeAnimationInfo() const;
+		const	OO<CKeyframeAnimationInfo>&	getUpKeyframeAnimationInfo() const;
 				void						setUpKeyframeAnimationInfo(
-													const CKeyframeAnimationInfo& keyframeAnimationInfo);
+													const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo);
 
-				OR<CKeyframeAnimationInfo>	getDownKeyframeAnimationInfo() const;
+		const	OO<CKeyframeAnimationInfo>&	getDownKeyframeAnimationInfo() const;
 				void						setDownKeyframeAnimationInfo(
-													const CKeyframeAnimationInfo& keyframeAnimationInfo);
+													const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo);
 
-				OR<CKeyframeAnimationInfo>	getDisabledKeyframeAnimationInfo() const;
+		const	OO<CKeyframeAnimationInfo>&	getDisabledKeyframeAnimationInfo() const;
 				void						setDisabledKeyframeAnimationInfo(
-													const CKeyframeAnimationInfo& keyframeAnimationInfo);
+													const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo);
 
-				UniversalTimeInterval		getStartTimeInterval() const;
-				void						setStartTimeInterval(UniversalTimeInterval startTimeInterval);
+		const	OV<UniversalTimeInterval>&	getStartTimeInterval() const;
+				void						setStartTimeInterval(const OV<UniversalTimeInterval>& startTimeInterval);
 
 				Float32						getHitRadius() const;
 				void						setHitRadius(Float32 hitRadius);
