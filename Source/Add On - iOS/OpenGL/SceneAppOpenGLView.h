@@ -6,17 +6,14 @@
 
 #import "SceneAppGPUView.h"
 
-#import <OpenGL/gl.h>
+#import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: SceneAppOpenGLView
 
-@interface SceneAppOpenGLView : NSOpenGLView <SceneAppGPUView>
-
-// MARK: Instance methods
-- (instancetype) initWithFrame:(NSRect) frame;
+@interface SceneAppOpenGLView : UIView <SceneAppGPUView>
 
 @end
 

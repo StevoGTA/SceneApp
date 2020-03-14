@@ -209,8 +209,8 @@ class CSceneAppPlayer {
 
 						void								loadScenes(const SScenePackageInfo& scenePackageInfo);
 
-						void								start();
-						void								stop();
+						void								start(bool loadAllTextures = false);
+						void								stop(bool unloadAllTextures = false);
 						void								handlePeriodic(UniversalTime outputTime);
 
 						void								mouseDown(
@@ -248,7 +248,7 @@ class CSceneAppPlayer {
 																	const SSceneItemPlayerProcsInfo&
 																			sceneItemPlayerProcsInfo) const;
 		virtual			void								performAction(const CAction& action,
-																	const S2DPoint32& point);
+																	const S2DPoint32& point = S2DPoint32());
 		virtual			OV<CSceneIndex>						getSceneIndex(const CAction& action) const;
 
 						CScenePlayer&						loadAndStartScenePlayer(CSceneIndex sceneIndex) const;

@@ -21,7 +21,7 @@ TArray<SScenePackageInfo> CSceneApp::scenePackageInfosForScenePackageFilenames(
 	for (TIteratorD<CString> iterator = scenePackageFilenames.getIterator(); iterator.hasValue(); iterator.advance()) {
 		// Collect info
 		TArray<CString>	dimensions =
-								iterator.getValue().breakUp(CString(OSSTR(".")))[0].breakUp(CString(OSSTR("_")))[2]
+								iterator.getValue().breakUp(CString(OSSTR(".")))[0].breakUp(CString(OSSTR("_")))[1]
 										.breakUp(CString(OSSTR("x")));
 		Float32			width = dimensions[0].getFloat32();
 		Float32			height = dimensions[1].getFloat32();

@@ -23,8 +23,6 @@ static	void			sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* use
 static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
 										void* userData);
 static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
-//static	void			sSceneAppPlayerBeginDraw(void* userData);
-//static	void			sSceneAppPlayerEndDraw(void* userData);
 //static	CImageX	sSceneAppPlayerGetCurrentViewportImage(void* userData);
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -34,7 +32,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 
 @property (nonatomic, assign)	CSceneAppPlayer*	sceneAppPlayerInternal;
 @property (nonatomic, assign)	S2DSize32			viewSize;
-@property (nonatomic, assign)	NSPoint				previousLocationInWindow;
+@property (nonatomic, assign)	BOOL				didReceiveApplicationWillResignActiveNotification;
 
 @end
 
@@ -59,6 +57,12 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+- (BOOL) prefersStatusBarHidden
+{
+    return YES;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 - (CSceneAppPlayer&) sceneAppPlayer
 {
 	return *self.sceneAppPlayerInternal;
@@ -67,13 +71,13 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(NSView<SceneAppGPUView>*) view
+- (instancetype) initWithView:(UIView<SceneAppGPUView>*) view
 {
 	return [self initWithView:view sceneAppPlayerCreationProc:nil];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(NSView<SceneAppGPUView>*) view
+- (instancetype) initWithView:(UIView<SceneAppGPUView>*) view
 		sceneAppPlayerCreationProc:
 				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
 						sceneAppPlayerCreationProc
@@ -84,42 +88,81 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 		self.view = view;
 
 		__weak	__typeof(self)	weakSelf = self;
-		((NSView<SceneAppGPUView>*) self.view).mouseDownProc = ^(NSEvent* event){
-			// Setup
-			NSPoint	point = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
-			point.y = weakSelf.view.bounds.size.height - point.y;
+		((UIView<SceneAppGPUView>*) self.view).touchesBeganProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
+			// Collect info
+			TNArray<SSceneAppPlayerTouchBeganInfo>	touchBeganInfosArray;
+			for (UITouch* touch in touches) {
+				// Add info
+				CGPoint	pt = [touch locationInView:weakSelf.view];
+				touchBeganInfosArray +=
+						SSceneAppPlayerTouchBeganInfo(S2DPoint32(pt.x, pt.y), (UInt32) touch.tapCount,
+								(__bridge void*) touch);
+			}
 
 			// Inform SceneAppPlayer
-			weakSelf.sceneAppPlayerInternal->mouseDown(
-					SSceneAppPlayerMouseDownInfo(S2DPoint32(point.x, point.y), (UInt32) event.clickCount));
-
-			// Store
-			weakSelf.previousLocationInWindow = point;
+			weakSelf.sceneAppPlayerInternal->touchesBegan(touchBeganInfosArray);
 		};
-		((NSView<SceneAppGPUView>*) self.view).mouseDraggedProc = ^(NSEvent* event){
-			// Get event info
-			NSPoint	point = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
-			point.y = weakSelf.view.bounds.size.height - point.y;
+		((UIView<SceneAppGPUView>*) self.view).touchesMovedProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
+			// Collect info
+			TNArray<SSceneAppPlayerTouchMovedInfo>	touchMovedInfosArray;
+			for (UITouch* touch in touches) {
+				// Add info
+				CGPoint	previousPt = [touch previousLocationInView:weakSelf.view];
+				CGPoint	currentPt = [touch locationInView:weakSelf.view];
+				touchMovedInfosArray +=
+						SSceneAppPlayerTouchMovedInfo(S2DPoint32(previousPt.x, previousPt.y),
+								S2DPoint32(currentPt.x, currentPt.y), (__bridge void*) touch);
+			}
 
 			// Inform SceneAppPlayer
-			weakSelf.sceneAppPlayerInternal->mouseDragged(
-					SSceneAppPlayerMouseDraggedInfo(
-							S2DPoint32(weakSelf.previousLocationInWindow.x, weakSelf.previousLocationInWindow.y),
-							S2DPoint32(point.x, point.y)));
-
-			// Store
-			weakSelf.previousLocationInWindow = point;
+			weakSelf.sceneAppPlayerInternal->touchesMoved(touchMovedInfosArray);
 		};
-		((NSView<SceneAppGPUView>*) self.view).mouseUpProc = ^(NSEvent* event){
-			// Get event info
-			NSPoint	point = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
-			point.y = weakSelf.view.bounds.size.height - point.y;
+		((UIView<SceneAppGPUView>*) self.view).touchesEndedProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
+			// Collect info
+			TNArray<SSceneAppPlayerTouchMovedInfo>	touchMovedInfosArray;
+			TNArray<SSceneAppPlayerTouchEndedInfo>	touchEndedInfosArray;
+			for (UITouch* touch in touches) {
+				// Add info
+				CGPoint	previousPt = [touch previousLocationInView:weakSelf.view];
+				CGPoint	currentPt = [touch locationInView:weakSelf.view];
+				if (!CGPointEqualToPoint(previousPt, currentPt))
+					// Need to add a move to final point
+					touchMovedInfosArray +=
+							SSceneAppPlayerTouchMovedInfo(S2DPoint32(previousPt.x, previousPt.y),
+									S2DPoint32(currentPt.x, currentPt.y), (__bridge void*) touch);
+				touchEndedInfosArray +=
+						SSceneAppPlayerTouchEndedInfo(S2DPoint32(currentPt.x, currentPt.y), (__bridge void*) touch);
+			}
 
 			// Inform SceneAppPlayer
-			weakSelf.sceneAppPlayerInternal->mouseUp(SSceneAppPlayerMouseUpInfo(S2DPoint32(point.x, point.y)));
+			weakSelf.sceneAppPlayerInternal->touchesMoved(touchMovedInfosArray);
+			weakSelf.sceneAppPlayerInternal->touchesEnded(touchEndedInfosArray);
+		};
+		((UIView<SceneAppGPUView>*) self.view).touchesCancelledProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
+			// Collect info
+			TNArray<SSceneAppPlayerTouchCancelledInfo>	touchCancelledInfosArray;
+			for (UITouch* touch in touches)
+				// Add info
+				touchCancelledInfosArray += SSceneAppPlayerTouchCancelledInfo((__bridge void*) touch);
+
+			// Inform SceneAppPlayer
+			weakSelf.sceneAppPlayerInternal->touchesCancelled(touchCancelledInfosArray);
 		};
 
-		((NSView<SceneAppGPUView>*) self.view).periodicProc = ^(UniversalTime outputTime){
+		((UIView<SceneAppGPUView>*) self.view).motionBeganProc = ^(UIEventSubtype eventSubtype, UIEvent* event){
+			// Check motion type
+			if (eventSubtype == UIEventSubtypeMotionShake)
+				// Inform SceneAppPlayer
+				weakSelf.sceneAppPlayerInternal->shakeBegan();
+		};
+		((UIView<SceneAppGPUView>*) self.view).motionEndedProc = ^(UIEventSubtype eventSubtype, UIEvent* event){
+			// Check motion type
+			if (eventSubtype == UIEventSubtypeMotionShake)
+				// Inform SceneAppPlayer
+				weakSelf.sceneAppPlayerInternal->shakeEnded();
+		};
+
+		((UIView<SceneAppGPUView>*) self.view).periodicProc = ^(UniversalTime outputTime){
 			// Inform SceneAppPlayer
 			weakSelf.sceneAppPlayerInternal->handlePeriodic(outputTime);
 		};
@@ -143,11 +186,9 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 		// Setup Notifications
 		NSNotificationCenter*	notificationCenter = [NSNotificationCenter defaultCenter];
 		[notificationCenter addObserver:self selector:@selector(applicationWillResignActiveNotification:)
-				name:NSApplicationWillResignActiveNotification object:nil];
+				name:UIApplicationWillResignActiveNotification object:nil];
 		[notificationCenter addObserver:self selector:@selector(applicationDidBecomeActiveNotification:)
-				name:NSApplicationDidBecomeActiveNotification object:nil];
-		[notificationCenter addObserver:self selector:@selector(applicationWillTerminateNotification:)
-				name:NSApplicationWillTerminateNotification object:nil];
+				name:UIApplicationDidBecomeActiveNotification object:nil];
 	}
 
 	return self;
@@ -162,22 +203,20 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 // MARK: NSViewController methods
 
 //----------------------------------------------------------------------------------------------------------------------
-- (void) viewWillAppear
+- (void) viewWillAppear:(BOOL) animated
 {
 	// Do super
-	[super viewWillAppear];
-
-//	[self.view layoutIfNeeded];
+	[super viewWillAppear:animated];
 
 	// Start SceneAppPlayer
 	self.sceneAppPlayerInternal->start();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-- (void) viewWillDisappear
+- (void) viewWillDisappear:(BOOL) animated
 {
 	// Do super
-	[super viewWillDisappear];
+	[super viewWillDisappear:animated];
 
 	// Stop SceneAppPlayer
 	self.sceneAppPlayerInternal->stop();
@@ -188,6 +227,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 - (void) loadScenesFrom:(const SScenePackageInfo&) scenePackageInfo
 {
+	// Load scenes
 	self.sceneAppPlayerInternal->loadScenes(scenePackageInfo);
 }
 
@@ -196,40 +236,20 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 - (void) applicationWillResignActiveNotification:(NSNotification*) notification
 {
-#warning What to do here?
-//	// Send notification
-//	CEvent	event(kSceneAppWillResignActiveEventKind);
-//	CNotificationCenterX::broadcast(event);
-//
-//	// Pause SceneAppPlayer
-//	CSceneAppPlayerX::shared().pause();
-//
-//	// Dump textures
-//	CGLTextureCache::clear();
-//	mApplicationDidResignActive = YES;
+	// Stop SceneAppPlayer
+	self.sceneAppPlayerInternal->stop(true);
+
+	// Note
+	self.didReceiveApplicationWillResignActiveNotification = YES;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 - (void) applicationDidBecomeActiveNotification:(NSNotification*) notification
 {
-#warning What to do here?
-//	// Send notification
-//	CEvent	event(kSceneAppDidBecomeActiveEventKind);
-//	CNotificationCenterX::broadcast(event);
-//
-//	// Reload textures
-//	if (mApplicationDidResignActive)
-//		CGPUTextureManager::mDefault.loadAll();
-//
-//	// Resume SceneAppPlayer
-//	CSceneAppPlayerX::shared().resume();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-- (void) applicationWillTerminateNotification:(NSNotification*) notification
-{
-	// Cleanup
-//	DisposeOf(self.sceneAppPlayer);
+	// Check if previously received will resign
+	if (self.didReceiveApplicationWillResignActiveNotification)
+		// Start SceneAppPlayer
+		self.sceneAppPlayerInternal->start(true);
 }
 
 // MARK: Private methods
@@ -237,13 +257,13 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 - (void) installPeriodic
 {
-	[(NSView<SceneAppGPUView>*) self.view installPeriodic];
+	[(UIView<SceneAppGPUView>*) self.view installPeriodic];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 - (void) removePeriodic
 {
-	[(NSView<SceneAppGPUView>*) self.view removePeriodic];
+	[(UIView<SceneAppGPUView>*) self.view removePeriodic];
 }
 
 @end
@@ -295,7 +315,7 @@ void sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData)
 				sceneAppViewController.openURLProc(nsURL);
 		} else
 			// Open URL
-			[NSWorkspace.sharedWorkspace openURL:nsURL];
+			[UIApplication.sharedApplication openURL:nsURL options:@{} completionHandler:nil];
 	});
 }
 

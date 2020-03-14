@@ -26,7 +26,7 @@ static	CVReturn	sDisplayLinkOutputCallback(CVDisplayLinkRef displayLink, const C
 	COpenGLGPU*	mOpenGLGPU;
 }
 
-@property (nonatomic, strong)	NSLock*	contextLock;
+@property (nonatomic, strong)	NSLock*				contextLock;
 
 @property (nonatomic, assign)	CVDisplayLinkRef	displayLinkRef;
 @property (nonatomic, strong)	NSLock*				displayLinkLock;
@@ -157,21 +157,18 @@ static	CVReturn	sDisplayLinkOutputCallback(CVDisplayLinkRef displayLink, const C
 
 //----------------------------------------------------------------------------------------------------------------------
 - (void) mouseDown:(NSEvent*) event
-//----------------------------------------------------------------------------------------------------------------------
 {
 	self.mouseDownProc(event);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 - (void) mouseDragged:(NSEvent*) event
-//----------------------------------------------------------------------------------------------------------------------
 {
 	self.mouseDraggedProc(event);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 - (void) mouseUp:(NSEvent*) event
-//----------------------------------------------------------------------------------------------------------------------
 {
 	self.mouseUpProc(event);
 }
@@ -247,21 +244,18 @@ static	CVReturn	sDisplayLinkOutputCallback(CVDisplayLinkRef displayLink, const C
 
 //----------------------------------------------------------------------------------------------------------------------
 void sAcquireContextProc(SceneAppOpenGLView* sceneAppOpenGLView)
-//----------------------------------------------------------------------------------------------------------------------
 {
 	[sceneAppOpenGLView acquireContext];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 bool sTryAcquireContextProc(SceneAppOpenGLView* sceneAppOpenGLView)
-//----------------------------------------------------------------------------------------------------------------------
 {
 	return [sceneAppOpenGLView tryAcquireContext];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void sReleaseContextProc(SceneAppOpenGLView* sceneAppOpenGLView)
-//----------------------------------------------------------------------------------------------------------------------
 {
 	[sceneAppOpenGLView releaseContext];
 }
@@ -269,7 +263,6 @@ void sReleaseContextProc(SceneAppOpenGLView* sceneAppOpenGLView)
 //----------------------------------------------------------------------------------------------------------------------
 CVReturn sDisplayLinkOutputCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* inNow,
 		const CVTimeStamp* inOutputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* context)
-//----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
 	SceneAppOpenGLView*	sceneAppOpenGLView = (__bridge SceneAppOpenGLView*) context;

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#import <AppKit/AppKit.h>
+#import <UIKit/UIKit.h>
 
 #import "CSceneAppPlayer.h"
 #import "SceneAppGPUView.h"
@@ -14,7 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: SceneAppViewController
 
-@interface SceneAppViewController : NSViewController
+@interface SceneAppViewController : UIViewController
 
 // MARK: Properties
 @property (class, nonatomic, readonly)	TArray<CString>		scenePackageFilenames;
@@ -26,8 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
 																	const CDictionary& commandInfo);
 
 // MARK: Instance methods
-- (instancetype) initWithView:(NSView<SceneAppGPUView>*) view;
-- (instancetype) initWithView:(NSView<SceneAppGPUView>*) view
+- (instancetype) initWithView:(UIView<SceneAppGPUView>*) view;
+- (instancetype) initWithView:(UIView<SceneAppGPUView>*) view
 		sceneAppPlayerCreationProc:
 				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
 						sceneAppPlayerCreationProc;

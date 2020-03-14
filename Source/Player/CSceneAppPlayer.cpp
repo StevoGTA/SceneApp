@@ -655,34 +655,44 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneAppPlayer::start()
+void CSceneAppPlayer::start(bool loadAllTextures)
 //----------------------------------------------------------------------------------------------------------------------
 {
-#if defined(DEBUG)
-	CLogServices::logMessage(CString(OSSTR("CSceneAppPlayer - start")));
-#endif
-
+	// Start
 	mInternals->mCurrentScenePlayer->start();
 
+	// Update last periodic output time
 	if ((mInternals->mLastPeriodicOutputTime != 0.0) && (mInternals->mStopTime != 0.0))
 		// Advance last periodic time to ignore time between stop and start
 		mInternals->mLastPeriodicOutputTime += SUniversalTime::getCurrentUniversalTime() - mInternals->mStopTime;
 
+	// Install periodic
 	mInternals->mSceneAppPlayerProcsInfo.installPeriodic();
+
+	// Check if loading all textures
+	if (loadAllTextures)
+		// Load all textures
+		mInternals->mGPUTextureManager.loadAll();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneAppPlayer::stop()
+void CSceneAppPlayer::stop(bool unloadAllTextures)
 //----------------------------------------------------------------------------------------------------------------------
 {
-#if defined(DEBUG)
-	CLogServices::logMessage(CString(OSSTR("CSceneAppPlayer - stop")));
-#endif
-
+	// Remove periodic
 	mInternals->mSceneAppPlayerProcsInfo.removePeriodic();
+
+	// Note stop time
 	mInternals->mStopTime = SUniversalTime::getCurrentUniversalTime();
+
+	// Cleanup touches
 	mInternals->mSceneTouchHandlerInfos.removeAll();
 	mInternals->mSceneTransitionTouchHandlerInfos.removeAll();
+
+	// Check if unloading all textures
+	if (unloadAllTextures)
+		// Unload all textures
+		mInternals->mGPUTextureManager.unloadAll();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
