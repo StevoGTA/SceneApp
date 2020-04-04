@@ -6,7 +6,7 @@
 
 #import "SceneAppGPUView.h"
 
-#import <OpenGL/gl.h>
+#import <OpenGL/OpenGL.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

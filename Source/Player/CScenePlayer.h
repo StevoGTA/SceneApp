@@ -70,7 +70,9 @@ class CScenePlayer {
 				void		start();
 				void		reset();
 				void		update(UniversalTimeInterval deltaTimeInterval);
-				void		render(CGPU& gpu, const S2DPoint32& offset = S2DPoint32()) const;
+				void		render(CGPU& gpu,
+									const SGPURenderObjectRenderInfo& renderInfo = SGPURenderObjectRenderInfo())
+									const;
 
 				void		setItemPlayerProperty(const CString& itemName, const CString& property,
 									const SDictionaryValue& value) const;

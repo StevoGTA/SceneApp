@@ -118,65 +118,65 @@ void CSceneTransitionPlayerCoverUncover::render(CGPU& gpu) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	S2DPoint32	offset;
+	S2DOffset32	offset;
 	S2DSize32	viewportPixelSize = mInternals->mSceneTransitionPlayerProcsInfo.getViewportSize();
 
 	// Check cover/uncover
 	if (mInternals->mIsCover) {
 		// Cover
 		// Draw from scene
-		getFromScenePlayer().render(gpu, offset);
+		getFromScenePlayer().render(gpu);
 
 		// Draw to scene
 		switch (mInternals->mDirection) {
 			case kSceneTransitionDirectionUp:
 				// Up
-				offset.mY = viewportPixelSize.mHeight - mInternals->mCurrentOffset;
+				offset.mDY = viewportPixelSize.mHeight - mInternals->mCurrentOffset;
 				break;
 
 			case kSceneTransitionDirectionDown:
 				// Down
-				offset.mY = mInternals->mCurrentOffset - viewportPixelSize.mHeight;
+				offset.mDY = mInternals->mCurrentOffset - viewportPixelSize.mHeight;
 				break;
 
 			case kSceneTransitionDirectionLeft:
 				// Left
-				offset.mX = viewportPixelSize.mWidth - mInternals->mCurrentOffset;
+				offset.mDX = viewportPixelSize.mWidth - mInternals->mCurrentOffset;
 				break;
 
 			case kSceneTransitionDirectionRight:
 				// Right
-				offset.mX = mInternals->mCurrentOffset - viewportPixelSize.mWidth;
+				offset.mDX = mInternals->mCurrentOffset - viewportPixelSize.mWidth;
 				break;
 		}
-		getToScenePlayer().render(gpu, offset);
+		getToScenePlayer().render(gpu, SGPURenderObjectRenderInfo(offset));
 	} else {
 		// Uncover
 		// Draw to scene
-		getToScenePlayer().render(gpu, offset);
+		getToScenePlayer().render(gpu);
 
 		// Draw from scene
 		switch (mInternals->mDirection) {
 			case kSceneTransitionDirectionUp:
 				// Up
-				offset.mY = -mInternals->mCurrentOffset;
+				offset.mDY = -mInternals->mCurrentOffset;
 				break;
 
 			case kSceneTransitionDirectionDown:
 				// Down
-				offset.mY = mInternals->mCurrentOffset;
+				offset.mDY = mInternals->mCurrentOffset;
 				break;
 
 			case kSceneTransitionDirectionLeft:
 				// Left
-				offset.mX = -mInternals->mCurrentOffset;
+				offset.mDX = -mInternals->mCurrentOffset;
 				break;
 
 			case kSceneTransitionDirectionRight:
 				// Right
-				offset.mX = mInternals->mCurrentOffset;
+				offset.mDX = mInternals->mCurrentOffset;
 				break;
 		}
-		getFromScenePlayer().render(gpu, offset);
+		getFromScenePlayer().render(gpu, SGPURenderObjectRenderInfo(offset));
 	}
 }

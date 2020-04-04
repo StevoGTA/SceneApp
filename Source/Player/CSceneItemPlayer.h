@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CAction.h"
+#include "CGPURenderObject.h"
 #include "CSceneApp.h"
 #include "CSceneItem.h"
 
@@ -67,8 +68,8 @@ class CSceneItemPlayer {
 
 		virtual			void						reset();
 		virtual			void						update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
-		virtual			void						render(CGPU& gpu, const S2DPoint32& offset = S2DPoint32()) const
-															= 0;
+		virtual			void						render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo)
+															const = 0;
 
 		virtual			bool						handlesTouchOrMouseAtPoint(const S2DPoint32& point) const;
 		virtual			void						touchBeganOrMouseDownAtPoint(const S2DPoint32& point,

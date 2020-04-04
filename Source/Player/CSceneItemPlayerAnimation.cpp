@@ -257,14 +257,14 @@ void CSceneItemPlayerAnimation::update(UniversalTimeInterval deltaTimeInterval, 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerAnimation::render(CGPU& gpu, const S2DPoint32& offset) const
+void CSceneItemPlayerAnimation::render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 //	if (mInternals->mCelAnimationPlayer != nil)
 //		mInternals->mCelAnimationPlayer->render(gpu, offset);
 	if (mInternals == nil) (void) mInternals;
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
-		mInternals->mKeyframeAnimationPlayer->render(gpu, offset);
+		mInternals->mKeyframeAnimationPlayer->render(gpu, renderInfo);
 }
 
 // MARK: Instance methods

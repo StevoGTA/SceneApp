@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------------------------------------------------
-//	SceneAppOpenGLView.mm			©2019 Stevo Brock		All rights reserved.
+//	SceneAppOpenGLView32.mm			©2019 Stevo Brock		All rights reserved.
 //----------------------------------------------------------------------------------------------------------------------
 
 #import "SceneAppOpenGLView.h"
@@ -21,10 +21,11 @@ static	CVReturn	sDisplayLinkOutputCallback(CVDisplayLinkRef displayLink, const C
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - SceneAppOpenGLView
 
-@interface SceneAppOpenGLView () {
-				// MARK: Properties
-	COpenGLGPU*	mOpenGLGPU;
-}
+@interface SceneAppOpenGLView ()
+
+@property (nonatomic, assign)	CGPU*				gpuInternal;
+@property (nonatomic, assign)	CGSize				size;
+@property (nonatomic, assign)	CGFloat				contentsScale;
 
 @property (nonatomic, strong)	NSLock*				contextLock;
 
@@ -46,7 +47,7 @@ static	CVReturn	sDisplayLinkOutputCallback(CVDisplayLinkRef displayLink, const C
 //----------------------------------------------------------------------------------------------------------------------
 - (CGPU&) gpu
 {
-	return *mOpenGLGPU;
+	return *self.gpuInternal;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -118,8 +119,8 @@ static	CVReturn	sDisplayLinkOutputCallback(CVDisplayLinkRef displayLink, const C
 {
 	// Setup pixel format
 	NSOpenGLPixelFormatAttribute pixelFormatAttributes[] = {
+																NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
 																NSOpenGLPFADoubleBuffer,
-																NSOpenGLPFADepthSize, 24,
 																0,
 														   };
 	NSOpenGLPixelFormat*	pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes];
@@ -127,18 +128,19 @@ static	CVReturn	sDisplayLinkOutputCallback(CVDisplayLinkRef displayLink, const C
 	self = [super initWithFrame:frame pixelFormat:pixelFormat];
 	if (self != nil) {
 		// Complete setup
+		self.wantsBestResolutionOpenGLSurface = YES;
+
 		self.openGLContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
+//		CGLEnable(self.openGLContext.CGLContextObj, kCGLCECrashOnRemovedFunctions);
 
 		self.contextLock = [[NSLock alloc] init];
-
 		self.displayLinkLock = [[NSLock alloc] init];
 
-		mOpenGLGPU =
-				new COpenGLGPU(
-						COpenGLGPUProcsInfo((COpenGLGPUAcquireContextProc) sAcquireContextProc,
+		self.gpuInternal =
+				new CGPU(
+						CGPUProcsInfo((COpenGLGPUAcquireContextProc) sAcquireContextProc,
 								(COpenGLGPUTryAcquireContextProc) sTryAcquireContextProc,
 								(COpenGLGPUReleaseContextProc) sReleaseContextProc, (__bridge void*) self));
-		mOpenGLGPU->setup(S2DSize32(frame.size.width, frame.size.height));
 	}
 
 	return self;
@@ -150,7 +152,7 @@ static	CVReturn	sDisplayLinkOutputCallback(CVDisplayLinkRef displayLink, const C
 	// Cleanup
 	[self removePeriodic];
 
-	DisposeOf(mOpenGLGPU);
+	DisposeOf(self.gpuInternal);
 }
 
 // MARK: NSResponder methods
@@ -186,6 +188,17 @@ static	CVReturn	sDisplayLinkOutputCallback(CVDisplayLinkRef displayLink, const C
 
 	// Do super
 	[super renewGState];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+- (void) viewDidChangeBackingProperties
+{
+	// Do super
+	[super viewDidChangeBackingProperties];
+
+	// Get current info
+	self.size = self.bounds.size;
+	self.contentsScale = self.window.backingScaleFactor;
 }
 
 // MARK: NSOpenGLView methods
@@ -273,12 +286,11 @@ CVReturn sDisplayLinkOutputCallback(CVDisplayLinkRef displayLink, const CVTimeSt
 			// Lock our context
 			CGLLockContext(sceneAppOpenGLView.openGLContext.CGLContextObj);
 
-//			// Call start if needed
-//			if (sNeedToCallStart) {
-//				CSceneAppPlayerX::shared().start();
-//				sNeedToCallStart = false;
-//			}
-//
+			// Setup
+			SOpenGLGPUSetupInfo	openGLGPUSetupInfo(sceneAppOpenGLView.contentsScale);
+			sceneAppOpenGLView.gpu.setup(S2DSize32(sceneAppOpenGLView.size.width, sceneAppOpenGLView.size.height),
+					&openGLGPUSetupInfo);
+
 			// Call proc
 			sceneAppOpenGLView.periodicProc(
 					(UniversalTime) inOutputTime->videoTime / (UniversalTime) inOutputTime->videoTimeScale);

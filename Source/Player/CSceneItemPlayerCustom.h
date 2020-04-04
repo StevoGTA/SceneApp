@@ -28,7 +28,8 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 
 						void						reset();
 						void						update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
-						void						render(CGPU& gpu, const S2DPoint32& offset = S2DPoint32()) const;
+						void						render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo)
+															const;
 
 						bool						handlesTouchOrMouseAtPoint(const S2DPoint32& point) const;
 						void						touchBeganOrMouseDownAtPoint(const S2DPoint32& point,
@@ -67,7 +68,7 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 		virtual			void						update(const CSceneItemCustom& sceneItemCustom,
 															UniversalTimeInterval deltaTimeInterval, bool isRunning) {}
 		virtual			void						render(const CSceneItemCustom& sceneItemCustom, CGPU& gpu,
-															const S2DPoint32& offset) const = 0;
+															const SGPURenderObjectRenderInfo& renderInfo) const = 0;
 
 		virtual			bool						handlesTouchOrMouseAtPoint(const CSceneItemCustom& sceneItemCustom,
 															const S2DPoint32& point) const

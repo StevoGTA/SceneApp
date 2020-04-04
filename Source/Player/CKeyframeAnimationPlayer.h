@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "CGPURenderObject.h"
 #include "CKeyframeAnimationInfo.h"
 #include "CSceneApp.h"
 
@@ -76,7 +77,7 @@ class CKeyframeAnimationPlayer {
 
 		void		reset(bool start);
 		void		update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
-		void		render(CGPU& gpu, const S2DPoint32& offset = S2DPoint32()) const;
+		void		render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const;
 		bool		getIsFinished() const;
 
 	// Properties

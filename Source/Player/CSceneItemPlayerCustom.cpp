@@ -79,10 +79,10 @@ void CSceneItemPlayerCustom::update(UniversalTimeInterval deltaTimeInterval, boo
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::render(CGPU& gpu, const S2DPoint32& offset) const
+void CSceneItemPlayerCustom::render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	render(getSceneItemCustom(), gpu, offset);
+	render(getSceneItemCustom(), gpu, renderInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

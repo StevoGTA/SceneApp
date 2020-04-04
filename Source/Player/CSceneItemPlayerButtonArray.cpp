@@ -121,21 +121,26 @@ void CSceneItemPlayerButtonArray::update(UniversalTimeInterval deltaTimeInterval
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButtonArray::render(CGPU& gpu, const S2DPoint32& offset) const
+void CSceneItemPlayerButtonArray::render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Setup
+	const	S2DOffset32&	offset = renderInfo.mOffset;
+	
 	// Iterate all buttons
 	for (TIteratorD<CSceneItemButtonArrayButton> iterator =
 					getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
 			iterator.hasValue(); iterator.advance()) {
 		// Render this button
-		S2DPoint32	point = iterator.getValue().getScreenPositionPoint().offset(offset.mX, offset.mY);
-		S2DRect32	rect =
-							(!mInternals->mActiveButtonDown ||
-											!mInternals->mActiveButton.hasReference() ||
-											(&iterator.getValue() != &(*mInternals->mActiveButton))) ?
-									iterator.getValue().getUpImageRect() : iterator.getValue().getDownImageRect();
-		mInternals->mGPURenderObject2D->render(gpu, rect, point);
+		const	S2DPoint32&	screenPositionPoint = iterator.getValue().getScreenPositionPoint();
+				S2DOffset32	buttonOffset(screenPositionPoint.mX + offset.mDX, screenPositionPoint.mY + offset.mDY);
+				S2DRect32	rect =
+									(!mInternals->mActiveButtonDown ||
+													!mInternals->mActiveButton.hasReference() ||
+													(&iterator.getValue() != &(*mInternals->mActiveButton))) ?
+											iterator.getValue().getUpImageRect() :
+											iterator.getValue().getDownImageRect();
+		mInternals->mGPURenderObject2D->render(gpu, rect, SGPURenderObjectRenderInfo(renderInfo, buttonOffset));
 	}
 }
 

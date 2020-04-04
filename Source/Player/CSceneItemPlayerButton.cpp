@@ -229,14 +229,14 @@ void CSceneItemPlayerButton::update(UniversalTimeInterval deltaTimeInterval, boo
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButton::render(CGPU& gpu, const S2DPoint32& offset) const
+void CSceneItemPlayerButton::render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	if (mInternals->mIsEnabled) {
 		if (mInternals->mCurrentKeyframeAnimationPlayer != nil)
-			mInternals->mCurrentKeyframeAnimationPlayer->render(gpu, offset);
+			mInternals->mCurrentKeyframeAnimationPlayer->render(gpu, renderInfo);
 	} else if (mInternals->mDisabledKeyframeAnimationPlayer != nil)
-		mInternals->mDisabledKeyframeAnimationPlayer->render(gpu, offset);
+		mInternals->mDisabledKeyframeAnimationPlayer->render(gpu, renderInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

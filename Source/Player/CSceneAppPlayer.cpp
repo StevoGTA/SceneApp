@@ -354,6 +354,12 @@ void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex
 		// Load
 		iterator.getValue()->load();
 
+	// Unload other scenes
+	for (TIteratorS<CScenePlayer*> iterator = toUnloadSceneItemPlayers.getIterator(); iterator.hasValue();
+			iterator.advance())
+		// Unload
+		iterator.getValue()->unload();
+
 	// Update
 	mCurrentScenePlayer = &scenePlayer;
 
@@ -751,7 +757,7 @@ void CSceneAppPlayer::handlePeriodic(UniversalTime outputTime)
 		mInternals->mCurrentSceneTransitionPlayer->render(mInternals->mGPU);
 	else
 		// Render scene
-		mInternals->mCurrentScenePlayer->render(mInternals->mGPU, S2DPoint32());
+		mInternals->mCurrentScenePlayer->render(mInternals->mGPU);
 	mInternals->mGPU.renderEnd();
 }
 

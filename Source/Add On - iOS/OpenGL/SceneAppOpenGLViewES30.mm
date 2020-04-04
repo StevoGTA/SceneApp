@@ -1,14 +1,13 @@
 //----------------------------------------------------------------------------------------------------------------------
-//	SceneAppOpenGLView.mm			©2019 Stevo Brock		All rights reserved.
+//	SceneAppOpenGLViewES30.mm			©2020 Stevo Brock		All rights reserved.
 //----------------------------------------------------------------------------------------------------------------------
 
 #import "SceneAppOpenGLView.h"
 
-#import "COpenGLES11GPU.h"
 #import "CLogServices.h"
 #import "COpenGLGPU.h"
 
-#import <OpenGLES/ES1/glext.h>
+#import <OpenGLES/ES3/glext.h>
 #import <QuartzCore/QuartzCore.h>
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -22,11 +21,9 @@ static	void	sReleaseContextProc(SceneAppOpenGLView* sceneAppOpenGLView);
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - SceneAppOpenGLView
 
-@interface SceneAppOpenGLView () {
-				// MARK: Properties
-	COpenGLGPU*	mOpenGLGPU;
-}
+@interface SceneAppOpenGLView ()
 
+@property (nonatomic, assign)	CGPU*			gpuInternal;
 @property (nonatomic, strong)	EAGLContext*	context;
 @property (nonatomic, strong)	NSLock*			contextLock;
 
@@ -52,7 +49,7 @@ static	void	sReleaseContextProc(SceneAppOpenGLView* sceneAppOpenGLView);
 //----------------------------------------------------------------------------------------------------------------------
 - (CGPU&) gpu
 {
-	return *mOpenGLGPU;
+	return *self.gpuInternal;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -123,7 +120,7 @@ static	void	sReleaseContextProc(SceneAppOpenGLView* sceneAppOpenGLView);
 
 	[self removePeriodic];
 
-	DisposeOf(mOpenGLGPU);
+	DisposeOf(self.gpuInternal);
 }
 
 // MARK: NSResponder methods
@@ -184,12 +181,12 @@ static	void	sReleaseContextProc(SceneAppOpenGLView* sceneAppOpenGLView);
 	eaglLayer.opaque = YES;
 	eaglLayer.drawableProperties =
 			@{
-				kEAGLDrawablePropertyRetainedBacking: @FALSE,
+				kEAGLDrawablePropertyRetainedBacking: @NO,
 				kEAGLDrawablePropertyColorFormat: kEAGLColorFormatRGBA8
 			 };
 
 	// Setup the context
-	self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1];
+	self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
 	if (!self.context || ![EAGLContext setCurrentContext:self.context])
 		return;
 
@@ -198,21 +195,21 @@ static	void	sReleaseContextProc(SceneAppOpenGLView* sceneAppOpenGLView);
 
 	self.displayLinkLock = [[NSLock alloc] init];
 
-	mOpenGLGPU =
-			new COpenGLGPU(
-					COpenGLGPUProcsInfo((COpenGLGPUAcquireContextProc) sAcquireContextProc,
+	self.gpuInternal =
+			new CGPU(
+					CGPUProcsInfo((COpenGLGPUAcquireContextProc) sAcquireContextProc,
 							(COpenGLGPUTryAcquireContextProc) sTryAcquireContextProc,
 							(COpenGLGPUReleaseContextProc) sReleaseContextProc, (__bridge void*) self));
 
-	SOpenGLES11GPUSetupInfo	openGLES11GPUSetupInfo(scale, (__bridge void*) self.layer);
-	mOpenGLGPU->setup(S2DSize32(self.bounds.size.width * scale, self.bounds.size.height * scale),
-			&openGLES11GPUSetupInfo);
+	SOpenGLESGPUSetupInfo	openGLESGPUSetupInfo(scale, (__bridge void*) eaglLayer);
+	self.gpuInternal->setup(S2DSize32(self.bounds.size.width * scale, self.bounds.size.height * scale),
+			&openGLESGPUSetupInfo);
 
 	// Check for errors
-	if (glCheckFramebufferStatusOES(GL_FRAMEBUFFER_OES) != GL_FRAMEBUFFER_COMPLETE_OES) {
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		// Error
-		CLogServices::logError(CString("OpenGL ES 1.1 setup failed with error ") +
-				CString(glCheckFramebufferStatusOES(GL_FRAMEBUFFER_OES), 6, false, true));
+		CLogServices::logError(CString("OpenGL ES 3.0 setup failed with error ") +
+				CString(glCheckFramebufferStatus(GL_FRAMEBUFFER), 6, false, true));
 	}
 }
 
@@ -226,7 +223,7 @@ static	void	sReleaseContextProc(SceneAppOpenGLView* sceneAppOpenGLView);
 			self.periodicProc(displayLink.targetTimestamp);
 
 			// Flush
-			[self.context presentRenderbuffer:GL_RENDERBUFFER_OES];
+			[self.context presentRenderbuffer:GL_RENDERBUFFER];
 		}
 
 		// All done
