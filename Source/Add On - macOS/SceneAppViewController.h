@@ -4,10 +4,8 @@
 
 #pragma once
 
-#import <AppKit/AppKit.h>
-
+#import "AKTGPUView.h"
 #import "CSceneAppPlayer.h"
-#import "SceneAppGPUView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -26,8 +24,8 @@ NS_ASSUME_NONNULL_BEGIN
 																	const CDictionary& commandInfo);
 
 // MARK: Instance methods
-- (instancetype) initWithView:(NSView<SceneAppGPUView>*) view;
-- (instancetype) initWithView:(NSView<SceneAppGPUView>*) view
+- (instancetype) initWithView:(NSView<AKTGPUView>*) view;
+- (instancetype) initWithView:(NSView<AKTGPUView>*) view
 		sceneAppPlayerCreationProc:
 				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
 						sceneAppPlayerCreationProc;

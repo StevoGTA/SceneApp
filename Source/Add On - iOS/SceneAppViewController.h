@@ -7,7 +7,7 @@
 #import <UIKit/UIKit.h>
 
 #import "CSceneAppPlayer.h"
-#import "SceneAppGPUView.h"
+#import "UKTGPUView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -26,8 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
 																	const CDictionary& commandInfo);
 
 // MARK: Instance methods
-- (instancetype) initWithView:(UIView<SceneAppGPUView>*) view;
-- (instancetype) initWithView:(UIView<SceneAppGPUView>*) view
+- (instancetype) initWithView:(UIView<UKTGPUView>*) view;
+- (instancetype) initWithView:(UIView<UKTGPUView>*) view
 		sceneAppPlayerCreationProc:
 				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
 						sceneAppPlayerCreationProc;

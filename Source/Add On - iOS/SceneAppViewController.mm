@@ -71,13 +71,13 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(UIView<SceneAppGPUView>*) view
+- (instancetype) initWithView:(UIView<UKTGPUView>*) view
 {
 	return [self initWithView:view sceneAppPlayerCreationProc:nil];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(UIView<SceneAppGPUView>*) view
+- (instancetype) initWithView:(UIView<UKTGPUView>*) view
 		sceneAppPlayerCreationProc:
 				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
 						sceneAppPlayerCreationProc
@@ -88,7 +88,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 		self.view = view;
 
 		__weak	__typeof(self)	weakSelf = self;
-		((UIView<SceneAppGPUView>*) self.view).touchesBeganProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
+		((UIView<UKTGPUView>*) self.view).touchesBeganProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
 			// Collect info
 			TNArray<SSceneAppPlayerTouchBeganInfo>	touchBeganInfosArray;
 			for (UITouch* touch in touches) {
@@ -102,7 +102,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			// Inform SceneAppPlayer
 			weakSelf.sceneAppPlayerInternal->touchesBegan(touchBeganInfosArray);
 		};
-		((UIView<SceneAppGPUView>*) self.view).touchesMovedProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
+		((UIView<UKTGPUView>*) self.view).touchesMovedProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
 			// Collect info
 			TNArray<SSceneAppPlayerTouchMovedInfo>	touchMovedInfosArray;
 			for (UITouch* touch in touches) {
@@ -117,7 +117,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			// Inform SceneAppPlayer
 			weakSelf.sceneAppPlayerInternal->touchesMoved(touchMovedInfosArray);
 		};
-		((UIView<SceneAppGPUView>*) self.view).touchesEndedProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
+		((UIView<UKTGPUView>*) self.view).touchesEndedProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
 			// Collect info
 			TNArray<SSceneAppPlayerTouchMovedInfo>	touchMovedInfosArray;
 			TNArray<SSceneAppPlayerTouchEndedInfo>	touchEndedInfosArray;
@@ -138,7 +138,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			weakSelf.sceneAppPlayerInternal->touchesMoved(touchMovedInfosArray);
 			weakSelf.sceneAppPlayerInternal->touchesEnded(touchEndedInfosArray);
 		};
-		((UIView<SceneAppGPUView>*) self.view).touchesCancelledProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
+		((UIView<UKTGPUView>*) self.view).touchesCancelledProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
 			// Collect info
 			TNArray<SSceneAppPlayerTouchCancelledInfo>	touchCancelledInfosArray;
 			for (UITouch* touch in touches)
@@ -149,20 +149,20 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			weakSelf.sceneAppPlayerInternal->touchesCancelled(touchCancelledInfosArray);
 		};
 
-		((UIView<SceneAppGPUView>*) self.view).motionBeganProc = ^(UIEventSubtype eventSubtype, UIEvent* event){
+		((UIView<UKTGPUView>*) self.view).motionBeganProc = ^(UIEventSubtype eventSubtype, UIEvent* event){
 			// Check motion type
 			if (eventSubtype == UIEventSubtypeMotionShake)
 				// Inform SceneAppPlayer
 				weakSelf.sceneAppPlayerInternal->shakeBegan();
 		};
-		((UIView<SceneAppGPUView>*) self.view).motionEndedProc = ^(UIEventSubtype eventSubtype, UIEvent* event){
+		((UIView<UKTGPUView>*) self.view).motionEndedProc = ^(UIEventSubtype eventSubtype, UIEvent* event){
 			// Check motion type
 			if (eventSubtype == UIEventSubtypeMotionShake)
 				// Inform SceneAppPlayer
 				weakSelf.sceneAppPlayerInternal->shakeEnded();
 		};
 
-		((UIView<SceneAppGPUView>*) self.view).periodicProc = ^(UniversalTime outputTime){
+		((UIView<UKTGPUView>*) self.view).periodicProc = ^(UniversalTime outputTime){
 			// Inform SceneAppPlayer
 			weakSelf.sceneAppPlayerInternal->handlePeriodic(outputTime);
 		};
@@ -257,13 +257,13 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 - (void) installPeriodic
 {
-	[(UIView<SceneAppGPUView>*) self.view installPeriodic];
+	[(UIView<UKTGPUView>*) self.view installPeriodic];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 - (void) removePeriodic
 {
-	[(UIView<SceneAppGPUView>*) self.view removePeriodic];
+	[(UIView<UKTGPUView>*) self.view removePeriodic];
 }
 
 @end

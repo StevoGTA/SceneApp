@@ -229,8 +229,7 @@ void CScenePlayer::render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInf
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	S2DOffset32	totalOffset(mInternals->mCurrentOffset.mDX + renderInfo.mOffset.mDX,
-						mInternals->mCurrentOffset.mDY + renderInfo.mOffset.mDY);
+	SGPURenderObjectRenderInfo	offsetRenderInfo = renderInfo.offset(mInternals->mCurrentOffset);
 
 	// Iterate all scene item players
 	for (TIteratorS<CSceneItemPlayer*> iterator = mInternals->mSceneItemPlayersArray.getIterator(); iterator.hasValue();
@@ -246,7 +245,7 @@ void CScenePlayer::render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInf
 				sceneItemPlayer->render(gpu, renderInfo);
 			else
 				// Draw anchored to bg
-				sceneItemPlayer->render(gpu, SGPURenderObjectRenderInfo(renderInfo, totalOffset));
+				sceneItemPlayer->render(gpu, offsetRenderInfo);
 		}
 	}
 }
@@ -288,7 +287,7 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 
 		mInternals->mScenePlayerProcsInfo.performActions(*mInternals->mScene.getDoubleTapActions());
 	else {
 		// Setup
-		S2DPoint32	offsetPoint = point.offset(mInternals->mCurrentOffset);
+		S2DPoint32	scenePoint = point.offset(mInternals->mCurrentOffset.inverted());
 
 		// Search for target scene item player from front to back
 		CSceneItemPlayer*	targetSceneItemPlayer = nil;
@@ -301,11 +300,11 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 
 				// Not visible
 				continue;
 
-			// Compose test point
-			S2DPoint32	testPoint =
+			// Compose scene item player point
+			S2DPoint32	sceneItemPlayerPoint =
 								(sceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) ?
-										point : offsetPoint;
-			if (sceneItemPlayer->handlesTouchOrMouseAtPoint(testPoint)) {
+										point : scenePoint;
+			if (sceneItemPlayer->handlesTouchOrMouseAtPoint(sceneItemPlayerPoint)) {
 				// Found it
 				targetSceneItemPlayer = sceneItemPlayer;
 				break;
@@ -320,14 +319,13 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 
 		// Store
 		mInternals->mTouchHandlingInfo.set(CString(reference), targetSceneItemPlayer);
 
-		// Prepare to adjust point if needed
-		S2DPoint32	adjustedPoint = point;
-		if ((targetSceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) == 0)
-			// Offset
-			adjustedPoint = adjustedPoint.offset(mInternals->mCurrentOffset.inverted());
+		// Compose scene item player point
+		S2DPoint32	sceneItemPlayerPoint =
+							(targetSceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) ?
+									point : scenePoint;
 
 		// Pass to scene item player
-		targetSceneItemPlayer->touchBeganOrMouseDownAtPoint(adjustedPoint, tapOrClickCount, reference);
+		targetSceneItemPlayer->touchBeganOrMouseDownAtPoint(sceneItemPlayerPoint, tapOrClickCount, reference);
 	}
 }
 
@@ -368,7 +366,7 @@ void CScenePlayer::touchOrMouseMovedFromPoint(const S2DPoint32& point1, const S2
 		(*targetSceneItemPlayer)->touchOrMouseMovedFromPoint(adjustedPoint1, adjustedPoint2, reference);
 	} else if (!mInternals->mScene.getBoundsRect().isEmpty()) {
 		// Adjust current offset
-		mInternals->mCurrentOffset = S2DOffset32(point1, point2);
+		mInternals->mCurrentOffset = mInternals->mCurrentOffset + S2DOffset32(point1, point2);
 
 		// Bound
 				S2DSize32	viewportSize = mInternals->mScenePlayerProcsInfo.getViewportSize();

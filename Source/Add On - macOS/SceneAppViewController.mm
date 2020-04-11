@@ -67,13 +67,13 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(NSView<SceneAppGPUView>*) view
+- (instancetype) initWithView:(NSView<AKTGPUView>*) view
 {
 	return [self initWithView:view sceneAppPlayerCreationProc:nil];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(NSView<SceneAppGPUView>*) view
+- (instancetype) initWithView:(NSView<AKTGPUView>*) view
 		sceneAppPlayerCreationProc:
 				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
 						sceneAppPlayerCreationProc
@@ -84,7 +84,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 		self.view = view;
 
 		__weak	__typeof(self)	weakSelf = self;
-		((NSView<SceneAppGPUView>*) self.view).mouseDownProc = ^(NSEvent* event){
+		((NSView<AKTGPUView>*) self.view).mouseDownProc = ^(NSEvent* event){
 			// Setup
 			NSPoint	point = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
 			point.y = weakSelf.view.bounds.size.height - point.y;
@@ -96,7 +96,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			// Store
 			weakSelf.previousLocationInWindow = point;
 		};
-		((NSView<SceneAppGPUView>*) self.view).mouseDraggedProc = ^(NSEvent* event){
+		((NSView<AKTGPUView>*) self.view).mouseDraggedProc = ^(NSEvent* event){
 			// Get event info
 			NSPoint	point = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
 			point.y = weakSelf.view.bounds.size.height - point.y;
@@ -110,7 +110,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			// Store
 			weakSelf.previousLocationInWindow = point;
 		};
-		((NSView<SceneAppGPUView>*) self.view).mouseUpProc = ^(NSEvent* event){
+		((NSView<AKTGPUView>*) self.view).mouseUpProc = ^(NSEvent* event){
 			// Get event info
 			NSPoint	point = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
 			point.y = weakSelf.view.bounds.size.height - point.y;
@@ -119,7 +119,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			weakSelf.sceneAppPlayerInternal->mouseUp(SSceneAppPlayerMouseUpInfo(S2DPoint32(point.x, point.y)));
 		};
 
-		((NSView<SceneAppGPUView>*) self.view).periodicProc = ^(UniversalTime outputTime){
+		((NSView<AKTGPUView>*) self.view).periodicProc = ^(UniversalTime outputTime){
 			// Inform SceneAppPlayer
 			weakSelf.sceneAppPlayerInternal->handlePeriodic(outputTime);
 		};
@@ -237,13 +237,13 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 - (void) installPeriodic
 {
-	[(NSView<SceneAppGPUView>*) self.view installPeriodic];
+	[(NSView<AKTGPUView>*) self.view installPeriodic];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 - (void) removePeriodic
 {
-	[(NSView<SceneAppGPUView>*) self.view removePeriodic];
+	[(NSView<AKTGPUView>*) self.view removePeriodic];
 }
 
 @end
