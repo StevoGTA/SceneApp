@@ -34,7 +34,7 @@ class CKeyframeAnimationPlayerKeyframe {
 		const	OV<UniversalTimeInterval>&				getDelay() const;
 		const	OV<EAnimationKeyframeTransitionType>&	getTransitionType() const;
 
-				void									load(
+				void									load(CGPU& gpu,
 																const SSceneAppResourceManagementInfo&
 																		sceneAppResourceManagementInfo);
 				void									finishLoading();
@@ -149,11 +149,12 @@ const OV<EAnimationKeyframeTransitionType>& CKeyframeAnimationPlayerKeyframe::ge
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CKeyframeAnimationPlayerKeyframe::load(const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo)
+void CKeyframeAnimationPlayerKeyframe::load(CGPU& gpu,
+		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mGPURenderObject2D =
-			new CGPURenderObject2D(
+			new CGPURenderObject2D(gpu,
 					sceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
 							sceneAppResourceManagementInfo.createByteParceller(mImageFilename), CImage::getBitmap,
 							mImageFilename));
@@ -170,7 +171,7 @@ void CKeyframeAnimationPlayerKeyframe::finishLoading()
 void CKeyframeAnimationPlayerKeyframe::unload()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mGPURenderObject2D);
+	Delete(mGPURenderObject2D);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -293,7 +294,7 @@ CKeyframeAnimationPlayer::~CKeyframeAnimationPlayer()
 	if (mInternals->mNeedToAddToDeadPlayers)
 		sDeadPlayerArray += this;
 		
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: Instance methods
@@ -338,11 +339,11 @@ CActions CKeyframeAnimationPlayer::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CKeyframeAnimationPlayer::load(bool start)
+void CKeyframeAnimationPlayer::load(CGPU& gpu,bool start)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	for (CArrayItemIndex i = 0; i < mInternals->mPlayerKeyframesArray.getCount(); i++)
-		mInternals->mPlayerKeyframesArray[i]->load(mInternals->mSceneAppResourceManagementInfo);
+		mInternals->mPlayerKeyframesArray[i]->load(gpu, mInternals->mSceneAppResourceManagementInfo);
 
 	reset(start);
 }

@@ -43,7 +43,7 @@ CSceneTransitionPlayer::CSceneTransitionPlayer(CScenePlayer& fromScenePlayer, CS
 CSceneTransitionPlayer::~CSceneTransitionPlayer()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: Instance methods

@@ -64,7 +64,7 @@ class CScenePlayer {
 		const	CScene&		getScene() const;
 				CActions	getAllActions() const;
 
-				void		load();
+				void		load(CGPU& gpu);
 				void		unload();
 
 				void		start();
@@ -76,7 +76,7 @@ class CScenePlayer {
 
 				void		setItemPlayerProperty(const CString& itemName, const CString& property,
 									const SDictionaryValue& value) const;
-				void		handleItemPlayerCommand(const CString& itemName, const CString& command,
+				void		handleItemPlayerCommand(CGPU& gpu, const CString& itemName, const CString& command,
 									const CDictionary& commandInfo, const S2DPoint32& point) const;
 
 				void		touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 tapOrClickCount,

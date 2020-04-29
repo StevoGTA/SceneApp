@@ -351,7 +351,7 @@ void CSceneItemButtonArray::setImageResourceFilename(const CString& imageResourc
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const TNArray<CSceneItemButtonArrayButton>& CSceneItemButtonArray::getSceneItemButtonArrayButtons() const
+const TArray<CSceneItemButtonArrayButton>& CSceneItemButtonArray::getSceneItemButtonArrayButtons() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mSceneItemButtonArrayButtons;

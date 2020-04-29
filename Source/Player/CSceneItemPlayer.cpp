@@ -58,7 +58,7 @@ CSceneItemPlayer::CSceneItemPlayer(const CSceneItem& sceneItem,
 CSceneItemPlayer::~CSceneItemPlayer()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: Instance methods
@@ -100,7 +100,7 @@ void CSceneItemPlayer::perform(const CActions& actions, const S2DPoint32& point)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::load()
+void CSceneItemPlayer::load(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals->mIsLoaded = true;
@@ -204,13 +204,14 @@ void CSceneItemPlayer::setProperty(const CString& property, const SDictionaryVal
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayer::handleCommand(const CString& command, const CDictionary& commandInfo, const S2DPoint32& point)
+bool CSceneItemPlayer::handleCommand(CGPU& gpu, const CString& command, const CDictionary& commandInfo,
+		const S2DPoint32& point)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check command
 	if (command == mCommandNameLoad) {
 		// Load
-		load();
+		load(gpu);
 
 		return true;
 	} else if (command == mCommandNameUnload) {

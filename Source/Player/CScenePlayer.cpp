@@ -93,7 +93,7 @@ CScenePlayer::CScenePlayer(const CScene& scene, const SSceneAppResourceManagemen
 CScenePlayer::~CScenePlayer()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: Instance methods
@@ -120,7 +120,7 @@ CActions CScenePlayer::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CScenePlayer::load()
+void CScenePlayer::load(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Ensure is loaded
@@ -147,7 +147,7 @@ CLogServices::logMessage(CString("No player created for ") + sceneItem.getType()
 		// Check if need to load
 		if (!(sceneItem.getOptions() & kSceneItemOptionsDontLoadWithScene))
 			// Load
-			sceneItemPlayer->load();
+			sceneItemPlayer->load(gpu);
 	}
 
 	// Iterate all created scene item players
@@ -263,7 +263,7 @@ void CScenePlayer::setItemPlayerProperty(const CString& itemName, const CString&
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CScenePlayer::handleItemPlayerCommand(const CString& itemName, const CString& command,
+void CScenePlayer::handleItemPlayerCommand(CGPU& gpu, const CString& itemName, const CString& command,
 		const CDictionary& commandInfo, const S2DPoint32& point) const
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -271,7 +271,7 @@ void CScenePlayer::handleItemPlayerCommand(const CString& itemName, const CStrin
 	OR<CSceneItemPlayer>	sceneItemPlayer = mInternals->getSceneItemPlayerForSceneItemWithName(itemName);
 	if (sceneItemPlayer.hasReference())
 		// Make the call
-		sceneItemPlayer->handleCommand(command, commandInfo, point);
+		sceneItemPlayer->handleCommand(gpu, command, commandInfo, point);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -15,6 +15,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 TArray<SScenePackageInfo> CSceneApp::scenePackageInfosForScenePackageFilenames(
 		const TArray<CString>& scenePackageFilenames)
+//----------------------------------------------------------------------------------------------------------------------
 {
 	// Iterate all scene package filenames
 	TNArray<SScenePackageInfo>	scenePackageInfos;

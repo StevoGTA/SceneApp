@@ -197,7 +197,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 - (void) dealloc
 {
-	DisposeOf(self.sceneAppPlayerInternal);
+	Delete(self.sceneAppPlayerInternal);
 }
 
 // MARK: NSViewController methods

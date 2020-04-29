@@ -23,7 +23,7 @@ class CSceneItemPlayerButtonArray : public CSceneItemPlayer {
 										// CSceneItemPlayer methods
 				CActions				getAllActions() const;
 
-				void					load();
+				void					load(CGPU& gpu);
 				void					unload();
 
 				void					reset();

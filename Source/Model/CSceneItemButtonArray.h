@@ -26,7 +26,8 @@ class CSceneItemButtonArrayButton {
 													// Lifecycle methods
 													CSceneItemButtonArrayButton();
 													CSceneItemButtonArrayButton(const CDictionary& info);
-													CSceneItemButtonArrayButton(const CSceneItemButtonArrayButton& other);
+													CSceneItemButtonArrayButton(
+															const CSceneItemButtonArrayButton& other);
 													~CSceneItemButtonArrayButton();
 
 													// Instance methods
@@ -89,7 +90,7 @@ class CSceneItemButtonArray : public CSceneItem {
 		const	CString&								getImageResourceFilename() const;
 				void									setImageResourceFilename(const CString& imageResourceFilename);
 
-		const	TNArray<CSceneItemButtonArrayButton>&	getSceneItemButtonArrayButtons() const;
+		const	TArray<CSceneItemButtonArrayButton>&	getSceneItemButtonArrayButtons() const;
 
 	// Properties
 	public:

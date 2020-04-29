@@ -49,7 +49,7 @@ class CSceneItemPlayerAnimation : public CSceneItemPlayer {
 											// CSceneItemPlayer methods
 				CActions					getAllActions() const;
 
-				void						load();
+				void						load(CGPU& gpu);
 				void						unload();
 
 		const	OV<UniversalTimeInterval>&	getStartTimeInterval() const;

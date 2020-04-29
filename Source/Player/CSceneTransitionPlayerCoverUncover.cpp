@@ -54,7 +54,7 @@ CSceneTransitionPlayerCoverUncover::CSceneTransitionPlayerCoverUncover(CScenePla
 CSceneTransitionPlayerCoverUncover::~CSceneTransitionPlayerCoverUncover()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: CSceneTransitionPlayer methods

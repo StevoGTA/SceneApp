@@ -60,7 +60,7 @@ class CSceneItemPlayer {
 						void						perform(const CActions& actions,
 															const S2DPoint32& point = S2DPoint32());
 
-		virtual			void						load();
+		virtual			void						load(CGPU& gpu);
 		virtual			void						allPeersHaveLoaded();
 		virtual			void						unload();
 
@@ -85,7 +85,7 @@ class CSceneItemPlayer {
 		virtual			void						shakeCancelled();
 
 		virtual			void						setProperty(const CString& property, const SDictionaryValue& value);
-		virtual			bool						handleCommand(const CString& command,
+		virtual			bool						handleCommand(CGPU& gpu, const CString& command,
 															const CDictionary& commandInfo, const S2DPoint32& point);
 
 													// Subclass methods

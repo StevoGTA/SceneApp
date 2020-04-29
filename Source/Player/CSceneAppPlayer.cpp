@@ -346,13 +346,13 @@ void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex
 	}
 
 	// Load new scene
-	scenePlayer.load();
+	scenePlayer.load(mGPU);
 
 	// Load linked scenes
 	for (TIteratorS<CScenePlayer*> iterator = toLoadSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Load
-		iterator.getValue()->load();
+		iterator.getValue()->load(mGPU);
 
 	// Unload other scenes
 	for (TIteratorS<CScenePlayer*> iterator = toUnloadSceneItemPlayers.getIterator(); iterator.hasValue();
@@ -456,7 +456,7 @@ void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& act
 					actionInfo.contains(CAction::mInfoUseWebView));
 		else if (actionName == CAction::mNamePlayAudio) {
 			// Play Audio
-//			DisposeOf(internals.mAudioOutputTrackReference);
+//			Delete(internals.mAudioOutputTrackReference);
 //
 //			internals.mAudioOutputTrackReference =
 //					CAudioOutputTrackCache::newAudioOutputTrackReferenceFromURL(
@@ -518,7 +518,7 @@ void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& act
 											!sceneName.isEmpty() ?
 													*internals.getScenePlayer(sceneName) :
 													*internals.mCurrentScenePlayer;
-			scenePlayer.handleItemPlayerCommand(actionInfo.getString(CAction::mInfoItemNameKey),
+			scenePlayer.handleItemPlayerCommand(internals.mGPU, actionInfo.getString(CAction::mInfoItemNameKey),
 					actionInfo.getString(CAction::mInfoCommandKey), actionInfo, point);
 		} else if (actionName == CAction::mNameSendAppCommand)
 			// Send App Command
@@ -547,7 +547,7 @@ CSceneAppPlayer::CSceneAppPlayer(CGPU& gpu, const SSceneAppPlayerProcsInfo& scen
 CSceneAppPlayer::~CSceneAppPlayer()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: Instance methods
@@ -655,7 +655,7 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 		if (scene == initialScene) {
 			// Is initial scene
 			mInternals->mCurrentScenePlayer = scenePlayer;
-			mInternals->mCurrentScenePlayer->load();
+			mInternals->mCurrentScenePlayer->load(mInternals->mGPU);
 		}
 	}
 }
@@ -920,7 +920,7 @@ CScenePlayer& CSceneAppPlayer::loadAndStartScenePlayer(CSceneIndex sceneIndex) c
 	CScenePlayer&	scenePlayer = *mInternals->mScenePlayers[sceneIndex];
 
 	// Load and start
-	scenePlayer.load();
+	scenePlayer.load(mInternals->mGPU);
 	scenePlayer.reset();
 
 	return scenePlayer;

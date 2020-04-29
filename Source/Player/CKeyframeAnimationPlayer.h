@@ -71,7 +71,7 @@ class CKeyframeAnimationPlayer {
 
 		CActions	getAllActions() const;
 
-		void		load(bool start);
+		void		load(CGPU& gpu, bool start);
 		void		finishLoading();
 		void		unload();
 

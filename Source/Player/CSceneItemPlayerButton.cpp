@@ -32,15 +32,15 @@ class CSceneItemPlayerButtonInternals {
 					{}
 				~CSceneItemPlayerButtonInternals()
 					{
-//						DisposeOf(mAudioOutputTrackReference);
+//						Delete(mAudioOutputTrackReference);
 
 						if (mDownKeyframeAnimationPlayer != mUpKeyframeAnimationPlayer) {
-							DisposeOf(mUpKeyframeAnimationPlayer);
-							DisposeOf(mDownKeyframeAnimationPlayer);
+							Delete(mUpKeyframeAnimationPlayer);
+							Delete(mDownKeyframeAnimationPlayer);
 						} else
-							DisposeOf(mUpKeyframeAnimationPlayer);
+							Delete(mUpKeyframeAnimationPlayer);
 
-						DisposeOf(mDisabledKeyframeAnimationPlayer);
+						Delete(mDisabledKeyframeAnimationPlayer);
 					}
 
 		bool	isPointInHitRect(const S2DPoint32& point)
@@ -123,7 +123,7 @@ CSceneItemPlayerButton::CSceneItemPlayerButton(const CSceneItemButton& sceneItem
 CSceneItemPlayerButton::~CSceneItemPlayerButton()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: CSceneItemPlayer methods
@@ -138,7 +138,7 @@ CActions CSceneItemPlayerButton::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButton::load()
+void CSceneItemPlayerButton::load(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	const	CSceneItemButton&	sceneItemButton = getSceneItemButton();
@@ -162,11 +162,14 @@ void CSceneItemPlayerButton::load()
 
 	// Load animations
 	if (mInternals->mUpKeyframeAnimationPlayer != nil)
-		mInternals->mUpKeyframeAnimationPlayer->load(!sceneItemButton.getStartTimeInterval().hasValue());
+		mInternals->mUpKeyframeAnimationPlayer->load(gpu, !sceneItemButton.getStartTimeInterval().hasValue());
 	if (mInternals->mDownKeyframeAnimationPlayer != nil)
-		mInternals->mDownKeyframeAnimationPlayer->load(!sceneItemButton.getStartTimeInterval().hasValue());
+		mInternals->mDownKeyframeAnimationPlayer->load(gpu, !sceneItemButton.getStartTimeInterval().hasValue());
 	if (mInternals->mDisabledKeyframeAnimationPlayer != nil)
-		mInternals->mDisabledKeyframeAnimationPlayer->load(!sceneItemButton.getStartTimeInterval().hasValue());
+		mInternals->mDisabledKeyframeAnimationPlayer->load(gpu, !sceneItemButton.getStartTimeInterval().hasValue());
+
+	// Do super
+	CSceneItemPlayer::load(gpu);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -176,7 +179,7 @@ void CSceneItemPlayerButton::unload()
 //	// Unload audio
 //	if (mInternals->mIsAudioPlaying)
 //		mInternals->mAudioOutputTrackReference->reset();
-//	DisposeOf(mInternals->mAudioOutputTrackReference);
+//	Delete(mInternals->mAudioOutputTrackReference);
 
 	// Unload animations
 	if (mInternals->mUpKeyframeAnimationPlayer != nil)

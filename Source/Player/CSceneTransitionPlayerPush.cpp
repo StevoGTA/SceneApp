@@ -53,7 +53,7 @@ CSceneTransitionPlayerPush::CSceneTransitionPlayerPush(CScenePlayer& currentScen
 CSceneTransitionPlayerPush::~CSceneTransitionPlayerPush()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: CSceneTransitionPlayer methods

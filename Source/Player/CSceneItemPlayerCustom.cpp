@@ -27,12 +27,14 @@ CActions CSceneItemPlayerCustom::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::load()
+void CSceneItemPlayerCustom::load(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	CSceneItemPlayer::load();
+	// Load
+	load(gpu, getSceneItemCustom());
 
-	load(getSceneItemCustom());
+	// Do super
+	CSceneItemPlayer::load(gpu);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -167,16 +169,16 @@ void CSceneItemPlayerCustom::setProperty(const CString& propertyName, const SDic
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerCustom::handleCommand(const CString& command, const CDictionary& commandInfo,
+bool CSceneItemPlayerCustom::handleCommand(CGPU& gpu, const CString& command, const CDictionary& commandInfo,
 		const S2DPoint32& point)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Try subclass
-	if (handleCommand(getSceneItemCustom(), command, commandInfo, point))
+	if (handleCommand(gpu, getSceneItemCustom(), command, commandInfo, point))
 		// Handled
 		return true;
 
-	return CSceneItemPlayer::handleCommand(command, commandInfo, point);
+	return CSceneItemPlayer::handleCommand(gpu, command, commandInfo, point);
 }
 
 // MARK: Subclass methods

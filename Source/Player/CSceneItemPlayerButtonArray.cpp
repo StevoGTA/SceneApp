@@ -18,7 +18,7 @@ class CSceneItemPlayerButtonArrayInternals {
 			{}
 		~CSceneItemPlayerButtonArrayInternals()
 			{
-				DisposeOf(mGPURenderObject2D);
+				Delete(mGPURenderObject2D);
 			}
 
 				CGPURenderObject2D*					mGPURenderObject2D;
@@ -50,7 +50,7 @@ CSceneItemPlayerButtonArray::CSceneItemPlayerButtonArray(const CSceneItemButtonA
 CSceneItemPlayerButtonArray::~CSceneItemPlayerButtonArray()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: CSceneItemPlayer methods
@@ -89,14 +89,14 @@ void CSceneItemPlayerButtonArray::load()
 								CImage::getBitmap, getSceneItemButtonArray().getImageResourceFilename()));
 
 	// Do super
-	CSceneItemPlayer::load();
+	CSceneItemPlayer::load(gpu);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayerButtonArray::unload()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mGPURenderObject2D);
+	Delete(mInternals->mGPURenderObject2D);
 
 	CSceneItemPlayer::unload();
 }
