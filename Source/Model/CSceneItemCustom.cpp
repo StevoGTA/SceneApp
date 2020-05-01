@@ -122,17 +122,17 @@ Float32 CSceneItemCustom::getFloat32(const CString& key) const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DPoint32 CSceneItemCustom::get2DPoint(const CString& key) const
+S2DPointF32 CSceneItemCustom::get2DPoint(const CString& key) const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return S2DPoint32(mInternals->mInfo.getString(key));
+	return S2DPointF32(mInternals->mInfo.getString(key));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DRect32 CSceneItemCustom::get2DRect(const CString& key) const
+S2DRectF32 CSceneItemCustom::get2DRect(const CString& key) const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return S2DRect32(mInternals->mInfo.getString(key));
+	return S2DRectF32(mInternals->mInfo.getString(key));
 }
 
 //----------------------------------------------------------------------------------------------------------------------

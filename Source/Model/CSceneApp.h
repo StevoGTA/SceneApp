@@ -78,13 +78,13 @@
 // MARK: SScenePackageInfo
 struct SScenePackageInfo {
 	// Lifecycle methods
-	SScenePackageInfo(const CString& filename, const S2DSize32& size, Float32 totalPixels, Float32 aspectRatio) :
+	SScenePackageInfo(const CString& filename, const S2DSizeF32& size, Float32 totalPixels, Float32 aspectRatio) :
 		mFilename(filename), mSize(size), mTotalPixels(totalPixels), mAspectRatio(aspectRatio)
 		{}
 
 	// Properties
 	CString		mFilename;
-	S2DSize32	mSize;
+	S2DSizeF32	mSize;
 	Float32		mTotalPixels;
 	Float32		mAspectRatio;
 };

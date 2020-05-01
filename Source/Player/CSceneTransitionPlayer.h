@@ -33,7 +33,7 @@ enum ESceneTransitionDirection {
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - SSceneTransitionPlayerProcsInfo
 
-typedef	S2DSize32	(*CSceneTransitionPlayerGetViewportSizeProc)(void* userData);
+typedef	S2DSizeF32	(*CSceneTransitionPlayerGetViewportSizeProc)(void* userData);
 
 struct SSceneTransitionPlayerProcsInfo {
 				// Lifecycle methods
@@ -43,7 +43,7 @@ struct SSceneTransitionPlayerProcsInfo {
 					{}
 
 				// Instance methods
-	S2DSize32	getViewportSize() const
+	S2DSizeF32	getViewportSize() const
 					{ return mGetViewportSizeProc(mUserData); }
 
 	// Properties
@@ -76,11 +76,11 @@ class CSceneTransitionPlayer {
 		virtual	void						update(UniversalTimeInterval deltaTimeInterval);
 		virtual	void						render(CGPU& gpu) const = 0;
 
-		virtual	void						touchBeganOrMouseDownAtPoint(const S2DPoint32& point,
+		virtual	void						touchBeganOrMouseDownAtPoint(const S2DPointF32& point,
 													UInt32 tapOrClickCount, const void* reference) {}
-		virtual	void						touchOrMouseMovedFromPoint(const S2DPoint32& point1,
-													const S2DPoint32& point2, const void* reference) {}
-		virtual	void						touchEndedOrMouseUpAtPoint(const S2DPoint32& point, const void* reference)
+		virtual	void						touchOrMouseMovedFromPoint(const S2DPointF32& point1,
+													const S2DPointF32& point2, const void* reference) {}
+		virtual	void						touchEndedOrMouseUpAtPoint(const S2DPointF32& point, const void* reference)
 												{}
 		virtual	void						touchesOrMouseCancelled(const void* reference) {}
 

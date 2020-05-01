@@ -67,11 +67,11 @@ class CKeyframeAnimationPlayer {
 					~CKeyframeAnimationPlayer();
 
 					// Instance methods
-		S2DRect32	getScreenRect();
+		S2DRectF32	getScreenRect();
 
 		CActions	getAllActions() const;
 
-		void		load(bool start);
+		void		load(CGPU& gpu, bool start);
 		void		finishLoading();
 		void		unload();
 

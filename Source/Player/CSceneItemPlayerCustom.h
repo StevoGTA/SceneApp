@@ -20,7 +20,7 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 													// CSceneItemPlayer methods
 						CActions					getAllActions() const;
 
-						void						load();
+						void						load(CGPU& gpu);
 						void						allPeersHaveLoaded();
 						void						unload();
 
@@ -31,12 +31,12 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 						void						render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo)
 															const;
 
-						bool						handlesTouchOrMouseAtPoint(const S2DPoint32& point) const;
-						void						touchBeganOrMouseDownAtPoint(const S2DPoint32& point,
+						bool						handlesTouchOrMouseAtPoint(const S2DPointF32& point) const;
+						void						touchBeganOrMouseDownAtPoint(const S2DPointF32& point,
 															UInt32 tapOrClickCount, const void* reference);
-						void						touchOrMouseMovedFromPoint(const S2DPoint32& point1,
-															const S2DPoint32& point2, const void* reference);
-						void						touchEndedOrMouseUpAtPoint(const S2DPoint32& point,
+						void						touchOrMouseMovedFromPoint(const S2DPointF32& point1,
+															const S2DPointF32& point2, const void* reference);
+						void						touchEndedOrMouseUpAtPoint(const S2DPointF32& point,
 															const void* reference);
 						void						touchOrMouseCancelled(const void* reference);
 
@@ -46,8 +46,8 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 
 						void						setProperty(const CString& propertyName,
 															const SDictionaryValue& value);
-						bool						handleCommand(const CString& command,
-															const CDictionary& commandInfo, const S2DPoint32& point);
+						bool						handleCommand(CGPU& gpu, const CString& command,
+															const CDictionary& commandInfo, const S2DPointF32& point);
 
 													// Instance methods
 				const	CSceneItemCustom&			getSceneItemCustom() const
@@ -58,7 +58,7 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 		virtual			CActions					getAllActions(const CSceneItemCustom& sceneItemCustom) const
 														{ return CActions(); }
 
-		virtual			void						load(const CSceneItemCustom& sceneItemCustom) {}
+		virtual			void						load(CGPU& gpu, const CSceneItemCustom& sceneItemCustom) {}
 		virtual			void						allPeersHaveLoaded(const CSceneItemCustom& sceneItemCustom) {}
 		virtual			void						unload(const CSceneItemCustom& sceneItemCustom) {}
 
@@ -71,17 +71,17 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 															const SGPURenderObjectRenderInfo& renderInfo) const = 0;
 
 		virtual			bool						handlesTouchOrMouseAtPoint(const CSceneItemCustom& sceneItemCustom,
-															const S2DPoint32& point) const
+															const S2DPointF32& point) const
 														{ return false; }
 		virtual			void						touchBeganOrMouseDownAtPoint(
 															const CSceneItemCustom& sceneItemCustom,
-															const S2DPoint32& point, UInt32 tapOrClickCount,
+															const S2DPointF32& point, UInt32 tapOrClickCount,
 															const void* reference) {}
 		virtual			void						touchOrMouseMovedFromPoint(const CSceneItemCustom& sceneItemCustom,
-															const S2DPoint32& point1, const S2DPoint32& point2,
+															const S2DPointF32& point1, const S2DPointF32& point2,
 															const void* reference) {}
 		virtual			void						touchEndedOrMouseUpAtPoint(const CSceneItemCustom& sceneItemCustom,
-															const S2DPoint32& point, const void* reference) {}
+															const S2DPointF32& point, const void* reference) {}
 		virtual			void						touchOrMouseCancelled(const CSceneItemCustom& sceneItemCustom,
 															const void* reference) {}
 
@@ -92,8 +92,8 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 		virtual			void						setProperty(const CSceneItemCustom& sceneItemCustom,
 															const CString& propertyName, const SDictionaryValue& value)
 														{}
-		virtual			bool						handleCommand(const CSceneItemCustom& sceneItemCustom,
+		virtual			bool						handleCommand(CGPU& gpu, const CSceneItemCustom& sceneItemCustom,
 															const CString& command, const CDictionary& commandInfo,
-															const S2DPoint32& point)
+															const S2DPointF32& point)
 														{ return false; }
 };

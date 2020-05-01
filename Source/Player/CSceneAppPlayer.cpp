@@ -51,11 +51,11 @@ class CSceneAppPlayerInternals {
 
 		static	bool				compareReference(const STouchHandlerInfo& touchHandlerInfo, void* reference)
 										{ return touchHandlerInfo.mReference == reference; }
-		static	S2DSize32			scenePlayerGetViewportSizeProc(void* userData);
+		static	S2DSizeF32			scenePlayerGetViewportSizeProc(void* userData);
 		static	CSceneItemPlayer*	scenePlayerCreateSceneItemPlayerProc(const CSceneItem& sceneItem,
 											const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 											const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, void* userData);
-		static	void				scenePlayerActionsPerformProc(const CActions& actions, const S2DPoint32& point,
+		static	void				scenePlayerActionsPerformProc(const CActions& actions, const S2DPointF32& point,
 											void* userData);
 
 		ESceneAppPlayerOptions								mOptions;
@@ -346,13 +346,13 @@ void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex
 	}
 
 	// Load new scene
-	scenePlayer.load();
+	scenePlayer.load(mGPU);
 
 	// Load linked scenes
 	for (TIteratorS<CScenePlayer*> iterator = toLoadSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Load
-		iterator.getValue()->load();
+		iterator.getValue()->load(mGPU);
 
 	// Unload other scenes
 	for (TIteratorS<CScenePlayer*> iterator = toUnloadSceneItemPlayers.getIterator(); iterator.hasValue();
@@ -392,7 +392,7 @@ void CSceneAppPlayerInternals::setCurrent(CSceneTransitionPlayer* sceneTransitio
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DSize32 CSceneAppPlayerInternals::scenePlayerGetViewportSizeProc(void* userData)
+S2DSizeF32 CSceneAppPlayerInternals::scenePlayerGetViewportSizeProc(void* userData)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
@@ -435,7 +435,7 @@ CSceneItemPlayer* CSceneAppPlayerInternals::scenePlayerCreateSceneItemPlayerProc
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& actions, const S2DPoint32& point,
+void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& actions, const S2DPointF32& point,
 		void* userData)
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -456,7 +456,7 @@ void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& act
 					actionInfo.contains(CAction::mInfoUseWebView));
 		else if (actionName == CAction::mNamePlayAudio) {
 			// Play Audio
-//			DisposeOf(internals.mAudioOutputTrackReference);
+//			Delete(internals.mAudioOutputTrackReference);
 //
 //			internals.mAudioOutputTrackReference =
 //					CAudioOutputTrackCache::newAudioOutputTrackReferenceFromURL(
@@ -518,7 +518,7 @@ void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& act
 											!sceneName.isEmpty() ?
 													*internals.getScenePlayer(sceneName) :
 													*internals.mCurrentScenePlayer;
-			scenePlayer.handleItemPlayerCommand(actionInfo.getString(CAction::mInfoItemNameKey),
+			scenePlayer.handleItemPlayerCommand(internals.mGPU, actionInfo.getString(CAction::mInfoItemNameKey),
 					actionInfo.getString(CAction::mInfoCommandKey), actionInfo, point);
 		} else if (actionName == CAction::mNameSendAppCommand)
 			// Send App Command
@@ -547,7 +547,7 @@ CSceneAppPlayer::CSceneAppPlayer(CGPU& gpu, const SSceneAppPlayerProcsInfo& scen
 CSceneAppPlayer::~CSceneAppPlayer()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: Instance methods
@@ -591,16 +591,16 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 //		case kSceneAppViewportZoomCenter: {
 //			// Center scenes in viewport
 //			mInternals->mViewportOffset =
-//					S2DPoint32((viewportPixelSize.mWidth - eSceneAppViewportPixelSize.mWidth) * 0.5,
+//					S2DPointF32((viewportPixelSize.mWidth - eSceneAppViewportPixelSize.mWidth) * 0.5,
 //							(viewportPixelSize.mHeight - eSceneAppViewportPixelSize.mHeight) * 0.5);
-//			mInternals->mViewportScale = S2DPoint32(1.0, 1.0);
+//			mInternals->mViewportScale = S2DPointF32(1.0, 1.0);
 //			} break;
 //
 //		case kSceneAppViewportZoomScale:
 //			// Scale scenes to fill viewport completely.
-//			mInternals->mViewportOffset = S2DPoint32::mZero;
+//			mInternals->mViewportOffset = S2DPointF32::mZero;
 //			mInternals->mViewportScale =
-//					S2DPoint32(viewportPixelSize.mWidth / eSceneAppViewportPixelSize.mWidth,
+//					S2DPointF32(viewportPixelSize.mWidth / eSceneAppViewportPixelSize.mWidth,
 //							viewportPixelSize.mHeight / eSceneAppViewportPixelSize.mHeight);
 //			break;
 //
@@ -612,12 +612,12 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 //				// Fill width, offset height
 //				mInternals->mViewportOffset.mY =
 //						(viewportPixelSize.mHeight - eSceneAppViewportPixelSize.mHeight * scaleX) * 0.5;
-//				mInternals->mViewportScale = S2DPoint32(scaleX, scaleX);
+//				mInternals->mViewportScale = S2DPointF32(scaleX, scaleX);
 //			} else {
 //				// Fill height, offset width
 //				mInternals->mViewportOffset.mX =
 //						(viewportPixelSize.mWidth - eSceneAppViewportPixelSize.mWidth * scaleY) * 0.5;
-//				mInternals->mViewportScale = S2DPoint32(scaleY, scaleY);
+//				mInternals->mViewportScale = S2DPointF32(scaleY, scaleY);
 //			}
 //			} break;
 //
@@ -629,12 +629,12 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 //				// Extend and offset width, fill height
 //				mInternals->mViewportOffset.mX =
 //						(viewportPixelSize.mWidth - eSceneAppViewportPixelSize.mWidth * scaleY) * 0.5;
-//				mInternals->mViewportScale = S2DPoint32(scaleY, scaleY);
+//				mInternals->mViewportScale = S2DPointF32(scaleY, scaleY);
 //			} else {
 //				// Extend and offset height, fill width
 //				mInternals->mViewportOffset.mY =
 //						(viewportPixelSize.mHeight - eSceneAppViewportPixelSize.mHeight * scaleX) * 0.5;
-//				mInternals->mViewportScale = S2DPoint32(scaleX, scaleX);
+//				mInternals->mViewportScale = S2DPointF32(scaleX, scaleX);
 //			}
 //			} break;
 //	}
@@ -655,7 +655,7 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 		if (scene == initialScene) {
 			// Is initial scene
 			mInternals->mCurrentScenePlayer = scenePlayer;
-			mInternals->mCurrentScenePlayer->load();
+			mInternals->mCurrentScenePlayer->load(mInternals->mGPU);
 		}
 	}
 }
@@ -870,7 +870,7 @@ CSceneItemPlayer* CSceneAppPlayer::createSceneItemPlayer(const CSceneItemCustom&
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneAppPlayer::performAction(const CAction& action, const S2DPoint32& point)
+void CSceneAppPlayer::performAction(const CAction& action, const S2DPointF32& point)
 //----------------------------------------------------------------------------------------------------------------------
 {
 }
@@ -920,7 +920,7 @@ CScenePlayer& CSceneAppPlayer::loadAndStartScenePlayer(CSceneIndex sceneIndex) c
 	CScenePlayer&	scenePlayer = *mInternals->mScenePlayers[sceneIndex];
 
 	// Load and start
-	scenePlayer.load();
+	scenePlayer.load(mInternals->mGPU);
 	scenePlayer.reset();
 
 	return scenePlayer;

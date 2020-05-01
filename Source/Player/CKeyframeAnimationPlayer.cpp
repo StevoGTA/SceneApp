@@ -10,8 +10,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local data
 
-const	S2DPoint32	sAnchorPointDefault;
-const	S2DPoint32	sScreenPositionPointDefault;
+const	S2DPointF32	sAnchorPointDefault;
+const	S2DPointF32	sScreenPositionPointDefault;
 const	Float32		kAngleDegreesDefault = 0.0f;
 const	Float32		kAlphaDefault = 1.0f;
 const	Float32		kScaleDefault = 1.0f;
@@ -34,7 +34,7 @@ class CKeyframeAnimationPlayerKeyframe {
 		const	OV<UniversalTimeInterval>&				getDelay() const;
 		const	OV<EAnimationKeyframeTransitionType>&	getTransitionType() const;
 
-				void									load(
+				void									load(CGPU& gpu,
 																const SSceneAppResourceManagementInfo&
 																		sceneAppResourceManagementInfo);
 				void									finishLoading();
@@ -47,8 +47,8 @@ class CKeyframeAnimationPlayerKeyframe {
 
 		const	CAnimationKeyframe&	mAnimationKeyframe;
 
-				S2DPoint32			mAnchorPoint;
-				S2DPoint32			mScreenPositionPoint;
+				S2DPointF32			mAnchorPoint;
+				S2DPointF32			mScreenPositionPoint;
 				Float32				mAngleDegrees;
 				Float32				mAlpha;
 				Float32				mScale;
@@ -66,7 +66,7 @@ CKeyframeAnimationPlayerKeyframe::CKeyframeAnimationPlayerKeyframe(const CAnimat
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Anchor point
-	const	OV<S2DPoint32>&	anchorPoint = animationKeyframe.getAnchorPoint();
+	const	OV<S2DPointF32>&	anchorPoint = animationKeyframe.getAnchorPoint();
 	if (anchorPoint.hasValue())
 		mAnchorPoint = *anchorPoint;
 	else if (previousKeyframeAnimationPlayerKeyframe.hasReference())
@@ -75,7 +75,7 @@ CKeyframeAnimationPlayerKeyframe::CKeyframeAnimationPlayerKeyframe(const CAnimat
 		mAnchorPoint = sAnchorPointDefault;
 
 	// Screen Position Point
-	const	OV<S2DPoint32>&	screenPositionPoint = animationKeyframe.getScreenPositionPoint();
+	const	OV<S2DPointF32>&	screenPositionPoint = animationKeyframe.getScreenPositionPoint();
 	if (screenPositionPoint.hasValue())
 		mScreenPositionPoint = *screenPositionPoint;
 	else if (previousKeyframeAnimationPlayerKeyframe.hasReference())
@@ -149,11 +149,20 @@ const OV<EAnimationKeyframeTransitionType>& CKeyframeAnimationPlayerKeyframe::ge
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CKeyframeAnimationPlayerKeyframe::load(const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo)
+void CKeyframeAnimationPlayerKeyframe::load(CGPU& gpu,
+		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	CGPUTextureReference	gpuTextureReference =
+									sceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
+											sceneAppResourceManagementInfo.createByteParceller(mImageFilename),
+											CImage::getBitmap, mImageFilename);
+	gpuTextureReference.finishLoading();
+	S2DSizeU16	size = gpuTextureReference.getGPUTexture().getUsedSize();
+
 	mGPURenderObject2D =
-			new CGPURenderObject2D(
+			new CGPURenderObject2D(gpu, S2DRectF32(0.0, 0.0, size.mWidth, size.mHeight),
+					S2DRectF32(0.0, 0.0, size.mWidth, size.mHeight),
 					sceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
 							sceneAppResourceManagementInfo.createByteParceller(mImageFilename), CImage::getBitmap,
 							mImageFilename));
@@ -163,14 +172,14 @@ void CKeyframeAnimationPlayerKeyframe::load(const SSceneAppResourceManagementInf
 void CKeyframeAnimationPlayerKeyframe::finishLoading()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mGPURenderObject2D->getGPUTextureReference().finishLoading();
+	mGPURenderObject2D->finishLoading();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void CKeyframeAnimationPlayerKeyframe::unload()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mGPURenderObject2D);
+	Delete(mGPURenderObject2D);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -194,7 +203,7 @@ void CKeyframeAnimationPlayerKeyframe::setSpriteValuesToInterpolatedValues(Float
 	// Anchor Point
 	x = invertTransitionFactor * mAnchorPoint.mX + transitionFactor * nextPlayerKeyframe.mAnchorPoint.mX;
 	y = invertTransitionFactor * mAnchorPoint.mY + transitionFactor * nextPlayerKeyframe.mAnchorPoint.mY;
-	mGPURenderObject2D->setAnchorPoint(S2DPoint32(x, y));
+	mGPURenderObject2D->setAnchorPoint(S2DPointF32(x, y));
 
 	// Screen Position Point
 	x =
@@ -203,7 +212,7 @@ void CKeyframeAnimationPlayerKeyframe::setSpriteValuesToInterpolatedValues(Float
 	y =
 			invertTransitionFactor * mScreenPositionPoint.mY +
 					transitionFactor * nextPlayerKeyframe.mScreenPositionPoint.mY;
-	mGPURenderObject2D->setScreenPositionPoint(S2DPoint32(x, y));
+	mGPURenderObject2D->setScreenPositionPoint(S2DPointF32(x, y));
 
 	// Angle
 	mGPURenderObject2D->setAngleAsDegrees(invertTransitionFactor * mAngleDegrees +
@@ -293,34 +302,34 @@ CKeyframeAnimationPlayer::~CKeyframeAnimationPlayer()
 	if (mInternals->mNeedToAddToDeadPlayers)
 		sDeadPlayerArray += this;
 		
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DRect32 CKeyframeAnimationPlayer::getScreenRect()
+S2DRectF32 CKeyframeAnimationPlayer::getScreenRect()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check if have previous player key frame
 	if (mInternals->mPreviousPlayerKeyframe.hasReference()) {
-		//
-		SGPUTextureSize	gpuTextureSize =
-								mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->getGPUTextureReference().
-										getGPUTextureInfo().mGPUTextureSize;
+		// Get texture size
+		const	S2DSizeU16&	gpuTextureSize =
+									mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->getGPUTextureReferences().
+											getFirst().getGPUTexture().getUsedSize();
 
-		S2DRect32	rect;
+		S2DRectF32	rect;
 		rect.mOrigin.mX =
 				mInternals->mPreviousPlayerKeyframe->mScreenPositionPoint.mX -
 						mInternals->mPreviousPlayerKeyframe->mAnchorPoint.mX;
 		rect.mOrigin.mY =
 				mInternals->mPreviousPlayerKeyframe->mScreenPositionPoint.mY -
 						mInternals->mPreviousPlayerKeyframe->mAnchorPoint.mY;
-		rect.mSize = S2DSize32(gpuTextureSize.mWidth, gpuTextureSize.mHeight);
+		rect.mSize = S2DSizeF32(gpuTextureSize.mWidth, gpuTextureSize.mHeight);
 
 		return rect;
 	} else
-		return S2DRect32();
+		return S2DRectF32();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -338,11 +347,11 @@ CActions CKeyframeAnimationPlayer::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CKeyframeAnimationPlayer::load(bool start)
+void CKeyframeAnimationPlayer::load(CGPU& gpu,bool start)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	for (CArrayItemIndex i = 0; i < mInternals->mPlayerKeyframesArray.getCount(); i++)
-		mInternals->mPlayerKeyframesArray[i]->load(mInternals->mSceneAppResourceManagementInfo);
+		mInternals->mPlayerKeyframesArray[i]->load(gpu, mInternals->mSceneAppResourceManagementInfo);
 
 	reset(start);
 }
@@ -530,7 +539,8 @@ void CKeyframeAnimationPlayer::render(CGPU& gpu, const SGPURenderObjectRenderInf
 {
 	if (mInternals->mIsStarted && !mInternals->mIsFinished && (mInternals->mPreviousPlayerKeyframe.hasReference()))
 		// Draw
-		mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->render(gpu, renderInfo);
+		mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->render(gpu, CGPURenderObject2DIndexes::forIndex(0),
+				renderInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -39,7 +39,7 @@ CString	CSceneTransitionPlayerCoverUncover::mInfoDurationKey(OSSTR("duration"));
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneTransitionPlayerCoverUncover::CSceneTransitionPlayerCoverUncover(CScenePlayer& currentScenePlayer,
-		CScenePlayer& nextScenePlayer, const CDictionary& info, const S2DPoint32& initialTouchOrMousePoint,
+		CScenePlayer& nextScenePlayer, const CDictionary& info, const S2DPointF32& initialTouchOrMousePoint,
 		bool isCover, const SSceneTransitionPlayerProcsInfo& sceneTransitionPlayerProcsInfo) :
 		CSceneTransitionPlayer(currentScenePlayer, nextScenePlayer)
 //----------------------------------------------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ CSceneTransitionPlayerCoverUncover::CSceneTransitionPlayerCoverUncover(CScenePla
 CSceneTransitionPlayerCoverUncover::~CSceneTransitionPlayerCoverUncover()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: CSceneTransitionPlayer methods
@@ -64,7 +64,7 @@ void CSceneTransitionPlayerCoverUncover::update(UniversalTimeInterval deltaTimeI
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	S2DSize32	viewportPixelSize = mInternals->mSceneTransitionPlayerProcsInfo.getViewportSize();
+	S2DSizeF32	viewportPixelSize = mInternals->mSceneTransitionPlayerProcsInfo.getViewportSize();
 
 	// Check for auto
 	if (mInternals->mIsAuto) {
@@ -118,8 +118,8 @@ void CSceneTransitionPlayerCoverUncover::render(CGPU& gpu) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	S2DOffset32	offset;
-	S2DSize32	viewportPixelSize = mInternals->mSceneTransitionPlayerProcsInfo.getViewportSize();
+	S2DOffsetF32	offset;
+	S2DSizeF32		viewportPixelSize = mInternals->mSceneTransitionPlayerProcsInfo.getViewportSize();
 
 	// Check cover/uncover
 	if (mInternals->mIsCover) {

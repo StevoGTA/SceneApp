@@ -26,7 +26,8 @@ class CSceneItemButtonArrayButton {
 													// Lifecycle methods
 													CSceneItemButtonArrayButton();
 													CSceneItemButtonArrayButton(const CDictionary& info);
-													CSceneItemButtonArrayButton(const CSceneItemButtonArrayButton& other);
+													CSceneItemButtonArrayButton(
+															const CSceneItemButtonArrayButton& other);
 													~CSceneItemButtonArrayButton();
 
 													// Instance methods
@@ -36,14 +37,14 @@ class CSceneItemButtonArrayButton {
 				const	OO<CActions>&				getActions() const;
 						void						setActions(const OO<CActions>& actions);
 
-				const	S2DRect32&					getUpImageRect() const;
-						void						setUpImageRect(const S2DRect32& upImageRect);
+				const	S2DRectF32&					getUpImageRect() const;
+						void						setUpImageRect(const S2DRectF32& upImageRect);
 
-				const	S2DRect32&					getDownImageRect() const;
-						void						setDownImageRect(const S2DRect32& downImageRect);
+				const	S2DRectF32&					getDownImageRect() const;
+						void						setDownImageRect(const S2DRectF32& downImageRect);
 
-				const	S2DPoint32&					getScreenPositionPoint() const;
-						void						setScreenPositionPoint(const S2DPoint32& screenPositionPoint);
+				const	S2DPointF32&				getScreenPositionPoint() const;
+						void						setScreenPositionPoint(const S2DPointF32& screenPositionPoint);
 
 													// Class methods
 		static			CSceneItemButtonArrayButton	makeFrom(const CDictionary& info)
@@ -89,7 +90,7 @@ class CSceneItemButtonArray : public CSceneItem {
 		const	CString&								getImageResourceFilename() const;
 				void									setImageResourceFilename(const CString& imageResourceFilename);
 
-		const	TNArray<CSceneItemButtonArrayButton>&	getSceneItemButtonArrayButtons() const;
+		const	TArray<CSceneItemButtonArrayButton>&	getSceneItemButtonArrayButtons() const;
 
 	// Properties
 	public:

@@ -35,8 +35,8 @@ class CSceneItemHotspot : public CSceneItem {
 		const	OO<CActions>&		getActions() const;
 				void				setActions(const OO<CActions>& actions);
 
-		const	S2DRect32&			getScreenRect() const;
-				void				setScreenRect(const S2DRect32& rect);
+		const	S2DRectF32&			getScreenRect() const;
+				void				setScreenRect(const S2DRectF32& rect);
 
 	// Properties
 	public:

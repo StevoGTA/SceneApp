@@ -15,6 +15,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 TArray<SScenePackageInfo> CSceneApp::scenePackageInfosForScenePackageFilenames(
 		const TArray<CString>& scenePackageFilenames)
+//----------------------------------------------------------------------------------------------------------------------
 {
 	// Iterate all scene package filenames
 	TNArray<SScenePackageInfo>	scenePackageInfos;
@@ -30,7 +31,7 @@ TArray<SScenePackageInfo> CSceneApp::scenePackageInfosForScenePackageFilenames(
 
 		// Add info
 		scenePackageInfos.add(
-				SScenePackageInfo(iterator.getValue(), S2DSize32(width, height), totalPixels, aspectRatio));
+				SScenePackageInfo(iterator.getValue(), S2DSizeF32(width, height), totalPixels, aspectRatio));
 	}
 
 	return scenePackageInfos;

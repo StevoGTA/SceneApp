@@ -46,8 +46,8 @@ class CScene : public CEquatable {
 			const	CString&			getName() const;
 					void				setName(const CString& name);
 
-			const	S2DRect32&			getBoundsRect() const;
-					void				setBoundsRect(const S2DRect32& rect);
+			const	S2DRectF32&			getBoundsRect() const;
+					void				setBoundsRect(const S2DRectF32& rect);
 
 			const	OO<CActions>&		getDoubleTapActions() const;
 					void				setDoubleTapActions(const OO<CActions>& doubleTapActions);

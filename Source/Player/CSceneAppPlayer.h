@@ -45,7 +45,7 @@ enum ESceneAppPlayerOptions {
 
 struct SSceneAppPlayerMouseDownInfo {
 	// Lifecycle methods
-	SSceneAppPlayerMouseDownInfo(const S2DPoint32& viewportPoint, UInt32 clickCount) :
+	SSceneAppPlayerMouseDownInfo(const S2DPointF32& viewportPoint, UInt32 clickCount) :
 		mViewportPoint(viewportPoint), mClickCount(clickCount)
 		{}
 	SSceneAppPlayerMouseDownInfo(const SSceneAppPlayerMouseDownInfo& other) :
@@ -53,13 +53,13 @@ struct SSceneAppPlayerMouseDownInfo {
 		{}
 
 	// Properties
-	S2DPoint32	mViewportPoint;
+	S2DPointF32	mViewportPoint;
 	UInt32		mClickCount;
 };
 
 struct SSceneAppPlayerMouseDraggedInfo {
 	// Lifecycle methods
-	SSceneAppPlayerMouseDraggedInfo(const S2DPoint32& viewportPreviousPoint, const S2DPoint32& viewportCurrentPoint) :
+	SSceneAppPlayerMouseDraggedInfo(const S2DPointF32& viewportPreviousPoint, const S2DPointF32& viewportCurrentPoint) :
 		mViewportPreviousPoint(viewportPreviousPoint), mViewportCurrentPoint(viewportCurrentPoint)
 		{}
 	SSceneAppPlayerMouseDraggedInfo(const SSceneAppPlayerMouseDraggedInfo& other) :
@@ -67,24 +67,24 @@ struct SSceneAppPlayerMouseDraggedInfo {
 		{}
 
 	// Properties
-	S2DPoint32	mViewportPreviousPoint;
-	S2DPoint32	mViewportCurrentPoint;
+	S2DPointF32	mViewportPreviousPoint;
+	S2DPointF32	mViewportCurrentPoint;
 };
 
 struct SSceneAppPlayerMouseUpInfo {
 	// Lifecycle methods
-	SSceneAppPlayerMouseUpInfo(const S2DPoint32& viewportPoint) : mViewportPoint(viewportPoint) {}
+	SSceneAppPlayerMouseUpInfo(const S2DPointF32& viewportPoint) : mViewportPoint(viewportPoint) {}
 	SSceneAppPlayerMouseUpInfo(const SSceneAppPlayerMouseUpInfo& other) : mViewportPoint(other.mViewportPoint) {}
 
 	// Properties
-	S2DPoint32	mViewportPoint;
+	S2DPointF32	mViewportPoint;
 };
 
 struct SSceneAppPlayerMouseCancelledInfo {};
 
 struct SSceneAppPlayerTouchBeganInfo {
 	// Lifecycle methods
-	SSceneAppPlayerTouchBeganInfo(const S2DPoint32& viewportPoint, UInt32 tapCount, void* reference = nil) :
+	SSceneAppPlayerTouchBeganInfo(const S2DPointF32& viewportPoint, UInt32 tapCount, void* reference = nil) :
 		mViewportPoint(viewportPoint), mTapCount(tapCount), mReference(reference)
 		{}
 	SSceneAppPlayerTouchBeganInfo(const SSceneAppPlayerTouchBeganInfo& other) :
@@ -92,14 +92,14 @@ struct SSceneAppPlayerTouchBeganInfo {
 		{}
 
 	// Properties
-	S2DPoint32	mViewportPoint;
+	S2DPointF32	mViewportPoint;
 	UInt32		mTapCount;
 	void*		mReference;
 };
 
 struct SSceneAppPlayerTouchMovedInfo {
 	// Lifecycle methods
-	SSceneAppPlayerTouchMovedInfo(const S2DPoint32& viewportPreviousPoint, const S2DPoint32& viewportCurrentPoint,
+	SSceneAppPlayerTouchMovedInfo(const S2DPointF32& viewportPreviousPoint, const S2DPointF32& viewportCurrentPoint,
 			void* reference = nil) :
 		mViewportPreviousPoint(viewportPreviousPoint), mViewportCurrentPoint(viewportCurrentPoint),
 				mReference(reference)
@@ -110,14 +110,14 @@ struct SSceneAppPlayerTouchMovedInfo {
 		{}
 
 	// Properties
-	S2DPoint32	mViewportPreviousPoint;
-	S2DPoint32	mViewportCurrentPoint;
+	S2DPointF32	mViewportPreviousPoint;
+	S2DPointF32	mViewportCurrentPoint;
 	void*		mReference;
 };
 
 struct SSceneAppPlayerTouchEndedInfo {
 	// Lifecycle methods
-	SSceneAppPlayerTouchEndedInfo(const S2DPoint32& viewportPoint, void* reference = nil) :
+	SSceneAppPlayerTouchEndedInfo(const S2DPointF32& viewportPoint, void* reference = nil) :
 		mViewportPoint(viewportPoint), mReference(reference)
 		{}
 	SSceneAppPlayerTouchEndedInfo(const SSceneAppPlayerTouchEndedInfo& other) :
@@ -125,7 +125,7 @@ struct SSceneAppPlayerTouchEndedInfo {
 		{}
 
 	// Properties
-	S2DPoint32	mViewportPoint;
+	S2DPointF32	mViewportPoint;
 	void*		mReference;
 };
 
@@ -147,7 +147,7 @@ typedef	void			(*CSceneAppPlayerRemovePeriodicProc)(void* userData);
 typedef	void			(*CSceneAppPlayerOpenURLProc)(const CURL& url, bool useWebView, void* userData);
 typedef	void			(*CSceneAppPlayerHandleCommandProc)(const CString& command, const CDictionary& commandInfo,
 								void* userData);
-typedef	S2DSize32		(*CSceneAppPlayerGetViewportSizeProc)(void* userData);
+typedef	S2DSizeF32		(*CSceneAppPlayerGetViewportSizeProc)(void* userData);
 
 struct SSceneAppPlayerProcsInfo {
 					// Lifecycle methods
@@ -174,7 +174,7 @@ struct SSceneAppPlayerProcsInfo {
 						{ mOpenURLProc(url, useWebView, mUserData); }
 	void			handleCommand(const CString& command, const CDictionary& commandInfo) const
 						{ if (mHandleCommandProc != nil) mHandleCommandProc(command, commandInfo, mUserData); }
-	S2DSize32		getViewportSize() const
+	S2DSizeF32		getViewportSize() const
 						{ return mGetViewportSizeProc(mUserData); }
 
 	// Properties
@@ -248,7 +248,7 @@ class CSceneAppPlayer {
 																	const SSceneItemPlayerProcsInfo&
 																			sceneItemPlayerProcsInfo) const;
 		virtual			void								performAction(const CAction& action,
-																	const S2DPoint32& point = S2DPoint32());
+																	const S2DPointF32& point = S2DPointF32());
 		virtual			OV<CSceneIndex>						getSceneIndex(const CAction& action) const;
 
 						CScenePlayer&						loadAndStartScenePlayer(CSceneIndex sceneIndex) const;

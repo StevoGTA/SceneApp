@@ -27,12 +27,14 @@ CActions CSceneItemPlayerCustom::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::load()
+void CSceneItemPlayerCustom::load(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	CSceneItemPlayer::load();
+	// Load
+	load(gpu, getSceneItemCustom());
 
-	load(getSceneItemCustom());
+	// Do super
+	CSceneItemPlayer::load(gpu);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -86,14 +88,14 @@ void CSceneItemPlayerCustom::render(CGPU& gpu, const SGPURenderObjectRenderInfo&
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerCustom::handlesTouchOrMouseAtPoint(const S2DPoint32& point) const
+bool CSceneItemPlayerCustom::handlesTouchOrMouseAtPoint(const S2DPointF32& point) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return handlesTouchOrMouseAtPoint(getSceneItemCustom(), point);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 tapOrClickCount,
+void CSceneItemPlayerCustom::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32 tapOrClickCount,
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -103,7 +105,7 @@ void CSceneItemPlayerCustom::touchBeganOrMouseDownAtPoint(const S2DPoint32& poin
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::touchOrMouseMovedFromPoint(const S2DPoint32& point1, const S2DPoint32& point2,
+void CSceneItemPlayerCustom::touchOrMouseMovedFromPoint(const S2DPointF32& point1, const S2DPointF32& point2,
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -113,7 +115,7 @@ void CSceneItemPlayerCustom::touchOrMouseMovedFromPoint(const S2DPoint32& point1
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::touchEndedOrMouseUpAtPoint(const S2DPoint32& point, const void* reference)
+void CSceneItemPlayerCustom::touchEndedOrMouseUpAtPoint(const S2DPointF32& point, const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	touchEndedOrMouseUpAtPoint(getSceneItemCustom(), point, reference);
@@ -167,16 +169,16 @@ void CSceneItemPlayerCustom::setProperty(const CString& propertyName, const SDic
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerCustom::handleCommand(const CString& command, const CDictionary& commandInfo,
-		const S2DPoint32& point)
+bool CSceneItemPlayerCustom::handleCommand(CGPU& gpu, const CString& command, const CDictionary& commandInfo,
+		const S2DPointF32& point)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Try subclass
-	if (handleCommand(getSceneItemCustom(), command, commandInfo, point))
+	if (handleCommand(gpu, getSceneItemCustom(), command, commandInfo, point))
 		// Handled
 		return true;
 
-	return CSceneItemPlayer::handleCommand(command, commandInfo, point);
+	return CSceneItemPlayer::handleCommand(gpu, command, commandInfo, point);
 }
 
 // MARK: Subclass methods

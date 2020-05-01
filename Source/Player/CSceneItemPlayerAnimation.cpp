@@ -45,9 +45,9 @@ class CSceneItemPlayerAnimationInternals {
 			{}
 		~CSceneItemPlayerAnimationInternals()
 			{
-//				DisposeOf(mAudioOutputTrackReference);
-//				DisposeOf(mCelAnimationPlayer);
-				DisposeOf(mKeyframeAnimationPlayer);
+//				Delete(mAudioOutputTrackReference);
+//				Delete(mCelAnimationPlayer);
+				Delete(mKeyframeAnimationPlayer);
 			}
 
 				CSceneItemPlayerAnimation&			mSceneItemPlayerAnimation;
@@ -95,7 +95,7 @@ CSceneItemPlayerAnimation::CSceneItemPlayerAnimation(const CSceneItemAnimation& 
 CSceneItemPlayerAnimation::~CSceneItemPlayerAnimation()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: CSceneItemPlayer methods
@@ -114,7 +114,7 @@ CActions CSceneItemPlayerAnimation::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerAnimation::load()
+void CSceneItemPlayerAnimation::load(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
@@ -125,7 +125,7 @@ void CSceneItemPlayerAnimation::load()
 //		mInternals->mCelAnimationPlayer->load(!sceneItemAnimation.getStartTimeInterval().hasValue());
 	if (mInternals == nil) (void) mInternals;
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
-		mInternals->mKeyframeAnimationPlayer->load(!sceneItemAnimation.getStartTimeInterval().hasValue());
+		mInternals->mKeyframeAnimationPlayer->load(gpu, !sceneItemAnimation.getStartTimeInterval().hasValue());
 
 	// Load audio
 //	OR<CAudioInfo>	audioInfo = sceneItemAnimation.getAudioInfo();
@@ -144,6 +144,9 @@ void CSceneItemPlayerAnimation::load()
 //								audioInfo->getLoopCount(), options);
 //		mInternals->mAudioOutputTrackReference->setGain(audioInfo->getGain());
 //	}
+
+	// Do super
+	CSceneItemPlayer::load(gpu);
 
 	if (!sceneItemAnimation.getStartTimeInterval().hasValue()) {
 		// Start
@@ -177,7 +180,7 @@ void CSceneItemPlayerAnimation::unload()
 //	// Unload audio
 //	if (mInternals->mIsAudioPlaying)
 //		mInternals->mAudioOutputTrackReference->reset();
-//	DisposeOf(mInternals->mAudioOutputTrackReference);
+//	Delete(mInternals->mAudioOutputTrackReference);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

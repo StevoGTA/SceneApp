@@ -33,9 +33,9 @@ class CSceneItemButtonArrayButtonInternals :
 			{}
 
 		OO<CActions>	mActions;
-		S2DRect32		mUpImageRect;
-		S2DRect32		mDownImageRect;
-		S2DPoint32		mScreenPositionPoint;
+		S2DRectF32		mUpImageRect;
+		S2DRectF32		mDownImageRect;
+		S2DPointF32		mScreenPositionPoint;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -59,9 +59,9 @@ CSceneItemButtonArrayButton::CSceneItemButtonArrayButton(const CDictionary& info
 
 	if (info.contains(sActionsInfoKey))
 		mInternals->mActions = OO<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
-	mInternals->mUpImageRect = S2DRect32(info.getString(sUpImageRectKey));
-	mInternals->mDownImageRect = S2DRect32(info.getString(sDownImageRectKey));
-	mInternals->mScreenPositionPoint = S2DPoint32(info.getString(sScreenPositionPointKey));
+	mInternals->mUpImageRect = S2DRectF32(info.getString(sUpImageRectKey));
+	mInternals->mDownImageRect = S2DRectF32(info.getString(sDownImageRectKey));
+	mInternals->mScreenPositionPoint = S2DPointF32(info.getString(sScreenPositionPointKey));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -149,14 +149,14 @@ void CSceneItemButtonArrayButton::setActions(const OO<CActions>& actions)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const S2DRect32& CSceneItemButtonArrayButton::getUpImageRect() const
+const S2DRectF32& CSceneItemButtonArrayButton::getUpImageRect() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mUpImageRect;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButtonArrayButton::setUpImageRect(const S2DRect32& upImageRect)
+void CSceneItemButtonArrayButton::setUpImageRect(const S2DRectF32& upImageRect)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
@@ -167,14 +167,14 @@ void CSceneItemButtonArrayButton::setUpImageRect(const S2DRect32& upImageRect)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const S2DRect32& CSceneItemButtonArrayButton::getDownImageRect() const
+const S2DRectF32& CSceneItemButtonArrayButton::getDownImageRect() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mDownImageRect;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButtonArrayButton::setDownImageRect(const S2DRect32& downImageRect)
+void CSceneItemButtonArrayButton::setDownImageRect(const S2DRectF32& downImageRect)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
@@ -185,14 +185,14 @@ void CSceneItemButtonArrayButton::setDownImageRect(const S2DRect32& downImageRec
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const S2DPoint32& CSceneItemButtonArrayButton::getScreenPositionPoint() const
+const S2DPointF32& CSceneItemButtonArrayButton::getScreenPositionPoint() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mScreenPositionPoint;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButtonArrayButton::setScreenPositionPoint(const S2DPoint32& screenPositionPoint)
+void CSceneItemButtonArrayButton::setScreenPositionPoint(const S2DPointF32& screenPositionPoint)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
@@ -351,7 +351,7 @@ void CSceneItemButtonArray::setImageResourceFilename(const CString& imageResourc
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const TNArray<CSceneItemButtonArrayButton>& CSceneItemButtonArray::getSceneItemButtonArrayButtons() const
+const TArray<CSceneItemButtonArrayButton>& CSceneItemButtonArray::getSceneItemButtonArrayButtons() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mSceneItemButtonArrayButtons;

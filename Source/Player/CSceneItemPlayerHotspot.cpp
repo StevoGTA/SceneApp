@@ -34,14 +34,14 @@ CActions CSceneItemPlayerHotspot::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerHotspot::handlesTouchOrMouseAtPoint(const S2DPoint32& point) const
+bool CSceneItemPlayerHotspot::handlesTouchOrMouseAtPoint(const S2DPointF32& point) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return getSceneItemHotspot().getScreenRect().contains(point);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerHotspot::touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 tapOrClickCount,
+void CSceneItemPlayerHotspot::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32 tapOrClickCount,
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {

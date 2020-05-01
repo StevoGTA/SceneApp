@@ -58,7 +58,7 @@ CSceneItemPlayer::CSceneItemPlayer(const CSceneItem& sceneItem,
 CSceneItemPlayer::~CSceneItemPlayer()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: Instance methods
@@ -92,7 +92,7 @@ CActions CSceneItemPlayer::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::perform(const CActions& actions, const S2DPoint32& point)
+void CSceneItemPlayer::perform(const CActions& actions, const S2DPointF32& point)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Call proc
@@ -100,7 +100,7 @@ void CSceneItemPlayer::perform(const CActions& actions, const S2DPoint32& point)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::load()
+void CSceneItemPlayer::load(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals->mIsLoaded = true;
@@ -143,28 +143,28 @@ void CSceneItemPlayer::update(UniversalTimeInterval deltaTimeInterval, bool isRu
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayer::handlesTouchOrMouseAtPoint(const S2DPoint32& point) const
+bool CSceneItemPlayer::handlesTouchOrMouseAtPoint(const S2DPointF32& point) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return false;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 tapOrClickCount,
+void CSceneItemPlayer::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32 tapOrClickCount,
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::touchOrMouseMovedFromPoint(const S2DPoint32& point1, const S2DPoint32& point2,
+void CSceneItemPlayer::touchOrMouseMovedFromPoint(const S2DPointF32& point1, const S2DPointF32& point2,
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::touchEndedOrMouseUpAtPoint(const S2DPoint32& point, const void* reference)
+void CSceneItemPlayer::touchEndedOrMouseUpAtPoint(const S2DPointF32& point, const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
 }
@@ -204,13 +204,14 @@ void CSceneItemPlayer::setProperty(const CString& property, const SDictionaryVal
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayer::handleCommand(const CString& command, const CDictionary& commandInfo, const S2DPoint32& point)
+bool CSceneItemPlayer::handleCommand(CGPU& gpu, const CString& command, const CDictionary& commandInfo,
+		const S2DPointF32& point)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check command
 	if (command == mCommandNameLoad) {
 		// Load
-		load();
+		load(gpu);
 
 		return true;
 	} else if (command == mCommandNameUnload) {
@@ -231,7 +232,7 @@ bool CSceneItemPlayer::handleCommand(const CString& command, const CDictionary& 
 // MARK: Subclass methods
 
 ////----------------------------------------------------------------------------------------------------------------------
-//bool CSceneItemPlayer::isTapOrMouseClick(const S2DPoint32& startPoint, const S2DPoint32& endPoint)
+//bool CSceneItemPlayer::isTapOrMouseClick(const S2DPointF32& startPoint, const S2DPointF32& endPoint)
 ////----------------------------------------------------------------------------------------------------------------------
 //{
 //	return (fabs(endPoint.mX - startPoint.mX) <= kCSceneItemPlayerTapOrClickMaxPixelDelta) &&

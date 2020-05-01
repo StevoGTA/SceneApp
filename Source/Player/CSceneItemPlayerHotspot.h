@@ -24,8 +24,8 @@ class CSceneItemPlayerHotspot : public CSceneItemPlayer {
 
 				void				render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const {}
 
-				bool				handlesTouchOrMouseAtPoint(const S2DPoint32& point) const;
-				void				touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 tapOrClickCount,
+				bool				handlesTouchOrMouseAtPoint(const S2DPointF32& point) const;
+				void				touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32 tapOrClickCount,
 											const void* reference);
 
 									// Instance methods

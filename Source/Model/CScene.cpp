@@ -41,7 +41,7 @@ class CSceneInternals : public TCopyOnWriteReferenceCountable<CSceneInternals> {
 		ESceneOptions		mOptions;
 		CString				mName;
 		CString				mStoreSceneIndexAsString;
-		S2DRect32			mBoundsRect;
+		S2DRectF32			mBoundsRect;
 		TCArray<CSceneItem>	mSceneItems;
 };
 
@@ -65,7 +65,7 @@ CScene::CScene(const CDictionary& info)
 	mInternals = new CSceneInternals();
 
 	mInternals->mName = info.getString(sNameKey);
-	mInternals->mBoundsRect = S2DRect32(info.getString(sBoundsRectKey));
+	mInternals->mBoundsRect = S2DRectF32(info.getString(sBoundsRectKey));
 	if (info.contains(sDoubleTapActionsInfoKey))
 		mInternals->mDoubleTapActions = new CActions(info.getDictionary(sDoubleTapActionsInfoKey));
 	mInternals->mStoreSceneIndexAsString = info.getString(sStoreSceneIndexAsKey);
@@ -187,14 +187,14 @@ void CScene::setName(const CString& name)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const S2DRect32& CScene::getBoundsRect() const
+const S2DRectF32& CScene::getBoundsRect() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mBoundsRect;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CScene::setBoundsRect(const S2DRect32& rect)
+void CScene::setBoundsRect(const S2DRectF32& rect)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write

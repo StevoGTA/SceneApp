@@ -76,12 +76,12 @@ class CAnimationKeyframe {
 		const	OO<CActions>&							getActions() const;
 				void									setActions(const OO<CActions>& actions);
 
-		const	OV<S2DPoint32>&							getAnchorPoint() const;
-				void									setAnchorPoint(const OV<S2DPoint32>& anchorPoint);
+		const	OV<S2DPointF32>&						getAnchorPoint() const;
+				void									setAnchorPoint(const OV<S2DPointF32>& anchorPoint);
 
-		const	OV<S2DPoint32>&							getScreenPositionPoint() const;
+		const	OV<S2DPointF32>&						getScreenPositionPoint() const;
 				void									setScreenPositionPoint(
-																const OV<S2DPoint32>& screenPositionPoint);
+																const OV<S2DPointF32>& screenPositionPoint);
 
 		const	OV<Float32>&							getAngleDegrees() const;
 				void									setAngleDegrees(const OV<Float32>& angleDegrees);

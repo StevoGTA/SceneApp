@@ -32,18 +32,18 @@ class CSceneItemPlayerButtonInternals {
 					{}
 				~CSceneItemPlayerButtonInternals()
 					{
-//						DisposeOf(mAudioOutputTrackReference);
+//						Delete(mAudioOutputTrackReference);
 
 						if (mDownKeyframeAnimationPlayer != mUpKeyframeAnimationPlayer) {
-							DisposeOf(mUpKeyframeAnimationPlayer);
-							DisposeOf(mDownKeyframeAnimationPlayer);
+							Delete(mUpKeyframeAnimationPlayer);
+							Delete(mDownKeyframeAnimationPlayer);
 						} else
-							DisposeOf(mUpKeyframeAnimationPlayer);
+							Delete(mUpKeyframeAnimationPlayer);
 
-						DisposeOf(mDisabledKeyframeAnimationPlayer);
+						Delete(mDisabledKeyframeAnimationPlayer);
 					}
 
-		bool	isPointInHitRect(const S2DPoint32& point)
+		bool	isPointInHitRect(const S2DPointF32& point)
 					{
 						Float32	hitRadius = mSceneItemPlayerButton.getSceneItemButton().getHitRadius();
 						if (hitRadius == 0.0)
@@ -51,12 +51,11 @@ class CSceneItemPlayerButtonInternals {
 							return mUpKeyframeAnimationPlayer->getScreenRect().contains(point);
 						else {
 							// Calculate hit test rect based on radius from screen center
-							S2DRect32	screenRect = mUpKeyframeAnimationPlayer->getScreenRect();
+							S2DRectF32	screenRect = mUpKeyframeAnimationPlayer->getScreenRect();
 							Float32		centerX = screenRect.getMidX();
 							Float32		centerY = screenRect.getMidY();
-							S2DRect32	hitTestRect =
-												S2DRect32(centerX - hitRadius, centerY - hitRadius, hitRadius * 2.0,
-														hitRadius * 2.0);
+							S2DRectF32	hitTestRect(centerX - hitRadius, centerY - hitRadius, hitRadius * 2.0,
+												hitRadius * 2.0);
 
 							return hitTestRect.contains(point);
 						}
@@ -123,7 +122,7 @@ CSceneItemPlayerButton::CSceneItemPlayerButton(const CSceneItemButton& sceneItem
 CSceneItemPlayerButton::~CSceneItemPlayerButton()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: CSceneItemPlayer methods
@@ -138,7 +137,7 @@ CActions CSceneItemPlayerButton::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButton::load()
+void CSceneItemPlayerButton::load(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	const	CSceneItemButton&	sceneItemButton = getSceneItemButton();
@@ -162,11 +161,14 @@ void CSceneItemPlayerButton::load()
 
 	// Load animations
 	if (mInternals->mUpKeyframeAnimationPlayer != nil)
-		mInternals->mUpKeyframeAnimationPlayer->load(!sceneItemButton.getStartTimeInterval().hasValue());
+		mInternals->mUpKeyframeAnimationPlayer->load(gpu, !sceneItemButton.getStartTimeInterval().hasValue());
 	if (mInternals->mDownKeyframeAnimationPlayer != nil)
-		mInternals->mDownKeyframeAnimationPlayer->load(!sceneItemButton.getStartTimeInterval().hasValue());
+		mInternals->mDownKeyframeAnimationPlayer->load(gpu, !sceneItemButton.getStartTimeInterval().hasValue());
 	if (mInternals->mDisabledKeyframeAnimationPlayer != nil)
-		mInternals->mDisabledKeyframeAnimationPlayer->load(!sceneItemButton.getStartTimeInterval().hasValue());
+		mInternals->mDisabledKeyframeAnimationPlayer->load(gpu, !sceneItemButton.getStartTimeInterval().hasValue());
+
+	// Do super
+	CSceneItemPlayer::load(gpu);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -176,7 +178,7 @@ void CSceneItemPlayerButton::unload()
 //	// Unload audio
 //	if (mInternals->mIsAudioPlaying)
 //		mInternals->mAudioOutputTrackReference->reset();
-//	DisposeOf(mInternals->mAudioOutputTrackReference);
+//	Delete(mInternals->mAudioOutputTrackReference);
 
 	// Unload animations
 	if (mInternals->mUpKeyframeAnimationPlayer != nil)
@@ -240,7 +242,7 @@ void CSceneItemPlayerButton::render(CGPU& gpu, const SGPURenderObjectRenderInfo&
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerButton::handlesTouchOrMouseAtPoint(const S2DPoint32& point) const
+bool CSceneItemPlayerButton::handlesTouchOrMouseAtPoint(const S2DPointF32& point) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mIsEnabled && (mInternals->mUpKeyframeAnimationPlayer != nil) &&
@@ -248,7 +250,7 @@ bool CSceneItemPlayerButton::handlesTouchOrMouseAtPoint(const S2DPoint32& point)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButton::touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 tapOrClickCount,
+void CSceneItemPlayerButton::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32 tapOrClickCount,
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -270,7 +272,7 @@ void CSceneItemPlayerButton::touchBeganOrMouseDownAtPoint(const S2DPoint32& poin
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButton::touchOrMouseMovedFromPoint(const S2DPoint32& point1, const S2DPoint32& point2,
+void CSceneItemPlayerButton::touchOrMouseMovedFromPoint(const S2DPointF32& point1, const S2DPointF32& point2,
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -299,7 +301,7 @@ void CSceneItemPlayerButton::touchOrMouseMovedFromPoint(const S2DPoint32& point1
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButton::touchEndedOrMouseUpAtPoint(const S2DPoint32& point, const void* reference)
+void CSceneItemPlayerButton::touchEndedOrMouseUpAtPoint(const S2DPointF32& point, const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	if (mInternals->mIsEnabled) {

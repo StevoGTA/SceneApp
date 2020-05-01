@@ -37,8 +37,8 @@ class CAnimationKeyframeInternals : public TCopyOnWriteReferenceCountable<CAnima
 			{}
 
 		OO<CActions>							mActions;
-		OV<S2DPoint32>							mAnchorPoint;
-		OV<S2DPoint32>							mScreenPositionPoint;
+		OV<S2DPointF32>							mAnchorPoint;
+		OV<S2DPointF32>							mScreenPositionPoint;
 		OV<Float32>								mAngleDegrees;
 		OV<Float32>								mAlpha;
 		OV<Float32>								mScale;
@@ -70,9 +70,9 @@ CAnimationKeyframe::CAnimationKeyframe(const CDictionary& info)
 	if (info.contains(sActionsInfoKey))
 		mInternals->mActions = OO<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
 	if (info.contains(sAnchorPointKey))
-		mInternals->mAnchorPoint = OV<S2DPoint32>(info.getString(sAnchorPointKey));
+		mInternals->mAnchorPoint = OV<S2DPointF32>(info.getString(sAnchorPointKey));
 	if (info.contains(sScreenPositionPointKey))
-		mInternals->mScreenPositionPoint = OV<S2DPoint32>(info.getString(sScreenPositionPointKey));
+		mInternals->mScreenPositionPoint = OV<S2DPointF32>(info.getString(sScreenPositionPointKey));
 	if (info.contains(sAngleDegreesKey))
 		mInternals->mAngleDegrees = OV<Float32>(info.getFloat32(sAngleDegreesKey));
 	if (info.contains(sAlphaKey))
@@ -239,14 +239,14 @@ void CAnimationKeyframe::setActions(const OO<CActions>& actions)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const OV<S2DPoint32>& CAnimationKeyframe::getAnchorPoint() const
+const OV<S2DPointF32>& CAnimationKeyframe::getAnchorPoint() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mAnchorPoint;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CAnimationKeyframe::setAnchorPoint(const OV<S2DPoint32>& anchorPoint)
+void CAnimationKeyframe::setAnchorPoint(const OV<S2DPointF32>& anchorPoint)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
@@ -257,14 +257,14 @@ void CAnimationKeyframe::setAnchorPoint(const OV<S2DPoint32>& anchorPoint)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const OV<S2DPoint32>& CAnimationKeyframe::getScreenPositionPoint() const
+const OV<S2DPointF32>& CAnimationKeyframe::getScreenPositionPoint() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mScreenPositionPoint;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CAnimationKeyframe::setScreenPositionPoint(const OV<S2DPoint32>& screenPositionPoint)
+void CAnimationKeyframe::setScreenPositionPoint(const OV<S2DPointF32>& screenPositionPoint)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write

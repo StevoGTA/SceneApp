@@ -18,14 +18,14 @@ class CSceneItemPlayerButtonArrayInternals {
 			{}
 		~CSceneItemPlayerButtonArrayInternals()
 			{
-				DisposeOf(mGPURenderObject2D);
+				Delete(mGPURenderObject2D);
 			}
 
 				CGPURenderObject2D*					mGPURenderObject2D;
 
 				OR<CSceneItemButtonArrayButton>		mActiveButton;
 				bool								mActiveButtonDown;
-				S2DRect32							mActiveButtonScreenRect;
+				S2DRectF32							mActiveButtonScreenRect;
 
 		const	SSceneAppResourceManagementInfo&	mSceneAppResourceManagementInfo;
 };
@@ -50,7 +50,7 @@ CSceneItemPlayerButtonArray::CSceneItemPlayerButtonArray(const CSceneItemButtonA
 CSceneItemPlayerButtonArray::~CSceneItemPlayerButtonArray()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals);
+	Delete(mInternals);
 }
 
 // MARK: CSceneItemPlayer methods
@@ -75,28 +75,55 @@ CActions CSceneItemPlayerButtonArray::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButtonArray::load()
+void CSceneItemPlayerButtonArray::load(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check if loaded
-	if (mInternals->mGPURenderObject2D == nil)
-		// Load
+	if (mInternals->mGPURenderObject2D == nil) {
+		// Compose items
+		TNArray<SGPURenderObject2DItem>	items;
+		for (TIteratorD<CSceneItemButtonArrayButton> iterator =
+						getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
+				iterator.hasValue(); iterator.advance()) {
+			// Get info
+			const	CSceneItemButtonArrayButton&	button = iterator.getValue();
+			const	S2DPointF32&					screenPositionPoint = button.getScreenPositionPoint();
+			const	S2DRectF32&						upImageRect = button.getUpImageRect();
+
+			// Add up image info
+			items += SGPURenderObject2DItem(S2DRectF32(screenPositionPoint, upImageRect.mSize), 0, upImageRect);
+		}
+		for (TIteratorD<CSceneItemButtonArrayButton> iterator =
+						getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
+				iterator.hasValue(); iterator.advance()) {
+			// Get info
+			const	CSceneItemButtonArrayButton&	button = iterator.getValue();
+			const	S2DPointF32&					screenPositionPoint = button.getScreenPositionPoint();
+			const	S2DRectF32&						downImageRect = button.getDownImageRect();
+
+			// Add down image info
+			items += SGPURenderObject2DItem(S2DRectF32(screenPositionPoint, downImageRect.mSize), 0, downImageRect);
+		}
+
+		// Create GPU Render Object 2D
 		mInternals->mGPURenderObject2D =
-				new CGPURenderObject2D(
-						mInternals->mSceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
-								mInternals->mSceneAppResourceManagementInfo.createByteParceller(
-										getSceneItemButtonArray().getImageResourceFilename()),
-								CImage::getBitmap, getSceneItemButtonArray().getImageResourceFilename()));
+				new CGPURenderObject2D(gpu, items,
+						TNArray<CGPUTextureReference>(
+								mInternals->mSceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
+										mInternals->mSceneAppResourceManagementInfo.createByteParceller(
+												getSceneItemButtonArray().getImageResourceFilename()),
+										CImage::getBitmap, getSceneItemButtonArray().getImageResourceFilename())));
+	}
 
 	// Do super
-	CSceneItemPlayer::load();
+	CSceneItemPlayer::load(gpu);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayerButtonArray::unload()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	DisposeOf(mInternals->mGPURenderObject2D);
+	Delete(mInternals->mGPURenderObject2D);
 
 	CSceneItemPlayer::unload();
 }
@@ -117,7 +144,7 @@ void CSceneItemPlayerButtonArray::reset()
 void CSceneItemPlayerButtonArray::update(UniversalTimeInterval deltaTimeInterval, bool isRunning)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals->mGPURenderObject2D->getGPUTextureReference().finishLoading();
+	mInternals->mGPURenderObject2D->finishLoading();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -125,24 +152,29 @@ void CSceneItemPlayerButtonArray::render(CGPU& gpu, const SGPURenderObjectRender
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Iterate all buttons
-	for (TIteratorD<CSceneItemButtonArrayButton> iterator =
-					getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
-			iterator.hasValue(); iterator.advance()) {
+	const	TArray<CSceneItemButtonArrayButton>&	buttonArrayButtons =
+															getSceneItemButtonArray().getSceneItemButtonArrayButtons();
+			CGPURenderObject2DIndexes				indexes =
+															CGPURenderObject2DIndexes::withCount(
+																	buttonArrayButtons.getCount() * 2);
+	for (CArrayItemIndex i = 0; i < buttonArrayButtons.getCount(); i++) {
 		// Render this button
-		const	S2DPoint32&	screenPositionPoint = iterator.getValue().getScreenPositionPoint();
-				S2DRect32	rect =
-									(!mInternals->mActiveButtonDown ||
-													!mInternals->mActiveButton.hasReference() ||
-													(&iterator.getValue() != &(*mInternals->mActiveButton))) ?
-											iterator.getValue().getUpImageRect() :
-											iterator.getValue().getDownImageRect();
-		mInternals->mGPURenderObject2D->render(gpu, rect,
-				renderInfo.offset(S2DOffset32(screenPositionPoint.mX, screenPositionPoint.mY)));
+		const	CSceneItemButtonArrayButton&	button = buttonArrayButtons[i];
+
+				UInt16							index =
+														(!mInternals->mActiveButtonDown ||
+																		!mInternals->mActiveButton.hasReference() ||
+																		(&button != &(*mInternals->mActiveButton))) ?
+																i : buttonArrayButtons.getCount() + i;
+		indexes.add(index);
 	}
+
+	// Render
+	mInternals->mGPURenderObject2D->render(gpu, indexes, renderInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItemPlayerButtonArray::handlesTouchOrMouseAtPoint(const S2DPoint32& point) const
+bool CSceneItemPlayerButtonArray::handlesTouchOrMouseAtPoint(const S2DPointF32& point) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Iterate all buttons
@@ -150,7 +182,7 @@ bool CSceneItemPlayerButtonArray::handlesTouchOrMouseAtPoint(const S2DPoint32& p
 					getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
 			iterator.hasValue(); iterator.advance()) {
 		// Do cover check
-		S2DRect32	screenRect(iterator.getValue().getScreenPositionPoint(),
+		S2DRectF32	screenRect(iterator.getValue().getScreenPositionPoint(),
 							iterator.getValue().getUpImageRect().mSize);
 		if (screenRect.contains(point)) {
 			// Got it
@@ -166,7 +198,7 @@ bool CSceneItemPlayerButtonArray::handlesTouchOrMouseAtPoint(const S2DPoint32& p
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButtonArray::touchBeganOrMouseDownAtPoint(const S2DPoint32& point, UInt32 tapOrClickCount,
+void CSceneItemPlayerButtonArray::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32 tapOrClickCount,
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -174,7 +206,7 @@ void CSceneItemPlayerButtonArray::touchBeganOrMouseDownAtPoint(const S2DPoint32&
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButtonArray::touchOrMouseMovedFromPoint(const S2DPoint32& point1, const S2DPoint32& point2,
+void CSceneItemPlayerButtonArray::touchOrMouseMovedFromPoint(const S2DPointF32& point1, const S2DPointF32& point2,
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -182,7 +214,7 @@ void CSceneItemPlayerButtonArray::touchOrMouseMovedFromPoint(const S2DPoint32& p
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButtonArray::touchEndedOrMouseUpAtPoint(const S2DPoint32& point, const void* reference)
+void CSceneItemPlayerButtonArray::touchEndedOrMouseUpAtPoint(const S2DPointF32& point, const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check if active button is down

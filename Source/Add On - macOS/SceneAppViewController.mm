@@ -22,7 +22,7 @@ static	void			sSceneAppRemovePeriodic(void* userData);
 static	void			sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData);
 static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
 										void* userData);
-static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
+static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //static	void			sSceneAppPlayerBeginDraw(void* userData);
 //static	void			sSceneAppPlayerEndDraw(void* userData);
 //static	CImageX	sSceneAppPlayerGetCurrentViewportImage(void* userData);
@@ -33,7 +33,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 @interface SceneAppViewController ()
 
 @property (nonatomic, assign)	CSceneAppPlayer*	sceneAppPlayerInternal;
-@property (nonatomic, assign)	S2DSize32			viewSize;
+@property (nonatomic, assign)	S2DSizeF32			viewSize;
 @property (nonatomic, assign)	NSPoint				previousLocationInWindow;
 
 @end
@@ -91,7 +91,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 
 			// Inform SceneAppPlayer
 			weakSelf.sceneAppPlayerInternal->mouseDown(
-					SSceneAppPlayerMouseDownInfo(S2DPoint32(point.x, point.y), (UInt32) event.clickCount));
+					SSceneAppPlayerMouseDownInfo(S2DPointF32(point.x, point.y), (UInt32) event.clickCount));
 
 			// Store
 			weakSelf.previousLocationInWindow = point;
@@ -104,8 +104,8 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			// Inform SceneAppPlayer
 			weakSelf.sceneAppPlayerInternal->mouseDragged(
 					SSceneAppPlayerMouseDraggedInfo(
-							S2DPoint32(weakSelf.previousLocationInWindow.x, weakSelf.previousLocationInWindow.y),
-							S2DPoint32(point.x, point.y)));
+							S2DPointF32(weakSelf.previousLocationInWindow.x, weakSelf.previousLocationInWindow.y),
+							S2DPointF32(point.x, point.y)));
 
 			// Store
 			weakSelf.previousLocationInWindow = point;
@@ -116,7 +116,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			point.y = weakSelf.view.bounds.size.height - point.y;
 
 			// Inform SceneAppPlayer
-			weakSelf.sceneAppPlayerInternal->mouseUp(SSceneAppPlayerMouseUpInfo(S2DPoint32(point.x, point.y)));
+			weakSelf.sceneAppPlayerInternal->mouseUp(SSceneAppPlayerMouseUpInfo(S2DPointF32(point.x, point.y)));
 		};
 
 		((NSView<AKTGPUView>*) self.view).periodicProc = ^(UniversalTime outputTime){
@@ -138,7 +138,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 
 		// Store view size
 		CGSize	size = self.view.bounds.size;
-		self.viewSize = S2DSize32(size.width, size.height);
+		self.viewSize = S2DSizeF32(size.width, size.height);
 
 		// Setup Notifications
 		NSNotificationCenter*	notificationCenter = [NSNotificationCenter defaultCenter];
@@ -156,7 +156,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 - (void) dealloc
 {
-	DisposeOf(self.sceneAppPlayerInternal);
+	Delete(self.sceneAppPlayerInternal);
 }
 
 // MARK: NSViewController methods
@@ -229,7 +229,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 - (void) applicationWillTerminateNotification:(NSNotification*) notification
 {
 	// Cleanup
-//	DisposeOf(self.sceneAppPlayer);
+//	Delete(self.sceneAppPlayer);
 }
 
 // MARK: Private methods
@@ -325,7 +325,7 @@ void sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& com
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DSize32 sSceneAppPlayerGetViewportSizeProc(void* userData)
+S2DSizeF32 sSceneAppPlayerGetViewportSizeProc(void* userData)
 {
 	return ((__bridge SceneAppViewController*) userData).viewSize;
 }

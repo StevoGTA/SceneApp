@@ -22,7 +22,7 @@ static	void			sSceneAppRemovePeriodic(void* userData);
 static	void			sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData);
 static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
 										void* userData);
-static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
+static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //static	CImageX	sSceneAppPlayerGetCurrentViewportImage(void* userData);
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 @interface SceneAppViewController ()
 
 @property (nonatomic, assign)	CSceneAppPlayer*	sceneAppPlayerInternal;
-@property (nonatomic, assign)	S2DSize32			viewSize;
+@property (nonatomic, assign)	S2DSizeF32			viewSize;
 @property (nonatomic, assign)	BOOL				didReceiveApplicationWillResignActiveNotification;
 
 @end
@@ -95,7 +95,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 				// Add info
 				CGPoint	pt = [touch locationInView:weakSelf.view];
 				touchBeganInfosArray +=
-						SSceneAppPlayerTouchBeganInfo(S2DPoint32(pt.x, pt.y), (UInt32) touch.tapCount,
+						SSceneAppPlayerTouchBeganInfo(S2DPointF32(pt.x, pt.y), (UInt32) touch.tapCount,
 								(__bridge void*) touch);
 			}
 
@@ -110,8 +110,8 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 				CGPoint	previousPt = [touch previousLocationInView:weakSelf.view];
 				CGPoint	currentPt = [touch locationInView:weakSelf.view];
 				touchMovedInfosArray +=
-						SSceneAppPlayerTouchMovedInfo(S2DPoint32(previousPt.x, previousPt.y),
-								S2DPoint32(currentPt.x, currentPt.y), (__bridge void*) touch);
+						SSceneAppPlayerTouchMovedInfo(S2DPointF32(previousPt.x, previousPt.y),
+								S2DPointF32(currentPt.x, currentPt.y), (__bridge void*) touch);
 			}
 
 			// Inform SceneAppPlayer
@@ -128,10 +128,10 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 				if (!CGPointEqualToPoint(previousPt, currentPt))
 					// Need to add a move to final point
 					touchMovedInfosArray +=
-							SSceneAppPlayerTouchMovedInfo(S2DPoint32(previousPt.x, previousPt.y),
-									S2DPoint32(currentPt.x, currentPt.y), (__bridge void*) touch);
+							SSceneAppPlayerTouchMovedInfo(S2DPointF32(previousPt.x, previousPt.y),
+									S2DPointF32(currentPt.x, currentPt.y), (__bridge void*) touch);
 				touchEndedInfosArray +=
-						SSceneAppPlayerTouchEndedInfo(S2DPoint32(currentPt.x, currentPt.y), (__bridge void*) touch);
+						SSceneAppPlayerTouchEndedInfo(S2DPointF32(currentPt.x, currentPt.y), (__bridge void*) touch);
 			}
 
 			// Inform SceneAppPlayer
@@ -181,7 +181,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 
 		// Store view size
 		CGSize	size = self.view.bounds.size;
-		self.viewSize = S2DSize32(size.width, size.height);
+		self.viewSize = S2DSizeF32(size.width, size.height);
 
 		// Setup Notifications
 		NSNotificationCenter*	notificationCenter = [NSNotificationCenter defaultCenter];
@@ -197,7 +197,7 @@ static	S2DSize32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 - (void) dealloc
 {
-	DisposeOf(self.sceneAppPlayerInternal);
+	Delete(self.sceneAppPlayerInternal);
 }
 
 // MARK: NSViewController methods
@@ -345,7 +345,7 @@ void sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& com
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-S2DSize32 sSceneAppPlayerGetViewportSizeProc(void* userData)
+S2DSizeF32 sSceneAppPlayerGetViewportSizeProc(void* userData)
 {
 	return ((__bridge SceneAppViewController*) userData).viewSize;
 }

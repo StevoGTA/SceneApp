@@ -36,8 +36,8 @@ class CSceneItemCustom : public CSceneItem {
 				CDictionary				getDictionary(const CString& key) const;
 				CString					getString(const CString& key) const;
 				Float32					getFloat32(const CString& key) const;
-				S2DPoint32				get2DPoint(const CString& key) const;
-				S2DRect32				get2DRect(const CString& key) const;
+				S2DPointF32				get2DPoint(const CString& key) const;
+				S2DRectF32				get2DRect(const CString& key) const;
 				UInt32					getUInt32(const CString& key) const;
 				UniversalTimeInterval	getUniversalTimeInterval(const CString& key) const;
 
