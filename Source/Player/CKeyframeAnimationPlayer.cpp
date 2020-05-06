@@ -158,14 +158,10 @@ void CKeyframeAnimationPlayerKeyframe::load(CGPU& gpu,
 											sceneAppResourceManagementInfo.createByteParceller(mImageFilename),
 											CImage::getBitmap, mImageFilename);
 	gpuTextureReference.finishLoading();
-	S2DSizeU16	size = gpuTextureReference.getGPUTexture().getUsedSize();
 
-	mGPURenderObject2D =
-			new CGPURenderObject2D(gpu, S2DRectF32(0.0, 0.0, size.mWidth, size.mHeight),
-					S2DRectF32(0.0, 0.0, size.mWidth, size.mHeight),
-					sceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
-							sceneAppResourceManagementInfo.createByteParceller(mImageFilename), CImage::getBitmap,
-							mImageFilename));
+	S2DSizeU16	size = gpuTextureReference.getGPUTexture().getUsedSize();
+	S2DRectF32	rect(0.0, 0.0, size.mWidth, size.mHeight);
+	mGPURenderObject2D = new CGPURenderObject2D(gpu, rect, rect, gpuTextureReference);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

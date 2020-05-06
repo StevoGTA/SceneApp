@@ -4,7 +4,7 @@
 
 #import "SceneAppViewController.h"
 
-#import "CFUtilities.h"
+#import "CCoreFoundation.h"
 #import "CFileDataSource.h"
 #import "CSceneAppPlayer.h"
 
@@ -27,7 +27,7 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: SceneAppViewController
+// MARK: - SceneAppViewController
 @interface SceneAppViewController ()
 
 @property (nonatomic, assign)	CSceneAppPlayer*	sceneAppPlayerInternal;
@@ -275,7 +275,7 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 CByteParceller sSceneAppPlayerCreateByteParceller(const CString& resourceFilename)
 {
-	CFStringRef	resourceFilenameStringRef = eStringCopyCFStringRef(resourceFilename);
+	CFStringRef	resourceFilenameStringRef = CCoreFoundation::createStringRefFrom(resourceFilename);
 	NSString*	path =
 						[[NSBundle mainBundle] pathForResource:(__bridge NSString*) resourceFilenameStringRef ofType:@""
 								inDirectory:sResourceFolderSubpath];
@@ -302,8 +302,10 @@ void sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData)
 	// Setup
 	SceneAppViewController*	sceneAppViewController = (__bridge SceneAppViewController*) userData;
 	NSURL*					nsURL =
-									[NSURL URLWithString:
-											(NSString*) CFBridgingRelease(eStringCopyCFStringRef(url.getString()))];
+									[NSURL
+											URLWithString:
+													(NSString*) CFBridgingRelease(
+															CCoreFoundation::createStringRefFrom(url.getString()))];
 
 	// Call on Main thread
 	dispatch_async(dispatch_get_main_queue(), ^{
@@ -327,16 +329,20 @@ void sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& com
 
 	// Check if have proc
 	if (sceneAppViewController.handleCommandProc != nil) {
-		NSString*						commandString = (NSString*) CFBridgingRelease(eStringCopyCFStringRef(command));
+		NSString*						commandString =
+												(NSString*) CFBridgingRelease(
+														CCoreFoundation::createStringRefFrom(command));
 		NSDictionary<NSString*, id>*	commandInfoDictionary =
 												(NSDictionary<NSString*, id>*)
-														CFBridgingRelease(eDictionaryCopyCFDictionaryRef(commandInfo));
+														CFBridgingRelease(
+																CCoreFoundation::createDictionaryRefFrom(commandInfo));
 
 		// Call on Main thread
 		dispatch_async(dispatch_get_main_queue(), ^{
 			// Setup
 			CString		commandUse((__bridge CFStringRef) commandString);
-			CDictionary	commandInfoUse = eDictionaryFrom((__bridge CFDictionaryRef) commandInfoDictionary);
+			CDictionary	commandInfoUse =
+								CCoreFoundation::dictionaryFrom((__bridge CFDictionaryRef) commandInfoDictionary);
 
 			// Call proc
 			sceneAppViewController.handleCommandProc(commandUse, commandInfoUse);
