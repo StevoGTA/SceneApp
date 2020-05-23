@@ -45,7 +45,7 @@ class CSceneAppPlayerInternals {
 				void				cancelAllSceneTouches();
 				void				cancelAllSceneTransitionTouches();
 
-				CScenePlayer*		getScenePlayer(const CString& sceneName);
+				OR<CScenePlayer>	getScenePlayer(const CString& sceneName);
 				void				setCurrent(CScenePlayer& scenePlayer, CSceneIndex sceneIndex);
 				void				setCurrent(CSceneTransitionPlayer* sceneTransitionPlayer, CSceneIndex sceneIndex);
 
@@ -71,8 +71,8 @@ class CSceneAppPlayerInternals {
 
 		CScenePackage										mScenePackage;
 
-		TPtrArray<CScenePlayer*>							mScenePlayers;
-		CScenePlayer*										mCurrentScenePlayer;
+		TNArray<CScenePlayer>								mScenePlayers;
+		OR<CScenePlayer>									mCurrentScenePlayer;
 		OO<CSceneTransitionPlayer>							mCurrentSceneTransitionPlayer;
 		OV<CSceneIndex>										mCurrentSceneTransitionPlayerToSceneIndex;
 
@@ -96,7 +96,7 @@ CSceneAppPlayerInternals::CSceneAppPlayerInternals(CSceneAppPlayer& sceneAppPlay
 			mScenePlayerProcsInfo(scenePlayerGetViewportSizeProc, scenePlayerCreateSceneItemPlayerProc,
 					scenePlayerActionsPerformProc, this),
 			mSceneTransitionPlayerProcsInfo(scenePlayerGetViewportSizeProc, this),
-			mCurrentScenePlayer(nil), mStopTime(0.0), mLastPeriodicOutputTime(0.0)
+			mStopTime(0.0), mLastPeriodicOutputTime(0.0)
 //----------------------------------------------------------------------------------------------------------------------
 {
 }
@@ -296,18 +296,18 @@ void CSceneAppPlayerInternals::cancelAllSceneTransitionTouches()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CScenePlayer* CSceneAppPlayerInternals::getScenePlayer(const CString& sceneName)
+OR<CScenePlayer> CSceneAppPlayerInternals::getScenePlayer(const CString& sceneName)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Iterate all scene players
-	for (TIteratorS<CScenePlayer*> iterator = mScenePlayers.getIterator(); iterator.hasValue(); iterator.advance()) {
+	for (TIteratorD<CScenePlayer> iterator = mScenePlayers.getIterator(); iterator.hasValue(); iterator.advance()) {
 		// Check if the target scene player
-		if (iterator.getValue()->getScene().getName() == sceneName)
+		if (iterator.getValue().getScene().getName() == sceneName)
 			// Found
-			return iterator.getValue();
+			return OR<CScenePlayer>(iterator.getValue());
 	}
 
-	return nil;
+	return OR<CScenePlayer>();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -315,14 +315,10 @@ void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	TPtrArray<CScenePlayer*>	toLoadSceneItemPlayers;
-	TPtrArray<CScenePlayer*>	toUnloadSceneItemPlayers;
-	for (TIteratorS<CScenePlayer*> iterator = mScenePlayers.getIterator(); iterator.hasValue(); iterator.advance()) {
-		// Check if the target scene player
-		if (iterator.getValue() != &scenePlayer)
-			// Will be unloading for now
-			toUnloadSceneItemPlayers += iterator.getValue();
-	}
+	bool	performLoad[mScenePlayers.getCount()];
+	for (CArrayItemIndex i = 0; i < mScenePlayers.getCount(); i++)
+		// Setup
+		performLoad[i] = mScenePlayers[i].getScene() == scenePlayer.getScene();
 
 	// Iterate all actions for this scene player
 	CActions	actions = scenePlayer.getAllActions();
@@ -337,33 +333,34 @@ void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex
 			continue;
 
 		// Get linked scene player
-		CScenePlayer&	linkedScenePlayer = *mScenePlayers[*testSceneIndex];
-		if (!(action.getOptions() & kActionOptionsDontPreload)) {
+		if (!(action.getOptions() & kActionOptionsDontPreload))
 			// Preload
-			toLoadSceneItemPlayers += &linkedScenePlayer;
-			toUnloadSceneItemPlayers -= &linkedScenePlayer;
-		}
+			performLoad[*testSceneIndex] = true;
 	}
 
-	// Load new scene
+	// Load new scene first to put its resources in the front of the queue
 	scenePlayer.load(mGPU);
 
 	// Load linked scenes
-	for (TIteratorS<CScenePlayer*> iterator = toLoadSceneItemPlayers.getIterator(); iterator.hasValue();
-			iterator.advance())
-		// Load
-		iterator.getValue()->load(mGPU);
+	for (CArrayItemIndex i = 0; i < mScenePlayers.getCount(); i++) {
+		// Check if loading
+		if (performLoad[i])
+			// Load
+			mScenePlayers[i].load(mGPU);
+	}
 
 	// Unload other scenes
-	for (TIteratorS<CScenePlayer*> iterator = toUnloadSceneItemPlayers.getIterator(); iterator.hasValue();
-			iterator.advance())
-		// Unload
-		iterator.getValue()->unload();
+	for (CArrayItemIndex i = 0; i < mScenePlayers.getCount(); i++) {
+		// Check if loading
+		if (!performLoad[i])
+			// Unoad
+			mScenePlayers[i].unload();
+	}
 
 	// Update
-	mCurrentScenePlayer = &scenePlayer;
+	mCurrentScenePlayer = OR<CScenePlayer>(scenePlayer);
 
-	const	CScene&	scene = mCurrentScenePlayer->getScene();
+	const	CScene&	scene = scenePlayer.getScene();
 	if (!scene.getStoreSceneIndexAsString().isEmpty()) {
 		// Yes
 		SCString	cString = scene.getStoreSceneIndexAsString().getCString();
@@ -483,7 +480,7 @@ void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& act
 		} else if (actionName == CAction::mNameSceneCut) {
 			// Cut to scene
 			CSceneIndex	sceneIndex = internals.mSceneAppPlayer.getSceneIndex(action).getValue();
-			internals.setCurrent(*internals.mScenePlayers[sceneIndex], sceneIndex);
+			internals.setCurrent(internals.mScenePlayers[sceneIndex], sceneIndex);
 		} else if (actionName == CAction::mNameScenePush) {
 			// Push to scene
 			CSceneIndex		sceneIndex = internals.mSceneAppPlayer.getSceneIndex(action).getValue();
@@ -505,10 +502,11 @@ void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& act
 		} else if (actionName == CAction::mNameSetItemNameValue) {
 			// Set Item Name/Value
 			const	CString&		sceneName = actionInfo.getString(CAction::mInfoSceneNameKey);
-					CScenePlayer*	scenePlayer =
+					CScenePlayer&	scenePlayer =
 											!sceneName.isEmpty() ?
-													internals.getScenePlayer(sceneName) : internals.mCurrentScenePlayer;
-			scenePlayer->setItemPlayerProperty(actionInfo.getString(CAction::mInfoItemNameKey),
+													*internals.getScenePlayer(sceneName) :
+													*internals.mCurrentScenePlayer;
+			scenePlayer.setItemPlayerProperty(actionInfo.getString(CAction::mInfoItemNameKey),
 					actionInfo.getString(CAction::mInfoPropertyNameKey),
 					actionInfo.getValue(CAction::mInfoPropertyValueKey));
 		} else if (actionName == CAction::mNameSendItemCommand) {
@@ -645,16 +643,14 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 	const	CScene&	initialScene = mInternals->mScenePackage.getInitialScene();
 	for (UInt32 i = 0; i < mInternals->mScenePackage.getScenesCount(); i++) {
 		// Create scene player
-		const	CScene&			scene = mInternals->mScenePackage.getSceneAtIndex(i);
-				CScenePlayer*	scenePlayer =
-										new CScenePlayer(scene, mInternals->mSceneAppResourceManagementInfo,
-												mInternals->mScenePlayerProcsInfo);
-		mInternals->mScenePlayers += scenePlayer;
+		const	CScene&	scene = mInternals->mScenePackage.getSceneAtIndex(i);
+		mInternals->mScenePlayers +=
+				CScenePlayer(scene, mInternals->mSceneAppResourceManagementInfo, mInternals->mScenePlayerProcsInfo);
 
 		// Handle initial scene
 		if (scene == initialScene) {
 			// Is initial scene
-			mInternals->mCurrentScenePlayer = scenePlayer;
+			mInternals->mCurrentScenePlayer = OR<CScenePlayer>(mInternals->mScenePlayers.getLast());
 			mInternals->mCurrentScenePlayer->load(mInternals->mGPU);
 		}
 	}
@@ -917,7 +913,7 @@ CScenePlayer& CSceneAppPlayer::loadAndStartScenePlayer(CSceneIndex sceneIndex) c
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Get scene player
-	CScenePlayer&	scenePlayer = *mInternals->mScenePlayers[sceneIndex];
+	CScenePlayer&	scenePlayer = mInternals->mScenePlayers[sceneIndex];
 
 	// Load and start
 	scenePlayer.load(mInternals->mGPU);

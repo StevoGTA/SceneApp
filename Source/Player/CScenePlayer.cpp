@@ -19,7 +19,7 @@ static	const	Float32	kVSwipeDragMinY = 12.0f;
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CScenePlayerInternals
 
-class CScenePlayerInternals {
+class CScenePlayerInternals : public TReferenceCountable<CScenePlayerInternals> {
 	public:
 										CScenePlayerInternals(const CScene& scene,
 												const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
@@ -62,17 +62,17 @@ class CScenePlayerInternals {
 												internals->mScenePlayerProcsInfo.performActions(actions, point);
 											}
 
-				bool								mIsLoaded;
-				bool								mIsRunning;
-				TDictionary<CSceneItemPlayer*>		mTouchHandlingInfo;
-		const	CScene&								mScene;
-				CScenePlayer&						mScenePlayer;
-				S2DPointF32							mInitialTouchPoint;
-				S2DOffsetF32						mCurrentOffset;
-		const	SSceneAppResourceManagementInfo&	mSceneAppResourceManagementInfo;
-				SSceneItemPlayerProcsInfo			mSceneItemPlayerProcsInfo;
-		const	SScenePlayerProcsInfo&				mScenePlayerProcsInfo;
-				TPtrArray<CSceneItemPlayer*>		mSceneItemPlayersArray;
+				bool									mIsLoaded;
+				bool									mIsRunning;
+				TReferenceDictionary<CSceneItemPlayer>	mTouchHandlingInfo;
+		const	CScene&									mScene;
+				CScenePlayer&							mScenePlayer;
+				S2DPointF32								mInitialTouchPoint;
+				S2DOffsetF32							mCurrentOffset;
+		const	SSceneAppResourceManagementInfo&		mSceneAppResourceManagementInfo;
+				SSceneItemPlayerProcsInfo				mSceneItemPlayerProcsInfo;
+		const	SScenePlayerProcsInfo&					mScenePlayerProcsInfo;
+				TPtrArray<CSceneItemPlayer*>			mSceneItemPlayersArray;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -90,10 +90,17 @@ CScenePlayer::CScenePlayer(const CScene& scene, const SSceneAppResourceManagemen
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+CScenePlayer::CScenePlayer(const CScenePlayer& other)
+//----------------------------------------------------------------------------------------------------------------------
+{
+	mInternals = other.mInternals->addReference();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 CScenePlayer::~CScenePlayer()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	Delete(mInternals);
+	mInternals->removeReference();
 }
 
 // MARK: Instance methods
@@ -317,7 +324,7 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32
 			return;
 
 		// Store
-		mInternals->mTouchHandlingInfo.set(CString(reference), targetSceneItemPlayer);
+		mInternals->mTouchHandlingInfo.set(CString(reference), *targetSceneItemPlayer);
 
 		// Compose scene item player point
 		S2DPointF32	sceneItemPlayerPoint =
@@ -335,17 +342,17 @@ void CScenePlayer::touchOrMouseMovedFromPoint(const S2DPointF32& point1, const S
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Retrieve target scene item player
-	OV<CSceneItemPlayer*>	targetSceneItemPlayer = mInternals->mTouchHandlingInfo[CString(reference)];
+	OR<CSceneItemPlayer>	targetSceneItemPlayer = mInternals->mTouchHandlingInfo[CString(reference)];
 
 	// Check if touch move has become a swipe
-	if (targetSceneItemPlayer.hasValue() && !mInternals->mScene.getBoundsRect().isEmpty() &&
+	if (targetSceneItemPlayer.hasReference() && !mInternals->mScene.getBoundsRect().isEmpty() &&
 			(((fabsf(point2.mX - mInternals->mInitialTouchPoint.mX) >= kHSwipeDragMinX) &&
 					(fabsf(point2.mY - mInternals->mInitialTouchPoint.mY) <= kHSwipeDragMaxY)) ||
 			((fabsf(point2.mX - mInternals->mInitialTouchPoint.mX) <= kVSwipeDragMaxX) &&
 					(fabsf(point2.mY - mInternals->mInitialTouchPoint.mY) >= kVSwipeDragMinY)))) {
 		// Touch move has become a swipe
-		(*targetSceneItemPlayer)->touchOrMouseCancelled(reference);
-		targetSceneItemPlayer = OV<CSceneItemPlayer*>();
+		targetSceneItemPlayer->touchOrMouseCancelled(reference);
+		targetSceneItemPlayer = OR<CSceneItemPlayer>();
 		mInternals->mTouchHandlingInfo.remove(CString(reference));
 
 		// Update our current offset
@@ -353,18 +360,18 @@ void CScenePlayer::touchOrMouseMovedFromPoint(const S2DPointF32& point1, const S
 	}
 
 	// Handle
-	if (targetSceneItemPlayer.hasValue()) {
+	if (targetSceneItemPlayer.hasReference()) {
 		// Prepare to adjust point if needed
 		S2DPointF32	adjustedPoint1 = point1;
 		S2DPointF32	adjustedPoint2 = point2;
-		if (((*targetSceneItemPlayer)->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) == 0) {
+		if ((targetSceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) == 0) {
 			// Adjust points
 			adjustedPoint1 = adjustedPoint1.offset(mInternals->mCurrentOffset.inverted());
 			adjustedPoint2 = adjustedPoint2.offset(mInternals->mCurrentOffset.inverted());
 		}
 
 		// Pass to scene item player
-		(*targetSceneItemPlayer)->touchOrMouseMovedFromPoint(adjustedPoint1, adjustedPoint2, reference);
+		targetSceneItemPlayer->touchOrMouseMovedFromPoint(adjustedPoint1, adjustedPoint2, reference);
 	} else if (!mInternals->mScene.getBoundsRect().isEmpty()) {
 		// Adjust current offset
 		mInternals->mCurrentOffset = mInternals->mCurrentOffset + S2DOffsetF32(point1, point2);
@@ -384,18 +391,18 @@ void CScenePlayer::touchEndedOrMouseUpAtPoint(const S2DPointF32& point, const vo
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Retrieve target scene item player
-	OV<CSceneItemPlayer*>	targetSceneItemPlayer = mInternals->mTouchHandlingInfo[CString(reference)];
+	OR<CSceneItemPlayer>	targetSceneItemPlayer = mInternals->mTouchHandlingInfo[CString(reference)];
 
 	// Check if have scene item player
-	if (targetSceneItemPlayer.hasValue()) {
+	if (targetSceneItemPlayer.hasReference()) {
 		// Send to Scene Item Player
 		S2DPointF32	adjustedPoint = point;
-		if (((*targetSceneItemPlayer)->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) == 0)
+		if ((targetSceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) == 0)
 			// Offset
 			adjustedPoint = adjustedPoint.offset(mInternals->mCurrentOffset.inverted());
 
 		// Pass to scene item player
-		(*targetSceneItemPlayer)->touchEndedOrMouseUpAtPoint(adjustedPoint, reference);
+		targetSceneItemPlayer->touchEndedOrMouseUpAtPoint(adjustedPoint, reference);
 
 		// Cleanup
 		mInternals->mTouchHandlingInfo.remove(CString(reference));
@@ -407,12 +414,12 @@ void CScenePlayer::touchOrMouseCancelled(const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Retrieve target scene item player
-	OV<CSceneItemPlayer*>	targetSceneItemPlayer = mInternals->mTouchHandlingInfo[CString(reference)];
+	OR<CSceneItemPlayer>	targetSceneItemPlayer = mInternals->mTouchHandlingInfo[CString(reference)];
 
 	// Check if have scene item player
-	if (targetSceneItemPlayer.hasValue()) {
+	if (targetSceneItemPlayer.hasReference()) {
 		// Pass to scene item player
-		(*targetSceneItemPlayer)->touchOrMouseCancelled(reference);
+		targetSceneItemPlayer->touchOrMouseCancelled(reference);
 
 		// Cleanup
 		mInternals->mTouchHandlingInfo.remove(CString(reference));

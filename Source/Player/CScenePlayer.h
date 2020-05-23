@@ -58,6 +58,7 @@ class CScenePlayer {
 							CScenePlayer(const CScene& scene,
 									const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 									const SScenePlayerProcsInfo& scenePlayerProcsInfo);
+							CScenePlayer(const CScenePlayer& other);
 							~CScenePlayer();
 
 							// Instance methods

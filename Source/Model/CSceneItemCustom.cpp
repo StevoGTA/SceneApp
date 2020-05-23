@@ -23,10 +23,10 @@ class CSceneItemCustomInternals : public TCopyOnWriteReferenceCountable<CSceneIt
 
 		CDictionary							mInfo;
 		CString								mType;
-		TDictionary<CActions*>				mActionsMap;
-		TDictionary<CAudioInfo*>			mAudioInfoMap;
-		TDictionary<CSceneItemAnimation*>	mSceneItemAnimationMap;
-		TDictionary<CSceneItemButton*>		mSceneItemButtonMap;
+		TDictionary<CActions>				mActionsMap;
+		TDictionary<CAudioInfo>				mAudioInfoMap;
+		TDictionary<CSceneItemAnimation>	mSceneItemAnimationMap;
+		TDictionary<CSceneItemButton>		mSceneItemButtonMap;
 //		TDictionary<CSceneItemText*>		mSceneItemTextMap;
 };
 
@@ -156,9 +156,9 @@ const CActions& CSceneItemCustom::getActions(const CString& key) const
 	// Check if cached
 	if (!mInternals->mActionsMap.contains(key))
 		// Cache
-		mInternals->mActionsMap.set(key, new CActions(mInternals->mInfo.getDictionary(key)));
+		mInternals->mActionsMap.set(key, CActions(mInternals->mInfo.getDictionary(key)));
 
-	return **mInternals->mActionsMap[key];
+	return *mInternals->mActionsMap[key];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -168,9 +168,9 @@ const CAudioInfo& CSceneItemCustom::getAudioInfo(const CString& key) const
 	// Check if cached
 	if (!mInternals->mAudioInfoMap.contains(key))
 		// Cache
-		mInternals->mAudioInfoMap.set(key, new CAudioInfo(mInternals->mInfo.getDictionary(key)));
+		mInternals->mAudioInfoMap.set(key, CAudioInfo(mInternals->mInfo.getDictionary(key)));
 
-	return **mInternals->mAudioInfoMap[key];
+	return *mInternals->mAudioInfoMap[key];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -181,9 +181,9 @@ const CSceneItemAnimation& CSceneItemCustom::getSceneItemAnimation(const CString
 	if (!mInternals->mSceneItemAnimationMap.contains(key))
 		// Cache
 		mInternals->mSceneItemAnimationMap.set(key,
-				new CSceneItemAnimation(mInternals->mInfo.getDictionary(key).getDictionary(CSceneItem::mItemInfoKey)));
+				CSceneItemAnimation(mInternals->mInfo.getDictionary(key).getDictionary(CSceneItem::mItemInfoKey)));
 
-	return **mInternals->mSceneItemAnimationMap[key];
+	return *mInternals->mSceneItemAnimationMap[key];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -194,9 +194,9 @@ const CSceneItemButton& CSceneItemCustom::getSceneItemButton(const CString& key)
 	if (!mInternals->mSceneItemButtonMap.contains(key))
 		// Cache
 		mInternals->mSceneItemButtonMap.set(key,
-				new CSceneItemButton(mInternals->mInfo.getDictionary(key).getDictionary(CSceneItem::mItemInfoKey)));
+				CSceneItemButton(mInternals->mInfo.getDictionary(key).getDictionary(CSceneItem::mItemInfoKey)));
 
-	return **mInternals->mSceneItemButtonMap[key];
+	return *mInternals->mSceneItemButtonMap[key];
 }
 
 ////----------------------------------------------------------------------------------------------------------------------
