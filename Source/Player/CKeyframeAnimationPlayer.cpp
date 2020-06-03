@@ -16,8 +16,6 @@ const	Float32		kAngleDegreesDefault = 0.0f;
 const	Float32		kAlphaDefault = 1.0f;
 const	Float32		kScaleDefault = 1.0f;
 
-static	TPtrArray<CKeyframeAnimationPlayer*>	sDeadPlayerArray;
-
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CKeyframeAnimationPlayerKeyframe
@@ -232,28 +230,30 @@ class CKeyframeAnimationPlayerInternals {
 				const SKeyframeAnimationPlayerProcsInfo& keyframeAnimationPlayerProcsInfo,
 				const OV<UniversalTimeInterval>& startTimeInterval) :
 			mKeyframeAnimationInfo(keyframeAnimationInfo), mIsStarted(false), mIsFinished(false),
-					mNeedToAddToDeadPlayers(false), mCurrentTimeInterval(0.0), mCurrentFrameTimeInterval(0.0),
+					//mNeedToAddToDeadPlayers(false),
+					mCurrentTimeInterval(0.0), mCurrentFrameTimeInterval(0.0),
 					mStartTimeInterval(startTimeInterval), mCurrentLoopCount(0),
-			mPlayerKeyframesArray(true), mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
+			mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
 					mKeyframeAnimationPlayerProcsInfo(keyframeAnimationPlayerProcsInfo)
 			{}
 
-		const	CKeyframeAnimationInfo&							mKeyframeAnimationInfo;
+		const	CKeyframeAnimationInfo&						mKeyframeAnimationInfo;
 
-				bool											mIsStarted;
-				bool											mIsFinished;
-				bool											mNeedToAddToDeadPlayers;
-				UniversalTimeInterval							mCurrentTimeInterval;
-				UniversalTimeInterval							mCurrentFrameTimeInterval;
-				OV<UniversalTimeInterval>						mStartTimeInterval;
-				UInt32											mCurrentLoopCount;
+				bool										mIsStarted;
+				bool										mIsFinished;
+				UniversalTimeInterval						mCurrentTimeInterval;
+				UniversalTimeInterval						mCurrentFrameTimeInterval;
+				OV<UniversalTimeInterval>					mStartTimeInterval;
+				UInt32										mCurrentLoopCount;
 
-				OR<CKeyframeAnimationPlayerKeyframe>			mPreviousPlayerKeyframe;
-				OR<CKeyframeAnimationPlayerKeyframe>			mNextPlayerKeyframe;
-				TPtrArray<CKeyframeAnimationPlayerKeyframe*>	mPlayerKeyframesArray;
+				OR<CKeyframeAnimationPlayerKeyframe>		mPreviousPlayerKeyframe;
+				OR<CKeyframeAnimationPlayerKeyframe>		mNextPlayerKeyframe;
+				TIArray<CKeyframeAnimationPlayerKeyframe>	mKeyframeAnimationPlayerKeyframes;
 
-		const	SSceneAppResourceManagementInfo&				mSceneAppResourceManagementInfo;
-		const	SKeyframeAnimationPlayerProcsInfo&				mKeyframeAnimationPlayerProcsInfo;
+				OR<bool>									mHasBeenDeleted;
+
+		const	SSceneAppResourceManagementInfo&			mSceneAppResourceManagementInfo;
+		const	SKeyframeAnimationPlayerProcsInfo&			mKeyframeAnimationPlayerProcsInfo;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -281,7 +281,7 @@ CKeyframeAnimationPlayer::CKeyframeAnimationPlayer(const CKeyframeAnimationInfo&
 		CKeyframeAnimationPlayerKeyframe*	playerKeyframe =
 													new CKeyframeAnimationPlayerKeyframe(array[i],
 															previousPlayerKeyframe);
-		mInternals->mPlayerKeyframesArray += playerKeyframe;
+		mInternals->mKeyframeAnimationPlayerKeyframes += playerKeyframe;
 		previousPlayerKeyframe = OR<CKeyframeAnimationPlayerKeyframe>(*playerKeyframe);
 
 		if (i == 0)
@@ -295,9 +295,11 @@ CKeyframeAnimationPlayer::CKeyframeAnimationPlayer(const CKeyframeAnimationInfo&
 CKeyframeAnimationPlayer::~CKeyframeAnimationPlayer()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	if (mInternals->mNeedToAddToDeadPlayers)
-		sDeadPlayerArray += this;
-		
+	// Check if need to indicate we are being deleted
+	if (mInternals->mHasBeenDeleted.hasReference())
+		// Need to indicate
+		*mInternals->mHasBeenDeleted = true;
+
 	Delete(mInternals);
 }
 
@@ -332,10 +334,19 @@ S2DRectF32 CKeyframeAnimationPlayer::getScreenRect()
 CActions CKeyframeAnimationPlayer::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Setup
 	CActions	allActions;
-	for (CArrayItemIndex i = 0; i < mInternals->mPlayerKeyframesArray.getCount(); i++) {
-		const	OO<CActions>&	actions = mInternals->mPlayerKeyframesArray[i]->mAnimationKeyframe.getActions();
+
+	// Iterate all keyframes
+	for (TIteratorD<CKeyframeAnimationPlayerKeyframe> iterator =
+					mInternals->mKeyframeAnimationPlayerKeyframes.getIterator();
+			iterator.hasValue(); iterator.advance()) {
+		// Get actions
+		const	OO<CActions>&	actions = iterator.getValue().mAnimationKeyframe.getActions();
+
+		// Check if have actions
 		if (actions.hasObject())
+			// Add to total list
 			allActions.addFrom(*actions);
 	}
 
@@ -343,12 +354,17 @@ CActions CKeyframeAnimationPlayer::getAllActions() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CKeyframeAnimationPlayer::load(CGPU& gpu,bool start)
+void CKeyframeAnimationPlayer::load(CGPU& gpu, bool start)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	for (CArrayItemIndex i = 0; i < mInternals->mPlayerKeyframesArray.getCount(); i++)
-		mInternals->mPlayerKeyframesArray[i]->load(gpu, mInternals->mSceneAppResourceManagementInfo);
+	// Iterate all keyframes
+	for (TIteratorD<CKeyframeAnimationPlayerKeyframe> iterator =
+					mInternals->mKeyframeAnimationPlayerKeyframes.getIterator();
+			iterator.hasValue(); iterator.advance())
+		// Load
+		iterator.getValue().load(gpu, mInternals->mSceneAppResourceManagementInfo);
 
+	// Reset
 	reset(start);
 }
 
@@ -356,7 +372,9 @@ void CKeyframeAnimationPlayer::load(CGPU& gpu,bool start)
 void CKeyframeAnimationPlayer::finishLoading()
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Check if have reference
 	if (mInternals->mPreviousPlayerKeyframe.hasReference())
+		// Finish loading
 		mInternals->mPreviousPlayerKeyframe->finishLoading();
 }
 
@@ -364,8 +382,12 @@ void CKeyframeAnimationPlayer::finishLoading()
 void CKeyframeAnimationPlayer::unload()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	for (CArrayItemIndex i = 0; i < mInternals->mPlayerKeyframesArray.getCount(); i++)
-		mInternals->mPlayerKeyframesArray[i]->unload();
+	// Iterate all keyframes
+	for (TIteratorD<CKeyframeAnimationPlayerKeyframe> iterator =
+					mInternals->mKeyframeAnimationPlayerKeyframes.getIterator();
+			iterator.hasValue(); iterator.advance())
+		// Unload
+		iterator.getValue().unload();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -378,14 +400,15 @@ void CKeyframeAnimationPlayer::reset(bool start)
 	mInternals->mCurrentFrameTimeInterval = 0.0;
 	mInternals->mCurrentLoopCount = 0;
 
-	TPtrArray<CKeyframeAnimationPlayerKeyframe*>&	playerKeyframesArray = mInternals->mPlayerKeyframesArray;
+	TIArray<CKeyframeAnimationPlayerKeyframe>&	keyframeAnimationPlayerKeyframes =
+														mInternals->mKeyframeAnimationPlayerKeyframes;
 	mInternals->mPreviousPlayerKeyframe =
-			(playerKeyframesArray.getCount() > 0) ?
-					OR<CKeyframeAnimationPlayerKeyframe>(*playerKeyframesArray[0]) :
+			(keyframeAnimationPlayerKeyframes.getCount() > 0) ?
+					OR<CKeyframeAnimationPlayerKeyframe>(keyframeAnimationPlayerKeyframes[0]) :
 					OR<CKeyframeAnimationPlayerKeyframe>();
 	mInternals->mNextPlayerKeyframe =
-			(playerKeyframesArray.getCount() > 1) ?
-					OR<CKeyframeAnimationPlayerKeyframe>(*playerKeyframesArray[1]) :
+			(keyframeAnimationPlayerKeyframes.getCount() > 1) ?
+					OR<CKeyframeAnimationPlayerKeyframe>(keyframeAnimationPlayerKeyframes[1]) :
 					OR<CKeyframeAnimationPlayerKeyframe>();
 
 	if (start)
@@ -412,10 +435,9 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 			mInternals->mCurrentFrameTimeInterval += deltaTimeInterval;
 
 		// Setup
-		const	SKeyframeAnimationPlayerProcsInfo&				procsInfo =
-																		mInternals->mKeyframeAnimationPlayerProcsInfo;
-				TPtrArray<CKeyframeAnimationPlayerKeyframe*>&	playerKeyframesArray =
-																		mInternals->mPlayerKeyframesArray;
+		const	SKeyframeAnimationPlayerProcsInfo&			procsInfo = mInternals->mKeyframeAnimationPlayerProcsInfo;
+				TIArray<CKeyframeAnimationPlayerKeyframe>&	keyframeAnimationPlayerKeyframes =
+																	mInternals->mKeyframeAnimationPlayerKeyframes;
 
 		// Get on the correct keyframe
 		while (
@@ -443,30 +465,33 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 				return;
 
 			// Process actions - this may cause us to go away
-			mInternals->mNeedToAddToDeadPlayers = true;
+			bool	hasBeenDeleted = false;
+			mInternals->mHasBeenDeleted = OR<bool>(hasBeenDeleted);
+
 			const	OO<CActions>&	actions = mInternals->mPreviousPlayerKeyframe->getActions();
 			if (actions.hasObject())
 				// Handle actions
 				procsInfo.performActions(*this, *actions);
 
-			// Did we die?
-			if (sDeadPlayerArray.contains(this)) {
-				// Yes
-				sDeadPlayerArray -= this;
-
+			// Check if deleted
+			if (hasBeenDeleted)
 				return;
-			}
-			mInternals->mNeedToAddToDeadPlayers = false;
+
+			// Reset
+			mInternals->mHasBeenDeleted = OR<bool>();
 
 			// Update next keyframe
-			OV<CArrayItemIndex>	index = playerKeyframesArray.getIndexOf(&(*mInternals->mPreviousPlayerKeyframe));
-			if (*index < (playerKeyframesArray.getCount() - 1))
+			OV<CArrayItemIndex>	index =
+										keyframeAnimationPlayerKeyframes.getIndexOf(
+												*mInternals->mPreviousPlayerKeyframe);
+			if (*index < (keyframeAnimationPlayerKeyframes.getCount() - 1))
 				// Next keyframe please!
 				mInternals->mNextPlayerKeyframe =
-						OR<CKeyframeAnimationPlayerKeyframe>(*playerKeyframesArray[*index + 1]);
+						OR<CKeyframeAnimationPlayerKeyframe>(keyframeAnimationPlayerKeyframes[*index + 1]);
 			else if (procsInfo.canPerformShouldLoop() && procsInfo.shouldLoop(*this, ++mInternals->mCurrentLoopCount)) {
 				// Looping
-				mInternals->mNextPlayerKeyframe = OR<CKeyframeAnimationPlayerKeyframe>(*playerKeyframesArray[0]);
+				mInternals->mNextPlayerKeyframe =
+						OR<CKeyframeAnimationPlayerKeyframe>(keyframeAnimationPlayerKeyframes[0]);
 
 				// Call proc
 				procsInfo.didLoop(*this);
