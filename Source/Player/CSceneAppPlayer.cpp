@@ -76,10 +76,10 @@ class CSceneAppPlayerInternals {
 		OO<CSceneTransitionPlayer>							mCurrentSceneTransitionPlayer;
 		OV<CSceneIndex>										mCurrentSceneTransitionPlayerToSceneIndex;
 
-		TLockingArray<SSceneAppPlayerTouchBeganInfo>		mTouchBeganInfos;
-		TLockingArray<SSceneAppPlayerTouchMovedInfo>		mTouchMovedInfos;
-		TLockingArray<SSceneAppPlayerTouchEndedInfo>		mTouchEndedInfos;
-		TLockingArray<SSceneAppPlayerTouchCancelledInfo>	mTouchCancelledInfos;
+		TNLockingArray<SSceneAppPlayerTouchBeganInfo>		mTouchBeganInfos;
+		TNLockingArray<SSceneAppPlayerTouchMovedInfo>		mTouchMovedInfos;
+		TNLockingArray<SSceneAppPlayerTouchEndedInfo>		mTouchEndedInfos;
+		TNLockingArray<SSceneAppPlayerTouchCancelledInfo>	mTouchCancelledInfos;
 		TNArray<STouchHandlerInfo>							mSceneTouchHandlerInfos;
 		TNArray<STouchHandlerInfo>							mSceneTransitionTouchHandlerInfos;
 
