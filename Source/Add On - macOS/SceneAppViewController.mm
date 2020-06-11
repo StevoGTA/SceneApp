@@ -90,8 +90,11 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			point.y = weakSelf.view.bounds.size.height - point.y;
 
 			// Inform SceneAppPlayer
+			const	SMatrix4x4_32&	viewMatrix = ((NSView<AKTGPUView>*) self.view).gpu.getViewMatrix();
 			weakSelf.sceneAppPlayerInternal->mouseDown(
-					SSceneAppPlayerMouseDownInfo(S2DPointF32(point.x, point.y), (UInt32) event.clickCount));
+					SSceneAppPlayerMouseDownInfo(
+							S2DPointF32(point.x / viewMatrix.m1_1, point.y / viewMatrix.m2_2),
+							(UInt32) event.clickCount));
 
 			// Store
 			weakSelf.previousLocationInWindow = point;
@@ -102,10 +105,12 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			point.y = weakSelf.view.bounds.size.height - point.y;
 
 			// Inform SceneAppPlayer
+			const	SMatrix4x4_32&	viewMatrix = ((NSView<AKTGPUView>*) self.view).gpu.getViewMatrix();
 			weakSelf.sceneAppPlayerInternal->mouseDragged(
 					SSceneAppPlayerMouseDraggedInfo(
-							S2DPointF32(weakSelf.previousLocationInWindow.x, weakSelf.previousLocationInWindow.y),
-							S2DPointF32(point.x, point.y)));
+							S2DPointF32(weakSelf.previousLocationInWindow.x / viewMatrix.m1_1,
+									weakSelf.previousLocationInWindow.y / viewMatrix.m2_2),
+							S2DPointF32(point.x / viewMatrix.m1_1, point.y / viewMatrix.m2_2)));
 
 			// Store
 			weakSelf.previousLocationInWindow = point;
@@ -116,7 +121,9 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			point.y = weakSelf.view.bounds.size.height - point.y;
 
 			// Inform SceneAppPlayer
-			weakSelf.sceneAppPlayerInternal->mouseUp(SSceneAppPlayerMouseUpInfo(S2DPointF32(point.x, point.y)));
+			const	SMatrix4x4_32&	viewMatrix = ((NSView<AKTGPUView>*) self.view).gpu.getViewMatrix();
+			weakSelf.sceneAppPlayerInternal->mouseUp(
+					SSceneAppPlayerMouseUpInfo(S2DPointF32(point.x / viewMatrix.m1_1, point.y / viewMatrix.m2_2)));
 		};
 
 		((NSView<AKTGPUView>*) self.view).periodicProc = ^(UniversalTime outputTime){
@@ -137,8 +144,9 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 									sSceneAppPlayerGetViewportSizeProc, (__bridge void*) self));
 
 		// Store view size
-		CGSize	size = self.view.bounds.size;
-		self.viewSize = S2DSizeF32(size.width, size.height);
+		const	SMatrix4x4_32&	viewMatrix = ((NSView<AKTGPUView>*) self.view).gpu.getViewMatrix();
+				CGSize			size = self.view.bounds.size;
+		self.viewSize = S2DSizeF32(size.width / viewMatrix.m1_1, size.height / viewMatrix.m2_2);
 
 		// Setup Notifications
 		NSNotificationCenter*	notificationCenter = [NSNotificationCenter defaultCenter];

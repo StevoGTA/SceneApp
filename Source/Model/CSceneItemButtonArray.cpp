@@ -142,7 +142,7 @@ void CSceneItemButtonArrayButton::setActions(const OO<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mActions = actions;
@@ -160,7 +160,7 @@ void CSceneItemButtonArrayButton::setUpImageRect(const S2DRectF32& upImageRect)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mUpImageRect = upImageRect;
@@ -178,7 +178,7 @@ void CSceneItemButtonArrayButton::setDownImageRect(const S2DRectF32& downImageRe
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mDownImageRect = downImageRect;
@@ -196,7 +196,7 @@ void CSceneItemButtonArrayButton::setScreenPositionPoint(const S2DPointF32& scre
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mScreenPositionPoint = screenPositionPoint;
@@ -326,7 +326,7 @@ void CSceneItemButtonArray::setStartTimeInterval(const OV<UniversalTimeInterval>
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mStartTimeInterval = startTimeInterval;
@@ -344,7 +344,7 @@ void CSceneItemButtonArray::setImageResourceFilename(const CString& imageResourc
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mImageResourceFilename = imageResourceFilename;

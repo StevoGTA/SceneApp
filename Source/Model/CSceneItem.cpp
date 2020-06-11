@@ -88,7 +88,7 @@ void CSceneItem::setIsVisible(bool isVisible)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mIsVisible = isVisible;
@@ -106,7 +106,7 @@ void CSceneItem::setName(const CString& name)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mName = name;
@@ -124,7 +124,7 @@ void CSceneItem::setOptions(ESceneItemOptions options)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mOptions = options;

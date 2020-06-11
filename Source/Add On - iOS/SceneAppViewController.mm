@@ -89,36 +89,47 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 
 		__weak	__typeof(self)	weakSelf = self;
 		((UIView<UKTGPUView>*) self.view).touchesBeganProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
-			// Collect info
+			// Setup
+			const	SMatrix4x4_32&	viewMatrix = ((UIView<UKTGPUView>*) self.view).gpu.getViewMatrix();
+
+			// Convert native touches to SceneApp touches
 			TNArray<SSceneAppPlayerTouchBeganInfo>	touchBeganInfosArray;
 			for (UITouch* touch in touches) {
 				// Add info
 				CGPoint	pt = [touch locationInView:weakSelf.view];
 				touchBeganInfosArray +=
-						SSceneAppPlayerTouchBeganInfo(S2DPointF32(pt.x, pt.y), (UInt32) touch.tapCount,
-								(__bridge void*) touch);
+						SSceneAppPlayerTouchBeganInfo(S2DPointF32(pt.x / viewMatrix.m1_1, pt.y / viewMatrix.m2_2),
+								(UInt32) touch.tapCount, (__bridge void*) touch);
 			}
 
 			// Inform SceneAppPlayer
 			weakSelf.sceneAppPlayerInternal->touchesBegan(touchBeganInfosArray);
 		};
 		((UIView<UKTGPUView>*) self.view).touchesMovedProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
-			// Collect info
+			// Setup
+			const	SMatrix4x4_32&	viewMatrix = ((UIView<UKTGPUView>*) self.view).gpu.getViewMatrix();
+
+			// Convert native touches to SceneApp touches
 			TNArray<SSceneAppPlayerTouchMovedInfo>	touchMovedInfosArray;
 			for (UITouch* touch in touches) {
 				// Add info
 				CGPoint	previousPt = [touch previousLocationInView:weakSelf.view];
 				CGPoint	currentPt = [touch locationInView:weakSelf.view];
 				touchMovedInfosArray +=
-						SSceneAppPlayerTouchMovedInfo(S2DPointF32(previousPt.x, previousPt.y),
-								S2DPointF32(currentPt.x, currentPt.y), (__bridge void*) touch);
+						SSceneAppPlayerTouchMovedInfo(
+								S2DPointF32(previousPt.x / viewMatrix.m1_1, previousPt.y / viewMatrix.m2_2),
+								S2DPointF32(currentPt.x / viewMatrix.m1_1, currentPt.y / viewMatrix.m2_2),
+								(__bridge void*) touch);
 			}
 
 			// Inform SceneAppPlayer
 			weakSelf.sceneAppPlayerInternal->touchesMoved(touchMovedInfosArray);
 		};
 		((UIView<UKTGPUView>*) self.view).touchesEndedProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
-			// Collect info
+			// Setup
+			const	SMatrix4x4_32&	viewMatrix = ((UIView<UKTGPUView>*) self.view).gpu.getViewMatrix();
+
+			// Convert native touches to SceneApp touches
 			TNArray<SSceneAppPlayerTouchMovedInfo>	touchMovedInfosArray;
 			TNArray<SSceneAppPlayerTouchEndedInfo>	touchEndedInfosArray;
 			for (UITouch* touch in touches) {
@@ -128,10 +139,14 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 				if (!CGPointEqualToPoint(previousPt, currentPt))
 					// Need to add a move to final point
 					touchMovedInfosArray +=
-							SSceneAppPlayerTouchMovedInfo(S2DPointF32(previousPt.x, previousPt.y),
-									S2DPointF32(currentPt.x, currentPt.y), (__bridge void*) touch);
+							SSceneAppPlayerTouchMovedInfo(
+									S2DPointF32(previousPt.x / viewMatrix.m1_1, previousPt.y / viewMatrix.m2_2),
+									S2DPointF32(currentPt.x / viewMatrix.m1_1, currentPt.y / viewMatrix.m2_2),
+									(__bridge void*) touch);
 				touchEndedInfosArray +=
-						SSceneAppPlayerTouchEndedInfo(S2DPointF32(currentPt.x, currentPt.y), (__bridge void*) touch);
+						SSceneAppPlayerTouchEndedInfo(
+								S2DPointF32(currentPt.x / viewMatrix.m1_1, currentPt.y / viewMatrix.m2_2),
+								(__bridge void*) touch);
 			}
 
 			// Inform SceneAppPlayer
@@ -180,8 +195,9 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 									sSceneAppPlayerGetViewportSizeProc, (__bridge void*) self));
 
 		// Store view size
-		CGSize	size = self.view.bounds.size;
-		self.viewSize = S2DSizeF32(size.width, size.height);
+		const	SMatrix4x4_32&	viewMatrix = ((UIView<UKTGPUView>*) self.view).gpu.getViewMatrix();
+				CGSize			size = self.view.bounds.size;
+		self.viewSize = S2DSizeF32(size.width / viewMatrix.m1_1, size.height / viewMatrix.m2_2);
 
 		// Setup Notifications
 		NSNotificationCenter*	notificationCenter = [NSNotificationCenter defaultCenter];

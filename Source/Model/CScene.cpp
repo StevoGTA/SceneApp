@@ -180,7 +180,7 @@ void CScene::setName(const CString& name)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mName = name;
@@ -198,7 +198,7 @@ void CScene::setBoundsRect(const S2DRectF32& rect)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mBoundsRect = rect;
@@ -216,7 +216,7 @@ void CScene::setDoubleTapActions(const OO<CActions>& doubleTapActions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mDoubleTapActions = doubleTapActions;
@@ -234,7 +234,7 @@ void CScene::setOptions(ESceneOptions options)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mOptions = options;
@@ -252,7 +252,7 @@ void CScene::setStoreSceneIndexAsString(const CString& string)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mStoreSceneIndexAsString = string;

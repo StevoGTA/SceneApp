@@ -137,7 +137,7 @@ void CAudioInfo::setGain(Float32 gain)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mGain = gain;
@@ -155,7 +155,7 @@ void CAudioInfo::setResourceFilename(const CString& resourceFilename)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mResourceFilename = resourceFilename;
@@ -173,7 +173,7 @@ void CAudioInfo::setLoopCount(UInt32 loopCount)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mLoopCount = loopCount;
@@ -191,7 +191,7 @@ void CAudioInfo::setOptions(EAudioInfoOptions options)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mOptions = options;

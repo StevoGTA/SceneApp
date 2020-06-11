@@ -188,7 +188,7 @@ void CSceneItemAnimation::setStartedActions(const OO<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mStartedActions = actions;
@@ -206,7 +206,7 @@ void CSceneItemAnimation::setFinishedActions(const OO<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mFinishedActions = actions;
@@ -224,7 +224,7 @@ void CSceneItemAnimation::setAudioInfo(const OO<CAudioInfo>& audioInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mAudioInfo = audioInfo;
@@ -242,7 +242,7 @@ void CSceneItemAnimation::setAudioInfo(const OO<CAudioInfo>& audioInfo)
 ////----------------------------------------------------------------------------------------------------------------------
 //{
 //	// Prepare to write
-//	mInternals->prepareForWrite();
+//	mInternals = mInternals->prepareForWrite();
 //
 //	// Update
 //	mInternals->mCelAnimationInfo = celAnimationInfo;
@@ -261,7 +261,7 @@ void CSceneItemAnimation::setKeyframeAnimationInfo(const OO<CKeyframeAnimationIn
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 //	mInternals->mCelAnimationInfo = mInternals->mCelAnimationInfo();
@@ -280,7 +280,7 @@ void CSceneItemAnimation::setLoopCount(UInt32 loopCount)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mLoopCount = loopCount;
@@ -298,7 +298,7 @@ void CSceneItemAnimation::setStartTimeInterval(const OV<UniversalTimeInterval>& 
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mStartTimeInterval = startTimeInterval;

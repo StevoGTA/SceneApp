@@ -189,7 +189,7 @@ void CSceneItemButton::setActions(const OO<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mActions = actions;
@@ -207,7 +207,7 @@ void CSceneItemButton::setAudioInfo(const OO<CAudioInfo>& audioInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mAudioInfo = audioInfo;
@@ -225,7 +225,7 @@ void CSceneItemButton::setUpKeyframeAnimationInfo(const OO<CKeyframeAnimationInf
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mUpKeyframeAnimationInfo = keyframeAnimationInfo;
@@ -243,7 +243,7 @@ void CSceneItemButton::setDownKeyframeAnimationInfo(const OO<CKeyframeAnimationI
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mDownKeyframeAnimationInfo = keyframeAnimationInfo;
@@ -261,7 +261,7 @@ void CSceneItemButton::setDisabledKeyframeAnimationInfo(const OO<CKeyframeAnimat
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mDisabledKeyframeAnimationInfo = keyframeAnimationInfo;
@@ -279,7 +279,7 @@ void CSceneItemButton::setStartTimeInterval(const OV<UniversalTimeInterval>& sta
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mStartTimeInterval = startTimeInterval;
@@ -297,7 +297,7 @@ void CSceneItemButton::setHitRadius(Float32 hitRadius)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mHitRadius = hitRadius;

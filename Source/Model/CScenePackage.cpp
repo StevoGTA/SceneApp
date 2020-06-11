@@ -115,6 +115,10 @@ OV<CSceneIndex> CScenePackage::getIndexOfScene(const CScene& scene)
 CScenePackage& CScenePackage::operator=(const CScenePackage& other)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Check if assignment to self
+	if (this == &other)
+		return *this;
+
 	// Remove reference to ourselves
 	mInternals->removeReference();
 

@@ -109,7 +109,7 @@ void CKeyframeAnimationInfo::addAnimationKeyframe(const CAnimationKeyframe& anim
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mAnimationKeyframesArray += animationKeyframe;

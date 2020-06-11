@@ -232,7 +232,7 @@ void CAnimationKeyframe::setActions(const OO<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mActions = actions;
@@ -250,7 +250,7 @@ void CAnimationKeyframe::setAnchorPoint(const OV<S2DPointF32>& anchorPoint)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mAnchorPoint = anchorPoint;
@@ -268,7 +268,7 @@ void CAnimationKeyframe::setScreenPositionPoint(const OV<S2DPointF32>& screenPos
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mScreenPositionPoint = screenPositionPoint;
@@ -286,7 +286,7 @@ void CAnimationKeyframe::setAngleDegrees(const OV<Float32>& angleDegrees)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mAngleDegrees = angleDegrees;
@@ -304,7 +304,7 @@ void CAnimationKeyframe::setAlpha(const OV<Float32>& alpha)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mAlpha = alpha;
@@ -322,7 +322,7 @@ void CAnimationKeyframe::setScale(const OV<Float32>& scale)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mScale = scale;
@@ -340,7 +340,7 @@ void CAnimationKeyframe::setDelay(const OV<UniversalTimeInterval>& delay)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mDelay = delay;
@@ -358,7 +358,7 @@ void CAnimationKeyframe::setTransitionType(const OV<EAnimationKeyframeTransition
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mTransitionType = transitionType;
@@ -376,7 +376,7 @@ void CAnimationKeyframe::setImageResourceFilename(const OV<CString>& imageResour
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mImageResourceFilename = imageResourceFilename;
@@ -394,7 +394,7 @@ void CAnimationKeyframe::setOptions(EAnimationKeyframeOptions options)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals->prepareForWrite();
+	mInternals = mInternals->prepareForWrite();
 
 	// Update
 	mInternals->mOptions = options;
