@@ -75,35 +75,22 @@
 */
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: SScenePackageInfo
-struct SScenePackageInfo {
-	// Lifecycle methods
-	SScenePackageInfo(const CString& filename, const S2DSizeF32& size, Float32 totalPixels, Float32 aspectRatio) :
-		mFilename(filename), mSize(size), mTotalPixels(totalPixels), mAspectRatio(aspectRatio)
-		{}
-
-	// Properties
-	CString		mFilename;
-	S2DSizeF32	mSize;
-	Float32		mTotalPixels;
-	Float32		mAspectRatio;
-};
-
-//----------------------------------------------------------------------------------------------------------------------
 // MARK: - SSceneAppResourceManagementInfo
 
-typedef	CByteParceller	(*SSceneAppResourceManagementInfoCreateByteParcellerProc)(const CString& resourceFilename);
+typedef	CByteParceller	(*SSceneAppResourceManagementInfoCreateByteParcellerProc)(const CString& resourceFilename,
+								void* userData);
 struct SSceneAppResourceManagementInfo {
 					// Lifecycle methods
 					SSceneAppResourceManagementInfo(
 							SSceneAppResourceManagementInfoCreateByteParcellerProc createByteParcellerProc,
-							CGPUTextureManager& gpuTextureManager) :
-						mCreateByteParcellerProc(createByteParcellerProc), mGPUTextureManager(gpuTextureManager)
+							CGPUTextureManager& gpuTextureManager, void* userData) :
+						mCreateByteParcellerProc(createByteParcellerProc), mGPUTextureManager(gpuTextureManager),
+								mUserData(userData)
 						{}
 
 					// Instance methods
 	CByteParceller	createByteParceller(const CString& resourceFilename) const
-						{ return mCreateByteParcellerProc(resourceFilename); }
+						{ return mCreateByteParcellerProc(resourceFilename, mUserData); }
 
 	// Properties
 	public:
@@ -111,15 +98,5 @@ struct SSceneAppResourceManagementInfo {
 
 	private:
 		SSceneAppResourceManagementInfoCreateByteParcellerProc	mCreateByteParcellerProc;
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneApp
-
-class CSceneApp {
-	// Methods
-	public:
-											// Class methods
-		static	TArray<SScenePackageInfo>	scenePackageInfosForScenePackageFilenames(
-													const TArray<CString>& scenePackageFilenames);
+		void*													mUserData;
 };
