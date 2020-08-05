@@ -6,25 +6,19 @@
 
 #import "CCoreFoundation.h"
 #import "CFileDataSource.h"
+#import "CFilesystem.h"
 #import "CSceneAppPlayer.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Local data
+// MARK: Local proc declarations
 
-static	NSString*	sResourceFolderSubpath = @"SceneAppContent";
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc declarations
-
-static	CByteParceller	sSceneAppPlayerCreateByteParceller(const CString& resourceFilename);
+static	CByteParceller	sSceneAppPlayerCreateByteParceller(const CString& resourceFilename, void* userData);
 static	void			sSceneAppInstallPeriodic(void* userData);
 static	void			sSceneAppRemovePeriodic(void* userData);
 static	void			sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData);
 static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
 										void* userData);
 static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
-//static	void			sSceneAppPlayerBeginDraw(void* userData);
-//static	void			sSceneAppPlayerEndDraw(void* userData);
 //static	CImageX	sSceneAppPlayerGetCurrentViewportImage(void* userData);
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -32,6 +26,7 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 // MARK: - SceneAppViewController
 @interface SceneAppViewController ()
 
+@property (nonatomic, assign)	CFilesystemPath*	sceneAppContentRootFilesystemPath;
 @property (nonatomic, assign)	CSceneAppPlayer*	sceneAppPlayerInternal;
 @property (nonatomic, assign)	S2DSizeF32			viewSize;
 @property (nonatomic, assign)	NSPoint				previousLocationInWindow;
@@ -43,43 +38,43 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 // MARK: Property methods
 
 //----------------------------------------------------------------------------------------------------------------------
-+ (TArray<CString>) scenePackageFilenames
-{
-	// Collect all Scenes*.plist files
-	TNArray<CString>	scenePackageFilenames;
-	for (NSURL* URL in
-			[[NSBundle mainBundle] URLsForResourcesWithExtension:@"plist" subdirectory:sResourceFolderSubpath]) {
-		NSString*	filename = [[URL path] lastPathComponent];
-		if ([filename hasPrefix:@"Scenes_"])
-			// Found scene package
-			scenePackageFilenames += CString((__bridge CFStringRef) filename);
-	}
-
-	return scenePackageFilenames;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 - (CSceneAppPlayer&) sceneAppPlayer
 {
 	return *self.sceneAppPlayerInternal;
 }
 
+// MARK: Class methods
+
+//----------------------------------------------------------------------------------------------------------------------
++ (TArray<SScenePackageInfo>) scenePackageInfosIn:(const CFolder&) sceneAppContentFolder
+//----------------------------------------------------------------------------------------------------------------------
+{
+	// Get files in folder
+	TNArray<CFile>	files;
+	CFilesystem::getFiles(sceneAppContentFolder, files);
+
+	return CScenePackage::getScenePackageInfos(files);
+}
+
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(NSView<AKTGPUView>*) view
+- (instancetype) initWithView:(NSView<AKTGPUView>*) view sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
 {
-	return [self initWithView:view sceneAppPlayerCreationProc:nil];
+	return [self initWithView:view sceneAppContentFolder:sceneAppContentFolder sceneAppPlayerCreationProc:nil];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(NSView<AKTGPUView>*) view
+- (instancetype) initWithView:(NSView<AKTGPUView>*) view sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
 		sceneAppPlayerCreationProc:
 				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
 						sceneAppPlayerCreationProc
 {
 	self = [super initWithNibName:nil bundle:nil];
 	if (self != nil) {
+		// Store
+		self.sceneAppContentRootFilesystemPath = new CFilesystemPath(sceneAppContentFolder.getFilesystemPath());
+
 		// Setup the view
 		self.view = view;
 
@@ -164,6 +159,7 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 - (void) dealloc
 {
+	Delete(self.sceneAppContentRootFilesystemPath);
 	Delete(self.sceneAppPlayerInternal);
 }
 
@@ -261,15 +257,17 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 // MARK: - Local proc definitions
 
 //----------------------------------------------------------------------------------------------------------------------
-CByteParceller sSceneAppPlayerCreateByteParceller(const CString& resourceFilename)
+CByteParceller sSceneAppPlayerCreateByteParceller(const CString& resourceFilename, void* userData)
 {
-	CFStringRef	resourceFilenameStringRef = CCoreFoundation::createStringRefFrom(resourceFilename);
-	NSString*	path =
-						[[NSBundle mainBundle] pathForResource:(__bridge NSString*) resourceFilenameStringRef ofType:@""
-								inDirectory:sResourceFolderSubpath];
-	::CFRelease(resourceFilenameStringRef);
+	// Setup
+	SceneAppViewController*	sceneAppViewController = (__bridge SceneAppViewController*) userData;
 
-	return CByteParceller(new CMappedFileDataSource(CFile(CFilesystemPath(CString((__bridge CFStringRef) path)))));
+	return CByteParceller(
+			new CMappedFileDataSource(
+					CFile(
+							CFilesystemPath(
+									(*sceneAppViewController.sceneAppContentRootFilesystemPath)
+											.appendingComponent(resourceFilename)))));
 }
 
 //----------------------------------------------------------------------------------------------------------------------

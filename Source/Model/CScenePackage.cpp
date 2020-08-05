@@ -127,3 +127,39 @@ CScenePackage& CScenePackage::operator=(const CScenePackage& other)
 
 	return *this;
 }
+
+// MARK: Class methods
+
+//----------------------------------------------------------------------------------------------------------------------
+TArray<SScenePackageInfo> CScenePackage::getScenePackageInfos(const TArray<CFile>& files)
+//----------------------------------------------------------------------------------------------------------------------
+{
+	// Setup
+	TNArray<SScenePackageInfo>	scenePackageInfos;
+
+	// Iterate files
+	for (TIteratorD<CFile> iterator = files.getIterator(); iterator.hasValue(); iterator.advance()) {
+		// Get filename
+		CString	filename = iterator.getValue().getName();
+
+		// Check for Scenes package
+		if (filename.hasPrefix(CString(OSSTR("Scenes_"))) && filename.hasSuffix(CString(OSSTR(".plist")))) {
+			// Collect info
+			TArray<CString>	dimensions =
+									filename
+											.breakUp(CString(OSSTR(".")))[0]
+											.breakUp(CString(OSSTR("_")))[1]
+											.breakUp(CString(OSSTR("x")));
+			Float32			width = dimensions[0].getFloat32();
+			Float32			height = dimensions[1].getFloat32();
+			Float32			totalPixels = width * height;
+			Float32			aspectRatio = width / height;
+
+			// Add info
+			scenePackageInfos.add(
+					SScenePackageInfo(filename, S2DSizeF32(width, height), totalPixels, aspectRatio));
+		}
+	}
+
+	return scenePackageInfos;
+}

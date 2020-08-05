@@ -31,6 +31,11 @@ struct STouchHandlerInfo {
 };
 
 //----------------------------------------------------------------------------------------------------------------------
+// MARK: - Local proc declarations
+
+static	CByteParceller	sSceneAppPlayerCreateByteParceller(const CString& resourceFilename, void* userData);
+
+//----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneAppPlayerInternals
 
@@ -93,7 +98,7 @@ CSceneAppPlayerInternals::CSceneAppPlayerInternals(CSceneAppPlayer& sceneAppPlay
 		const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo) :
 	mOptions(kSceneAppPlayerOptionsDefault), mGPU(gpu), mGPUTextureManager(gpu), mSceneAppPlayer(sceneAppPlayer),
 			mSceneAppPlayerProcsInfo(sceneAppPlayerProcsInfo),
-			mSceneAppResourceManagementInfo(mSceneAppPlayerProcsInfo.mCreateByteParcellerProc, mGPUTextureManager),
+			mSceneAppResourceManagementInfo(sSceneAppPlayerCreateByteParceller, mGPUTextureManager, this),
 			mScenePlayerProcsInfo(scenePlayerGetViewportSizeProc, scenePlayerCreateSceneItemPlayerProc,
 					scenePlayerActionsPerformProc, this),
 			mSceneTransitionPlayerProcsInfo(scenePlayerGetViewportSizeProc, this),
@@ -949,4 +954,17 @@ CScenePlayer& CSceneAppPlayer::getCurrentScenePlayer() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return *mInternals->mCurrentScenePlayer;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------
+// MARK: - Local proc definitions
+
+//----------------------------------------------------------------------------------------------------------------------
+CByteParceller sSceneAppPlayerCreateByteParceller(const CString& resourceFilename, void* userData)
+{
+	// Setup
+	CSceneAppPlayerInternals*	sceneAppPlayerInternals = (CSceneAppPlayerInternals*) userData;
+
+	return sceneAppPlayerInternals->mSceneAppPlayerProcsInfo.createByteParceller(resourceFilename);
 }

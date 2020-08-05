@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CGPU.h"
+#include "CScenePackage.h"
 #include "CScenePlayer.h"
 #include "CSceneItemPlayerCustom.h"
 #include "CSceneItemPlayer.h"
@@ -141,7 +142,7 @@ struct SSceneAppPlayerTouchCancelledInfo {
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - SSceneAppPlayerProcsInfo
 
-typedef	CByteParceller	(*CSceneAppPlayerCreateByteParcellerProc)(const CString& resourceFilename);
+typedef	CByteParceller	(*CSceneAppPlayerCreateByteParcellerProc)(const CString& resourceFilename, void* userData);
 typedef	void			(*CSceneAppPlayerInstallPeriodicProc)(void* userData);
 typedef	void			(*CSceneAppPlayerRemovePeriodicProc)(void* userData);
 typedef	void			(*CSceneAppPlayerOpenURLProc)(const CURL& url, bool useWebView, void* userData);
@@ -165,7 +166,7 @@ struct SSceneAppPlayerProcsInfo {
 
 					// Instance methods
 	CByteParceller	createByteParceller(const CString& resourceFilename) const
-						{ return mCreateByteParcellerProc(resourceFilename); }
+						{ return mCreateByteParcellerProc(resourceFilename, mUserData); }
 	void			installPeriodic() const
 						{ mInstallPeriodicProc(mUserData); }
 	void			removePeriodic() const
