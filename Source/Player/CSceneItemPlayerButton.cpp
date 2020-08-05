@@ -54,8 +54,8 @@ class CSceneItemPlayerButtonInternals {
 							S2DRectF32	screenRect = mUpKeyframeAnimationPlayer->getScreenRect();
 							Float32		centerX = screenRect.getMidX();
 							Float32		centerY = screenRect.getMidY();
-							S2DRectF32	hitTestRect(centerX - hitRadius, centerY - hitRadius, hitRadius * 2.0,
-												hitRadius * 2.0);
+							S2DRectF32	hitTestRect(centerX - hitRadius, centerY - hitRadius, hitRadius * 2.0f,
+												hitRadius * 2.0f);
 
 							return hitTestRect.contains(point);
 						}
