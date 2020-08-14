@@ -46,12 +46,12 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 // MARK: Class methods
 
 //----------------------------------------------------------------------------------------------------------------------
-+ (TArray<SScenePackageInfo>) scenePackageInfosIn:(const CFolder&) sceneAppContentFolder
++ (TArray<SScenePackageInfo>) scenePackageInfosIn:(const CFolder&) folder
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Get files in folder
 	TNArray<CFile>	files;
-	CFilesystem::getFiles(sceneAppContentFolder, files);
+	CFilesystem::getFiles(folder, files);
 
 	return CScenePackage::getScenePackageInfos(files);
 }
@@ -59,22 +59,10 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(NSView<AKTGPUView>*) view sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
-{
-	return [self initWithView:view sceneAppContentFolder:sceneAppContentFolder sceneAppPlayerCreationProc:nil];
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(NSView<AKTGPUView>*) view sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
-		sceneAppPlayerCreationProc:
-				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
-						sceneAppPlayerCreationProc
+- (instancetype) initWithView:(NSView<AKTGPUView>*) view
 {
 	self = [super initWithNibName:nil bundle:nil];
 	if (self != nil) {
-		// Store
-		self.sceneAppContentRootFilesystemPath = new CFilesystemPath(sceneAppContentFolder.getFilesystemPath());
-
 		// Setup the view
 		self.view = view;
 
@@ -126,23 +114,6 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 			weakSelf.sceneAppPlayerInternal->handlePeriodic(outputTime);
 		};
 
-		// Setup Scene App Player
-		self.sceneAppPlayerInternal =
-				(sceneAppPlayerCreationProc != nil) ?
-					sceneAppPlayerCreationProc(view.gpu,
-							SSceneAppPlayerProcsInfo(sSceneAppPlayerCreateByteParceller, sSceneAppInstallPeriodic,
-									sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL, sSceneAppPlayerHandleCommand,
-									sSceneAppPlayerGetViewportSizeProc, (__bridge void*) self)) :
-					new CSceneAppPlayer(view.gpu,
-							SSceneAppPlayerProcsInfo(sSceneAppPlayerCreateByteParceller, sSceneAppInstallPeriodic,
-									sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL, sSceneAppPlayerHandleCommand,
-									sSceneAppPlayerGetViewportSizeProc, (__bridge void*) self));
-
-		// Store view size
-		const	SMatrix4x4_32&	viewMatrix = ((NSView<AKTGPUView>*) self.view).gpu.getViewMatrix();
-				CGSize			size = self.view.bounds.size;
-		self.viewSize = S2DSizeF32(size.width / viewMatrix.m1_1, size.height / viewMatrix.m2_2);
-
 		// Setup Notifications
 		NSNotificationCenter*	notificationCenter = [NSNotificationCenter defaultCenter];
 		[notificationCenter addObserver:self selector:@selector(applicationWillResignActiveNotification:)
@@ -191,7 +162,34 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 
 //----------------------------------------------------------------------------------------------------------------------
 - (void) loadScenesFrom:(const SScenePackageInfo&) scenePackageInfo
+		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
+		sceneAppPlayerCreationProc:
+				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
+						sceneAppPlayerCreationProc
 {
+	// Cleanup
+	Delete(self.sceneAppContentRootFilesystemPath);
+	Delete(self.sceneAppPlayerInternal);
+
+	// Store
+	self.sceneAppContentRootFilesystemPath = new CFilesystemPath(sceneAppContentFolder.getFilesystemPath());
+
+	// Setup Scene App Player
+	CGPU&						gpu = ((NSView<AKTGPUView>*) self.view).gpu;
+	SSceneAppPlayerProcsInfo	sceneAppPlayerProcsInfo(sSceneAppPlayerCreateByteParceller, sSceneAppInstallPeriodic,
+										sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL, sSceneAppPlayerHandleCommand,
+										sSceneAppPlayerGetViewportSizeProc, (__bridge void*) self);
+	self.sceneAppPlayerInternal =
+			(sceneAppPlayerCreationProc != nil) ?
+					sceneAppPlayerCreationProc(gpu, sceneAppPlayerProcsInfo) :
+					new CSceneAppPlayer(gpu, sceneAppPlayerProcsInfo);
+
+	// Store view size
+	const	SMatrix4x4_32&	viewMatrix = gpu.getViewMatrix();
+			CGSize			size = self.view.bounds.size;
+	self.viewSize = S2DSizeF32(size.width / viewMatrix.m1_1, size.height / viewMatrix.m2_2);
+
+	// Load scenes
 	self.sceneAppPlayerInternal->loadScenes(scenePackageInfo);
 }
 
@@ -200,7 +198,7 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 - (void) applicationWillResignActiveNotification:(NSNotification*) notification
 {
-#warning What to do here?
+// TODO: What to do here?
 //	// Send notification
 //	CEvent	event(kSceneAppWillResignActiveEventKind);
 //	CNotificationCenterX::broadcast(event);
@@ -216,7 +214,7 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //----------------------------------------------------------------------------------------------------------------------
 - (void) applicationDidBecomeActiveNotification:(NSNotification*) notification
 {
-#warning What to do here?
+// TODO: What to do here?
 //	// Send notification
 //	CEvent	event(kSceneAppDidBecomeActiveEventKind);
 //	CNotificationCenterX::broadcast(event);
@@ -265,9 +263,8 @@ CByteParceller sSceneAppPlayerCreateByteParceller(const CString& resourceFilenam
 	return CByteParceller(
 			new CMappedFileDataSource(
 					CFile(
-							CFilesystemPath(
-									(*sceneAppViewController.sceneAppContentRootFilesystemPath)
-											.appendingComponent(resourceFilename)))));
+							sceneAppViewController.sceneAppContentRootFilesystemPath->appendingComponent(
+									resourceFilename))));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
