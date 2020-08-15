@@ -9,7 +9,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Looping
 
-WARNING(Look into making loop count optional)
+// TODO: Look into making loop count optional
 const	UInt32	kAudioInfoLoopCountForever = 0;
 
 //----------------------------------------------------------------------------------------------------------------------

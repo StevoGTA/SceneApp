@@ -52,12 +52,12 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 // MARK: Class methods
 
 //----------------------------------------------------------------------------------------------------------------------
-+ (TArray<SScenePackageInfo>) scenePackageInfosIn:(const CFolder&) sceneAppContentFolder
++ (TArray<SScenePackageInfo>) scenePackageInfosIn:(const CFolder&) folder
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Get files in folder
 	TNArray<CFile>	files;
-	CFilesystem::getFiles(sceneAppContentFolder, files);
+	CFilesystem::getFiles(folder, files);
 
 	return CScenePackage::getScenePackageInfos(files);
 }
@@ -65,13 +65,18 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(UIView<UKTGPUView>*) view sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
+- (instancetype) initWithView:(UIView<UKTGPUView>*) view
+		scenePackageInfo:(const SScenePackageInfo&) scenePackageInfo
+		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
 {
-	return [self initWithView:view sceneAppContentFolder:sceneAppContentFolder sceneAppPlayerCreationProc:nil];
+	return [self initWithView:view scenePackageInfo:scenePackageInfo sceneAppContentFolder:sceneAppContentFolder
+			sceneAppPlayerCreationProc:nil];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-- (instancetype) initWithView:(UIView<UKTGPUView>*) view sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
+- (instancetype) initWithView:(UIView<UKTGPUView>*) view
+		scenePackageInfo:(const SScenePackageInfo&) scenePackageInfo
+		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
 		sceneAppPlayerCreationProc:
 				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
 						sceneAppPlayerCreationProc
@@ -180,16 +185,16 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 		};
 
 		// Setup Scene App Player
+		CGPU&						gpu = ((NSView<UKTGPUView>*) self.view).gpu;
+		SSceneAppPlayerProcsInfo	sceneAppPlayerProcsInfo(sSceneAppPlayerCreateByteParceller,
+											sSceneAppInstallPeriodic, sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL,
+											sSceneAppPlayerHandleCommand, sSceneAppPlayerGetViewportSizeProc,
+											(__bridge void*) self);
 		self.sceneAppPlayerInternal =
 				(sceneAppPlayerCreationProc != nil) ?
-					sceneAppPlayerCreationProc(view.gpu,
-							SSceneAppPlayerProcsInfo(sSceneAppPlayerCreateByteParceller, sSceneAppInstallPeriodic,
-									sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL, sSceneAppPlayerHandleCommand,
-									sSceneAppPlayerGetViewportSizeProc, (__bridge void*) self)) :
-					new CSceneAppPlayer(view.gpu,
-							SSceneAppPlayerProcsInfo(sSceneAppPlayerCreateByteParceller, sSceneAppInstallPeriodic,
-									sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL, sSceneAppPlayerHandleCommand,
-									sSceneAppPlayerGetViewportSizeProc, (__bridge void*) self));
+						sceneAppPlayerCreationProc(view.gpu, sceneAppPlayerProcsInfo) :
+						new CSceneAppPlayer(view.gpu, sceneAppPlayerProcsInfo);
+		self.sceneAppPlayerInternal->loadScenes(scenePackageInfo);
 
 		// Store view size
 		const	SMatrix4x4_32&	viewMatrix = ((UIView<UKTGPUView>*) self.view).gpu.getViewMatrix();
@@ -234,15 +239,6 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 
 	// Stop SceneAppPlayer
 	self.sceneAppPlayerInternal->stop();
-}
-
-// MARK: Instance methods
-
-//----------------------------------------------------------------------------------------------------------------------
-- (void) loadScenesFrom:(const SScenePackageInfo&) scenePackageInfo
-{
-	// Load scenes
-	self.sceneAppPlayerInternal->loadScenes(scenePackageInfo);
 }
 
 // MARK: Notification methods
@@ -295,9 +291,8 @@ CByteParceller sSceneAppPlayerCreateByteParceller(const CString& resourceFilenam
 	return CByteParceller(
 			new CMappedFileDataSource(
 					CFile(
-							CFilesystemPath(
-									(*sceneAppViewController.sceneAppContentRootFilesystemPath)
-											.appendingComponent(resourceFilename)))));
+							sceneAppViewController.sceneAppContentRootFilesystemPath->appendingComponent(
+									resourceFilename))));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
