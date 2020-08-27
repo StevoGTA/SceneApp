@@ -185,19 +185,19 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 		};
 
 		// Setup Scene App Player
-		CGPU&						gpu = ((NSView<UKTGPUView>*) self.view).gpu;
+		CGPU&						gpu = ((UIView<UKTGPUView>*) self.view).gpu;
 		SSceneAppPlayerProcsInfo	sceneAppPlayerProcsInfo(sSceneAppPlayerCreateByteParceller,
 											sSceneAppInstallPeriodic, sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL,
 											sSceneAppPlayerHandleCommand, sSceneAppPlayerGetViewportSizeProc,
 											(__bridge void*) self);
 		self.sceneAppPlayerInternal =
 				(sceneAppPlayerCreationProc != nil) ?
-						sceneAppPlayerCreationProc(view.gpu, sceneAppPlayerProcsInfo) :
-						new CSceneAppPlayer(view.gpu, sceneAppPlayerProcsInfo);
+						sceneAppPlayerCreationProc(gpu, sceneAppPlayerProcsInfo) :
+						new CSceneAppPlayer(gpu, sceneAppPlayerProcsInfo);
 		self.sceneAppPlayerInternal->loadScenes(scenePackageInfo);
 
 		// Store view size
-		const	SMatrix4x4_32&	viewMatrix = ((UIView<UKTGPUView>*) self.view).gpu.getViewMatrix();
+		const	SMatrix4x4_32&	viewMatrix = gpu.getViewMatrix();
 				CGSize			size = self.view.bounds.size;
 		self.viewSize = S2DSizeF32(size.width / viewMatrix.m1_1, size.height / viewMatrix.m2_2);
 
