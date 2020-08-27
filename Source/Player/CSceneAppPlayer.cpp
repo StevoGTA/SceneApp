@@ -15,6 +15,7 @@
 #include "CScenePlayer.h"
 #include "CSceneTransitionPlayerCoverUncover.h"
 #include "CSceneTransitionPlayerPush.h"
+#include "TBuffer.h"
 #include "TLockingArray.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -320,10 +321,10 @@ void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	bool	performLoad[mScenePlayers.getCount()];
+	TBuffer<bool>	performLoad(mScenePlayers.getCount());
 	for (CArrayItemIndex i = 0; i < mScenePlayers.getCount(); i++)
 		// Setup
-		performLoad[i] = mScenePlayers[i].getScene() == scenePlayer.getScene();
+		(*performLoad)[i] = mScenePlayers[i].getScene() == scenePlayer.getScene();
 
 	// Iterate all actions for this scene player
 	CActions	actions = scenePlayer.getAllActions();
@@ -340,7 +341,7 @@ void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex
 		// Get linked scene player
 		if (!(action.getOptions() & kActionOptionsDontPreload))
 			// Preload
-			performLoad[*testSceneIndex] = true;
+			(*performLoad)[*testSceneIndex] = true;
 	}
 
 	// Load new scene first to put its resources in the front of the queue

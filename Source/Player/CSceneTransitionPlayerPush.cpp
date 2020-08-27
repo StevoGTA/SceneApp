@@ -46,7 +46,7 @@ CSceneTransitionPlayerPush::CSceneTransitionPlayerPush(CScenePlayer& currentScen
 	mInternals =
 			new CSceneTransitionPlayerPushInternals(info.contains(mInfoIsAutoKey),
 					getSceneTransitionDirection(info.getString(mInfoDirectionKey)),
-					info.getFloat32(mInfoDurationKey, 0.3), sceneTransitionPlayerProcsInfo);
+					info.getFloat32(mInfoDurationKey, 0.3f), sceneTransitionPlayerProcsInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ void CSceneTransitionPlayerPush::update(UniversalTimeInterval deltaTimeInterval)
 			case kSceneTransitionDirectionDown:
 				// Up or Down
 				mInternals->mCurrentOffset +=
-						deltaTimeInterval / mInternals->mDurationTimeInterval * viewportPixelSize.mHeight;
+						(Float32) (deltaTimeInterval / mInternals->mDurationTimeInterval) * viewportPixelSize.mHeight;
 				if (mInternals->mCurrentOffset > viewportPixelSize.mHeight) {
 					// Beyond bounds, done
 					mInternals->mCurrentOffset = viewportPixelSize.mHeight;
@@ -85,7 +85,7 @@ void CSceneTransitionPlayerPush::update(UniversalTimeInterval deltaTimeInterval)
 			case kSceneTransitionDirectionRight:
 				// Left or Right
 				mInternals->mCurrentOffset +=
-						deltaTimeInterval / mInternals->mDurationTimeInterval * viewportPixelSize.mWidth;
+						(Float32) (deltaTimeInterval / mInternals->mDurationTimeInterval) * viewportPixelSize.mWidth;
 				if (mInternals->mCurrentOffset > viewportPixelSize.mWidth) {
 					// Beyond bounds, done
 					mInternals->mCurrentOffset = viewportPixelSize.mWidth;

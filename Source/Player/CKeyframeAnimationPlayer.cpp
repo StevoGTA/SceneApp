@@ -192,7 +192,7 @@ void CKeyframeAnimationPlayerKeyframe::setSpriteValuesToInterpolatedValues(Float
 		const CKeyframeAnimationPlayerKeyframe& nextPlayerKeyframe)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	Float32	invertTransitionFactor = 1.0 - transitionFactor, x, y;
+	Float32	invertTransitionFactor = 1.0f - transitionFactor, x, y;
 
 	// Anchor Point
 	x = invertTransitionFactor * mAnchorPoint.mX + transitionFactor * nextPlayerKeyframe.mAnchorPoint.mX;
@@ -513,13 +513,16 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeLinear)) {
 			// Linear between keyframes
 			transitionFactor =
-					mInternals->mCurrentFrameTimeInterval / *mInternals->mPreviousPlayerKeyframe->getDelay();
+					(Float32) (mInternals->mCurrentFrameTimeInterval /
+							*mInternals->mPreviousPlayerKeyframe->getDelay());
 			mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
 					*mInternals->mNextPlayerKeyframe);
 		} else if ((mInternals->mNextPlayerKeyframe.hasReference()) &&
 				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeEaseIn)) {
 			// Linear, then ease in
-			percent = mInternals->mCurrentFrameTimeInterval / *mInternals->mPreviousPlayerKeyframe->getDelay();
+			percent =
+					(Float32) (mInternals->mCurrentFrameTimeInterval /
+							*mInternals->mPreviousPlayerKeyframe->getDelay());
 			if (percent <= 0.5f)
 				transitionFactor = percent;
 			else
@@ -529,7 +532,9 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 		} else if ((mInternals->mNextPlayerKeyframe.hasReference()) &&
 				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeEaseOut)) {
 			// Ease out, then linear
-			percent = mInternals->mCurrentFrameTimeInterval / *mInternals->mPreviousPlayerKeyframe->getDelay();
+			percent =
+					(Float32) (mInternals->mCurrentFrameTimeInterval /
+							*mInternals->mPreviousPlayerKeyframe->getDelay());
 			if (percent <= 0.5f)
 				transitionFactor = 3.0f * percent * percent - 2.0f * percent * percent * percent;
 			else
@@ -539,7 +544,9 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 		} else if ((mInternals->mNextPlayerKeyframe.hasReference()) &&
 				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeEaseInEaseOut)) {
 			// Ease out, then ease in
-			percent = mInternals->mCurrentFrameTimeInterval / *mInternals->mPreviousPlayerKeyframe->getDelay();
+			percent =
+					(Float32) (mInternals->mCurrentFrameTimeInterval /
+							*mInternals->mPreviousPlayerKeyframe->getDelay());
 			transitionFactor = 3.0f * percent * percent - 2.0f * percent * percent * percent;
 			mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
 					*mInternals->mNextPlayerKeyframe);
