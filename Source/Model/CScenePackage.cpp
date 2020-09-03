@@ -17,8 +17,9 @@ static	CString	sScenesKey(OSSTR("scenes"));
 
 class CScenePackageInternals : public TReferenceCountable<CScenePackageInternals> {
 	public:
-		CScenePackageInternals() : TReferenceCountable() {}
+		CScenePackageInternals(const S2DSizeF32& size) : TReferenceCountable(), mSize(size) {}
 
+		S2DSizeF32		mSize;
 		TNArray<CScene>	mScenes;
 		OV<CSceneIndex>	mInitialSceneIndex;
 };
@@ -30,17 +31,17 @@ class CScenePackageInternals : public TReferenceCountable<CScenePackageInternals
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CScenePackage::CScenePackage()
+CScenePackage::CScenePackage(const S2DSizeF32& size)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CScenePackageInternals();
+	mInternals = new CScenePackageInternals(size);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CScenePackage::CScenePackage(const CDictionary& info)
+CScenePackage::CScenePackage(const S2DSizeF32& size, const CDictionary& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CScenePackageInternals();
+	mInternals = new CScenePackageInternals(size);
 
 	mInternals->mScenes =
 			TNArray<CScene>(info.getArrayOfDictionaries(sScenesKey), (CScene (*)(CArrayItemRef item)) CScene::makeFrom);
@@ -62,6 +63,13 @@ CScenePackage::~CScenePackage()
 }
 
 // MARK: Instance methods
+
+//----------------------------------------------------------------------------------------------------------------------
+const S2DSizeF32& CScenePackage::getSize() const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	return mInternals->mSize;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 CDictionary CScenePackage::getInfo() const

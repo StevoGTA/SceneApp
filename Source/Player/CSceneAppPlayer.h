@@ -148,7 +148,6 @@ typedef	void			(*CSceneAppPlayerRemovePeriodicProc)(void* userData);
 typedef	void			(*CSceneAppPlayerOpenURLProc)(const CURL& url, bool useWebView, void* userData);
 typedef	void			(*CSceneAppPlayerHandleCommandProc)(const CString& command, const CDictionary& commandInfo,
 								void* userData);
-typedef	S2DSizeF32		(*CSceneAppPlayerGetViewportSizeProc)(void* userData);
 
 struct SSceneAppPlayerProcsInfo {
 					// Lifecycle methods
@@ -156,12 +155,10 @@ struct SSceneAppPlayerProcsInfo {
 							CSceneAppPlayerInstallPeriodicProc installPeriodicProc,
 							CSceneAppPlayerRemovePeriodicProc removePeriodicProc,
 							CSceneAppPlayerOpenURLProc openURLProc,
-							CSceneAppPlayerHandleCommandProc handleCommandProc,
-							CSceneAppPlayerGetViewportSizeProc getViewportSizeProc, void* userData) :
+							CSceneAppPlayerHandleCommandProc handleCommandProc, void* userData) :
 						mCreateByteParcellerProc(createByteParcellerProc), mInstallPeriodicProc(installPeriodicProc),
 								mRemovePeriodicProc(removePeriodicProc), mOpenURLProc(openURLProc),
-								mHandleCommandProc(handleCommandProc), mGetViewportSizeProc(getViewportSizeProc),
-								mUserData(userData)
+								mHandleCommandProc(handleCommandProc), mUserData(userData)
 						{}
 
 					// Instance methods
@@ -175,8 +172,6 @@ struct SSceneAppPlayerProcsInfo {
 						{ mOpenURLProc(url, useWebView, mUserData); }
 	void			handleCommand(const CString& command, const CDictionary& commandInfo) const
 						{ if (mHandleCommandProc != nil) mHandleCommandProc(command, commandInfo, mUserData); }
-	S2DSizeF32		getViewportSize() const
-						{ return mGetViewportSizeProc(mUserData); }
 
 	// Properties
 	public:
@@ -187,7 +182,6 @@ struct SSceneAppPlayerProcsInfo {
 		CSceneAppPlayerRemovePeriodicProc		mRemovePeriodicProc;
 		CSceneAppPlayerOpenURLProc				mOpenURLProc;
 		CSceneAppPlayerHandleCommandProc		mHandleCommandProc;
-		CSceneAppPlayerGetViewportSizeProc		mGetViewportSizeProc;
 		void*									mUserData;
 };
 

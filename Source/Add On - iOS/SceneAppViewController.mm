@@ -18,7 +18,6 @@ static	void			sSceneAppRemovePeriodic(void* userData);
 static	void			sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData);
 static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
 										void* userData);
-static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //static	CImageX	sSceneAppPlayerGetCurrentViewportImage(void* userData);
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -28,7 +27,7 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 
 @property (nonatomic, assign)	CFilesystemPath*	sceneAppContentRootFilesystemPath;
 @property (nonatomic, assign)	CSceneAppPlayer*	sceneAppPlayerInternal;
-@property (nonatomic, assign)	S2DSizeF32			viewSize;
+@property (nonatomic, assign)	S2DSizeF32			scenePackageSize;
 @property (nonatomic, assign)	BOOL				didReceiveApplicationWillResignActiveNotification;
 
 @end
@@ -84,6 +83,7 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 	self = [super initWithNibName:nil bundle:nil];
 	if (self != nil) {
 		// Store
+		self.scenePackageSize = scenePackageInfo.mSize;
 		self.sceneAppContentRootFilesystemPath = new CFilesystemPath(sceneAppContentFolder.getFilesystemPath());
 
 		// Setup the view
@@ -92,7 +92,7 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 		__weak	__typeof(self)	weakSelf = self;
 		((UIView<UKTGPUView>*) self.view).touchesBeganProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
 			// Setup
-			const	SMatrix4x4_32&	viewMatrix = ((UIView<UKTGPUView>*) self.view).gpu.getViewMatrix();
+			CGSize	viewSize = weakSelf.view.bounds.size;
 
 			// Convert native touches to SceneApp touches
 			TNArray<SSceneAppPlayerTouchBeganInfo>	touchBeganInfosArray;
@@ -100,7 +100,9 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 				// Add info
 				CGPoint	pt = [touch locationInView:weakSelf.view];
 				touchBeganInfosArray +=
-						SSceneAppPlayerTouchBeganInfo(S2DPointF32(pt.x / viewMatrix.m1_1, pt.y / viewMatrix.m2_2),
+						SSceneAppPlayerTouchBeganInfo(
+								S2DPointF32(pt.x / viewSize.width * self.scenePackageSize.mWidth,
+										pt.y / viewSize.height * self.scenePackageSize.mHeight),
 								(UInt32) touch.tapCount, (__bridge void*) touch);
 			}
 
@@ -109,7 +111,7 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 		};
 		((UIView<UKTGPUView>*) self.view).touchesMovedProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
 			// Setup
-			const	SMatrix4x4_32&	viewMatrix = ((UIView<UKTGPUView>*) self.view).gpu.getViewMatrix();
+			CGSize	viewSize = weakSelf.view.bounds.size;
 
 			// Convert native touches to SceneApp touches
 			TNArray<SSceneAppPlayerTouchMovedInfo>	touchMovedInfosArray;
@@ -119,8 +121,10 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 				CGPoint	currentPt = [touch locationInView:weakSelf.view];
 				touchMovedInfosArray +=
 						SSceneAppPlayerTouchMovedInfo(
-								S2DPointF32(previousPt.x / viewMatrix.m1_1, previousPt.y / viewMatrix.m2_2),
-								S2DPointF32(currentPt.x / viewMatrix.m1_1, currentPt.y / viewMatrix.m2_2),
+								S2DPointF32(previousPt.x / viewSize.width * self.scenePackageSize.mWidth,
+										previousPt.y / viewSize.height * self.scenePackageSize.mHeight),
+								S2DPointF32(currentPt.x / viewSize.width * self.scenePackageSize.mWidth,
+										currentPt.y / viewSize.height * self.scenePackageSize.mHeight),
 								(__bridge void*) touch);
 			}
 
@@ -129,7 +133,7 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 		};
 		((UIView<UKTGPUView>*) self.view).touchesEndedProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
 			// Setup
-			const	SMatrix4x4_32&	viewMatrix = ((UIView<UKTGPUView>*) self.view).gpu.getViewMatrix();
+			CGSize	viewSize = weakSelf.view.bounds.size;
 
 			// Convert native touches to SceneApp touches
 			TNArray<SSceneAppPlayerTouchMovedInfo>	touchMovedInfosArray;
@@ -142,12 +146,15 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 					// Need to add a move to final point
 					touchMovedInfosArray +=
 							SSceneAppPlayerTouchMovedInfo(
-									S2DPointF32(previousPt.x / viewMatrix.m1_1, previousPt.y / viewMatrix.m2_2),
-									S2DPointF32(currentPt.x / viewMatrix.m1_1, currentPt.y / viewMatrix.m2_2),
+									S2DPointF32(previousPt.x / viewSize.width * self.scenePackageSize.mWidth,
+											previousPt.y / viewSize.height * self.scenePackageSize.mHeight),
+									S2DPointF32(currentPt.x / viewSize.width * self.scenePackageSize.mWidth,
+											currentPt.y / viewSize.height * self.scenePackageSize.mHeight),
 									(__bridge void*) touch);
 				touchEndedInfosArray +=
 						SSceneAppPlayerTouchEndedInfo(
-								S2DPointF32(currentPt.x / viewMatrix.m1_1, currentPt.y / viewMatrix.m2_2),
+								S2DPointF32(currentPt.x / viewSize.width * self.scenePackageSize.mWidth,
+										currentPt.y / viewSize.height * self.scenePackageSize.mHeight),
 								(__bridge void*) touch);
 			}
 
@@ -188,18 +195,12 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 		CGPU&						gpu = ((UIView<UKTGPUView>*) self.view).gpu;
 		SSceneAppPlayerProcsInfo	sceneAppPlayerProcsInfo(sSceneAppPlayerCreateByteParceller,
 											sSceneAppInstallPeriodic, sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL,
-											sSceneAppPlayerHandleCommand, sSceneAppPlayerGetViewportSizeProc,
-											(__bridge void*) self);
+											sSceneAppPlayerHandleCommand, (__bridge void*) self);
 		self.sceneAppPlayerInternal =
 				(sceneAppPlayerCreationProc != nil) ?
 						sceneAppPlayerCreationProc(gpu, sceneAppPlayerProcsInfo) :
 						new CSceneAppPlayer(gpu, sceneAppPlayerProcsInfo);
 		self.sceneAppPlayerInternal->loadScenes(scenePackageInfo);
-
-		// Store view size
-		const	SMatrix4x4_32&	viewMatrix = gpu.getViewMatrix();
-				CGSize			size = self.view.bounds.size;
-		self.viewSize = S2DSizeF32(size.width / viewMatrix.m1_1, size.height / viewMatrix.m2_2);
 
 		// Setup Notifications
 		NSNotificationCenter*	notificationCenter = [NSNotificationCenter defaultCenter];
@@ -359,12 +360,6 @@ void sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& com
 			sceneAppViewController.handleCommandProc(commandUse, commandInfoUse);
 		});
 	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-S2DSizeF32 sSceneAppPlayerGetViewportSizeProc(void* userData)
-{
-	return ((__bridge SceneAppViewController*) userData).viewSize;
 }
 
 ////----------------------------------------------------------------------------------------------------------------------

@@ -31,12 +31,13 @@ class CScenePackage {
 	// Methods
 	public:
 											// Lifecycle methods
-											CScenePackage();
-											CScenePackage(const CDictionary& info);
+											CScenePackage(const S2DSizeF32& size = S2DSizeF32());
+											CScenePackage(const S2DSizeF32& size, const CDictionary& info);
 											CScenePackage(const CScenePackage& other);
 											~CScenePackage();
 
 											// Instance methods
+		const	S2DSizeF32&					getSize() const;
 				CDictionary					getInfo() const;
 
 		const	CScene&						getInitialScene() const;

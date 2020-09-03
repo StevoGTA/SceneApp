@@ -18,7 +18,6 @@ static	void			sSceneAppRemovePeriodic(void* userData);
 static	void			sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData);
 static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
 										void* userData);
-static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 //static	CImageX	sSceneAppPlayerGetCurrentViewportImage(void* userData);
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -28,8 +27,8 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 
 @property (nonatomic, assign)	CFilesystemPath*	sceneAppContentRootFilesystemPath;
 @property (nonatomic, assign)	CSceneAppPlayer*	sceneAppPlayerInternal;
-@property (nonatomic, assign)	S2DSizeF32			viewSize;
-@property (nonatomic, assign)	NSPoint				previousLocationInWindow;
+@property (nonatomic, assign)	S2DSizeF32			scenePackageSize;
+@property (nonatomic, assign)	S2DPointF32			previousPoint;
 
 @end
 
@@ -69,44 +68,49 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 		__weak	__typeof(self)	weakSelf = self;
 		((NSView<AKTGPUView>*) self.view).mouseDownProc = ^(NSEvent* event){
 			// Setup
-			NSPoint	point = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
-			point.y = weakSelf.view.bounds.size.height - point.y;
+			NSSize	viewSize = weakSelf.view.bounds.size;
+
+			NSPoint	mousePoint = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
+			mousePoint.y = viewSize.height - mousePoint.y;
+
+			S2DPointF32	point(mousePoint.x / viewSize.width * self.scenePackageSize.mWidth,
+								mousePoint.y / viewSize.height * self.scenePackageSize.mHeight);
 
 			// Inform SceneAppPlayer
-			const	SMatrix4x4_32&	viewMatrix = ((NSView<AKTGPUView>*) self.view).gpu.getViewMatrix();
-			weakSelf.sceneAppPlayerInternal->mouseDown(
-					SSceneAppPlayerMouseDownInfo(
-							S2DPointF32(point.x / viewMatrix.m1_1, point.y / viewMatrix.m2_2),
-							(UInt32) event.clickCount));
+			weakSelf.sceneAppPlayerInternal->mouseDown(SSceneAppPlayerMouseDownInfo(point, (UInt32) event.clickCount));
 
 			// Store
-			weakSelf.previousLocationInWindow = point;
+			weakSelf.previousPoint = point;
 		};
 		((NSView<AKTGPUView>*) self.view).mouseDraggedProc = ^(NSEvent* event){
 			// Get event info
-			NSPoint	point = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
-			point.y = weakSelf.view.bounds.size.height - point.y;
+			NSSize	viewSize = weakSelf.view.bounds.size;
+
+			NSPoint	mousePoint = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
+			mousePoint.y = viewSize.height - mousePoint.y;
+
+			S2DPointF32	point(mousePoint.x / viewSize.width * self.scenePackageSize.mWidth,
+								mousePoint.y / viewSize.height * self.scenePackageSize.mHeight);
 
 			// Inform SceneAppPlayer
-			const	SMatrix4x4_32&	viewMatrix = ((NSView<AKTGPUView>*) self.view).gpu.getViewMatrix();
 			weakSelf.sceneAppPlayerInternal->mouseDragged(
-					SSceneAppPlayerMouseDraggedInfo(
-							S2DPointF32(weakSelf.previousLocationInWindow.x / viewMatrix.m1_1,
-									weakSelf.previousLocationInWindow.y / viewMatrix.m2_2),
-							S2DPointF32(point.x / viewMatrix.m1_1, point.y / viewMatrix.m2_2)));
+					SSceneAppPlayerMouseDraggedInfo(weakSelf.previousPoint, point));
 
 			// Store
-			weakSelf.previousLocationInWindow = point;
+			weakSelf.previousPoint = point;
 		};
 		((NSView<AKTGPUView>*) self.view).mouseUpProc = ^(NSEvent* event){
 			// Get event info
-			NSPoint	point = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
-			point.y = weakSelf.view.bounds.size.height - point.y;
+			NSSize	viewSize = weakSelf.view.bounds.size;
+
+			NSPoint	mousePoint = [weakSelf.view convertPoint:event.locationInWindow fromView:nil];
+			mousePoint.y = viewSize.height - mousePoint.y;
+
+			S2DPointF32	point(mousePoint.x / viewSize.width * self.scenePackageSize.mWidth,
+								mousePoint.y / viewSize.height * self.scenePackageSize.mHeight);
 
 			// Inform SceneAppPlayer
-			const	SMatrix4x4_32&	viewMatrix = ((NSView<AKTGPUView>*) self.view).gpu.getViewMatrix();
-			weakSelf.sceneAppPlayerInternal->mouseUp(
-					SSceneAppPlayerMouseUpInfo(S2DPointF32(point.x / viewMatrix.m1_1, point.y / viewMatrix.m2_2)));
+			weakSelf.sceneAppPlayerInternal->mouseUp(SSceneAppPlayerMouseUpInfo(point));
 		};
 
 		((NSView<AKTGPUView>*) self.view).periodicProc = ^(UniversalTime outputTime){
@@ -172,22 +176,18 @@ static	S2DSizeF32		sSceneAppPlayerGetViewportSizeProc(void* userData);
 	Delete(self.sceneAppPlayerInternal);
 
 	// Store
+	self.scenePackageSize = scenePackageInfo.mSize;
 	self.sceneAppContentRootFilesystemPath = new CFilesystemPath(sceneAppContentFolder.getFilesystemPath());
 
 	// Setup Scene App Player
 	CGPU&						gpu = ((NSView<AKTGPUView>*) self.view).gpu;
 	SSceneAppPlayerProcsInfo	sceneAppPlayerProcsInfo(sSceneAppPlayerCreateByteParceller, sSceneAppInstallPeriodic,
 										sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL, sSceneAppPlayerHandleCommand,
-										sSceneAppPlayerGetViewportSizeProc, (__bridge void*) self);
+										(__bridge void*) self);
 	self.sceneAppPlayerInternal =
 			(sceneAppPlayerCreationProc != nil) ?
 					sceneAppPlayerCreationProc(gpu, sceneAppPlayerProcsInfo) :
 					new CSceneAppPlayer(gpu, sceneAppPlayerProcsInfo);
-
-	// Store view size
-	const	SMatrix4x4_32&	viewMatrix = gpu.getViewMatrix();
-			CGSize			size = self.view.bounds.size;
-	self.viewSize = S2DSizeF32(size.width / viewMatrix.m1_1, size.height / viewMatrix.m2_2);
 
 	// Load scenes
 	self.sceneAppPlayerInternal->loadScenes(scenePackageInfo);
@@ -331,12 +331,6 @@ void sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& com
 			sceneAppViewController.handleCommandProc(commandUse, commandInfoUse);
 		});
 	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-S2DSizeF32 sSceneAppPlayerGetViewportSizeProc(void* userData)
-{
-	return ((__bridge SceneAppViewController*) userData).viewSize;
 }
 
 ////----------------------------------------------------------------------------------------------------------------------

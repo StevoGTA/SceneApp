@@ -401,7 +401,7 @@ S2DSizeF32 CSceneAppPlayerInternals::scenePlayerGetViewportSizeProc(void* userDa
 	// Setup
 	CSceneAppPlayerInternals*	internals = (CSceneAppPlayerInternals*) userData;
 
-	return internals->mSceneAppPlayerProcsInfo.getViewportSize();
+	return internals->mScenePackage.getSize();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -588,60 +588,7 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 
 	mInternals->mOptions =
 			(ESceneAppPlayerOptions) info.getUInt64(CString(OSSTR("options")), kSceneAppPlayerOptionsDefault);
-	mInternals->mScenePackage = CScenePackage(info);
-
-//	// Setup viewport parameters
-//	switch (mInternals->mScenes->getViewportZoom()) {
-//		case kSceneAppViewportZoomCenter: {
-//			// Center scenes in viewport
-//			mInternals->mViewportOffset =
-//					S2DPointF32((viewportPixelSize.mWidth - eSceneAppViewportPixelSize.mWidth) * 0.5,
-//							(viewportPixelSize.mHeight - eSceneAppViewportPixelSize.mHeight) * 0.5);
-//			mInternals->mViewportScale = S2DPointF32(1.0, 1.0);
-//			} break;
-//
-//		case kSceneAppViewportZoomScale:
-//			// Scale scenes to fill viewport completely.
-//			mInternals->mViewportOffset = S2DPointF32::mZero;
-//			mInternals->mViewportScale =
-//					S2DPointF32(viewportPixelSize.mWidth / eSceneAppViewportPixelSize.mWidth,
-//							viewportPixelSize.mHeight / eSceneAppViewportPixelSize.mHeight);
-//			break;
-//
-//		case kSceneAppViewportZoomScaleAspectFit: {
-//			// Scale scenes to be as large as possible and still fit all content
-//			Float32	scaleX = viewportPixelSize.mWidth / eSceneAppViewportPixelSize.mWidth;
-//			Float32	scaleY = viewportPixelSize.mHeight / eSceneAppViewportPixelSize.mHeight;
-//			if (scaleX < scaleY) {
-//				// Fill width, offset height
-//				mInternals->mViewportOffset.mY =
-//						(viewportPixelSize.mHeight - eSceneAppViewportPixelSize.mHeight * scaleX) * 0.5;
-//				mInternals->mViewportScale = S2DPointF32(scaleX, scaleX);
-//			} else {
-//				// Fill height, offset width
-//				mInternals->mViewportOffset.mX =
-//						(viewportPixelSize.mWidth - eSceneAppViewportPixelSize.mWidth * scaleY) * 0.5;
-//				mInternals->mViewportScale = S2DPointF32(scaleY, scaleY);
-//			}
-//			} break;
-//
-//		case kSceneAppViewportZoomScaleAspectFill: {
-//			// Scale scenes to be as small as possible and fill every pixel
-//			Float32	scaleX = viewportPixelSize.mWidth / eSceneAppViewportPixelSize.mWidth;
-//			Float32	scaleY = viewportPixelSize.mHeight / eSceneAppViewportPixelSize.mHeight;
-//			if (scaleX < scaleY) {
-//				// Extend and offset width, fill height
-//				mInternals->mViewportOffset.mX =
-//						(viewportPixelSize.mWidth - eSceneAppViewportPixelSize.mWidth * scaleY) * 0.5;
-//				mInternals->mViewportScale = S2DPointF32(scaleY, scaleY);
-//			} else {
-//				// Extend and offset height, fill width
-//				mInternals->mViewportOffset.mY =
-//						(viewportPixelSize.mHeight - eSceneAppViewportPixelSize.mHeight * scaleX) * 0.5;
-//				mInternals->mViewportScale = S2DPointF32(scaleX, scaleX);
-//			}
-//			} break;
-//	}
+	mInternals->mScenePackage = CScenePackage(scenePackageInfo.mSize, info);
 
 	// Create scene players
 	mInternals->mScenePlayers.removeAll();
@@ -753,7 +700,7 @@ void CSceneAppPlayer::handlePeriodic(UniversalTime outputTime)
 	}
 
 	// Render
-	mInternals->mGPU.renderStart();
+	mInternals->mGPU.renderStart(mInternals->mScenePackage.getSize());
 	if (mInternals->mCurrentSceneTransitionPlayer.hasObject())
 		// Render transition
 		mInternals->mCurrentSceneTransitionPlayer->render(mInternals->mGPU);
