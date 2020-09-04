@@ -28,6 +28,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype) initWithView:(NSView<AKTGPUView>*) view;
 
 - (void) loadScenesFrom:(const SScenePackageInfo&) scenePackageInfo
+		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder;
+- (void) loadScenesFrom:(const SScenePackageInfo&) scenePackageInfo
 		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
 		sceneAppPlayerCreationProc:
 				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))

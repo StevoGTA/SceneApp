@@ -167,6 +167,13 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 //----------------------------------------------------------------------------------------------------------------------
 - (void) loadScenesFrom:(const SScenePackageInfo&) scenePackageInfo
 		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
+{
+	[self loadScenesFrom:scenePackageInfo sceneAppContentFolder:sceneAppContentFolder sceneAppPlayerCreationProc:nil];
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+- (void) loadScenesFrom:(const SScenePackageInfo&) scenePackageInfo
+		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
 		sceneAppPlayerCreationProc:
 				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
 						sceneAppPlayerCreationProc
