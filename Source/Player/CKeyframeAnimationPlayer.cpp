@@ -567,7 +567,7 @@ void CKeyframeAnimationPlayer::render(CGPU& gpu, const SGPURenderObjectRenderInf
 {
 	if (mInternals->mIsStarted && !mInternals->mIsFinished && (mInternals->mPreviousPlayerKeyframe.hasReference()))
 		// Draw
-		mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->render(gpu, CGPURenderObject2DIndexes::forIndex(0),
+		mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->render(CGPURenderObject2DIndexes::forIndex(0),
 				renderInfo);
 }
 

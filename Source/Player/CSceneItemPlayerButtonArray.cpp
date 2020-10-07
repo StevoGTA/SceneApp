@@ -170,7 +170,7 @@ void CSceneItemPlayerButtonArray::render(CGPU& gpu, const SGPURenderObjectRender
 	}
 
 	// Render
-	mInternals->mGPURenderObject2D->render(gpu, indexes, renderInfo);
+	mInternals->mGPURenderObject2D->render(indexes, renderInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
