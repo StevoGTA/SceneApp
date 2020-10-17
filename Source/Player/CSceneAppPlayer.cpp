@@ -366,13 +366,11 @@ void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex
 	// Update
 	mCurrentScenePlayer = OR<CScenePlayer>(scenePlayer);
 
-	const	CScene&	scene = scenePlayer.getScene();
-	if (!scene.getStoreSceneIndexAsString().isEmpty()) {
-		// Yes
-		SCString	cString = scene.getStoreSceneIndexAsString().getCString();
-		SSInt32Pref	pref(*cString, 0);
-		CPreferences::set(pref, sceneIndex);
-	}
+	// Check if need to store the scene index
+	const	CString&	storeSceneIndexAsString = scenePlayer.getScene().getStoreSceneIndexAsString();
+	if (!storeSceneIndexAsString.isEmpty())
+		// Store
+		CPreferences::mDefault.set(SSInt32Pref(storeSceneIndexAsString.getOSString(), 0), sceneIndex);
 
 	cancelAllSceneTouches();
 	cancelAllSceneTransitionTouches();
@@ -854,10 +852,10 @@ OV<CSceneIndex> CSceneAppPlayer::getSceneIndex(const CAction& action) const
 	const	CString&	loadSceneIndexFrom = actionInfo.getString(CAction::mInfoLoadSceneIndexFromKey);
 	if (!loadSceneIndexFrom.isEmpty()) {
 		// Retrieve from prefs
-		SCString	cString = loadSceneIndexFrom.getCString();
-		SSInt32Pref	pref(*cString, 0);
+		SSInt32Pref	pref(loadSceneIndexFrom.getOSString(), 0);
 
-		return CPreferences::hasValue(pref) ? OV<CSceneIndex>(CPreferences::getSInt32(pref)) : OV<CSceneIndex>();
+		return CPreferences::mDefault.hasValue(pref) ?
+				OV<CSceneIndex>(CPreferences::mDefault.getSInt32(pref)) : OV<CSceneIndex>();
 	}
 
 	// Look for scene index

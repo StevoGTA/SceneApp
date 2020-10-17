@@ -11,8 +11,6 @@
 
 #undef Delete
 
-//#include "Common\StepTimer.h"
-
 #include <ppltasks.h>
 #include <wrl.h>
 
@@ -200,6 +198,7 @@ ref class CSceneAppViewInternals sealed : Platform::Object {
 					{
 						// Store
 						mCoreWindow = window;
+						mSize = S2DSizeF32(mCoreWindow->Bounds.Width, mCoreWindow->Bounds.Height);
 
 						// Setup Window event handlers
 						window->SizeChanged += 
@@ -269,6 +268,9 @@ ref class CSceneAppViewInternals sealed : Platform::Object {
 					{
 						// Run() won't start until the CoreWindow is activated.
 						CoreWindow::GetForCurrentThread()->Activate();
+
+						// Start
+						mSceneAppPlayer->start(true);
 					}
 		void	onApplicationSuspending(Platform::Object^ sender, SuspendingEventArgs^ args)
 					{
@@ -373,7 +375,6 @@ ref class CSceneAppViewInternals sealed : Platform::Object {
 		void	onDisplayContentsInvalidated(DisplayInformation^ sender, Platform::Object^ args)
 					{
 						// Update
-//						mGPU.ValidateDevice();
 						mRequiresDeviceValidation = true;
 					}
 
@@ -396,7 +397,6 @@ ref class CSceneAppViewInternals sealed : Platform::Object {
 		bool						mRequiresDeviceValidation;
 
 		bool						mIsRunning;
-		//CDirectXGPU					mGPU;
 		CGPU						mGPU;
 
 		CFilesystemPath*			mSceneAppContentRootFilesystemPath;
