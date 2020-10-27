@@ -701,9 +701,9 @@ void CSceneAppPlayer::handlePeriodic(UniversalTime outputTime)
 	Float32	fieldOfViewAngle3D = T2DUtilities<Float32>::toRadians(70.0f);
 	Float32	aspectRatio3D = mInternals->mScenePackage.getSize().aspectRatio();
 
-	S3DPointF32	camera3D(0.0f, 0.7f, 1.5f);
-	S3DPointF32	target3D(0.0f, -0.1f, 0.0f);
-	S3DPointF32	up3D(0.0f, 1.0f, 0.0f);
+	S3DPointF32		camera3D(0.0f, 0.7f, 1.5f);
+	S3DPointF32		target3D(0.0f, -0.1f, 0.0f);
+	S3DVectorF32	up3D(0.0f, 1.0f, 0.0f);
 	mInternals->mGPU.renderStart(mInternals->mScenePackage.getSize(), fieldOfViewAngle3D, aspectRatio3D, 0.01f, 100.0f,
 			camera3D, target3D, up3D);
 	if (mInternals->mCurrentSceneTransitionPlayer.hasObject())
@@ -818,8 +818,6 @@ CSceneItemPlayer* CSceneAppPlayer::createSceneItemPlayer(const CSceneItemCustom&
 		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	AssertFailUnimplemented();
-
 	return nil;
 }
 

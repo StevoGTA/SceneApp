@@ -144,10 +144,15 @@ void CScenePlayer::load(CGPU& gpu)
 									mInternals->mScenePlayerProcsInfo.createSceneItemPlayer(sceneItem,
 											mInternals->mSceneAppResourceManagementInfo,
 											mInternals->mSceneItemPlayerProcsInfo);
-if (sceneItemPlayer == nil) {
-CLogServices::logMessage(CString("No player created for ") + sceneItem.getType());
-	continue;
-}
+		if (sceneItemPlayer == nil) {
+			// No SceneItemPlayer
+#if !defined(DEBUG)
+			AssertFailUnimplemented();
+#else
+			CLogServices::logMessage(CString("No player created for ") + sceneItem.getType());
+			continue;
+#endif
+		}
 		mInternals->mSceneItemPlayers += sceneItemPlayer;
 
 		// Check if need to load
