@@ -52,7 +52,7 @@ class CSceneAppPlayerInternals {
 				void				cancelAllSceneTransitionTouches();
 
 				OR<CScenePlayer>	getScenePlayer(const CString& sceneName);
-				void				setCurrent(CScenePlayer& scenePlayer, CSceneIndex sceneIndex);
+				void				setCurrent(CSceneIndex sceneIndex, bool start = false);
 				void				setCurrent(CSceneTransitionPlayer* sceneTransitionPlayer, CSceneIndex sceneIndex);
 
 		static	bool				compareReference(const STouchHandlerInfo& touchHandlerInfo, void* reference)
@@ -317,10 +317,12 @@ OR<CScenePlayer> CSceneAppPlayerInternals::getScenePlayer(const CString& sceneNa
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex sceneIndex)
+void CSceneAppPlayerInternals::setCurrent(CSceneIndex sceneIndex, bool start)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
+	CScenePlayer&	scenePlayer = mScenePlayers[sceneIndex];
+
 	TBuffer<bool>	performLoad(mScenePlayers.getCount());
 	for (CArrayItemIndex i = 0; i < mScenePlayers.getCount(); i++)
 		// Setup
@@ -375,8 +377,10 @@ void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex
 	cancelAllSceneTouches();
 	cancelAllSceneTransitionTouches();
 
-	// Start
-	mCurrentScenePlayer->start();
+	// Check if starting
+	if (start)
+		// Start
+		mCurrentScenePlayer->start();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -484,7 +488,7 @@ void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& act
 		} else if (actionName == CAction::mNameSceneCut) {
 			// Cut to scene
 			CSceneIndex	sceneIndex = internals.mSceneAppPlayer.getSceneIndex(action).getValue();
-			internals.setCurrent(internals.mScenePlayers[sceneIndex], sceneIndex);
+			internals.setCurrent(sceneIndex, true);
 		} else if (actionName == CAction::mNameScenePush) {
 			// Push to scene
 			CSceneIndex		sceneIndex = internals.mSceneAppPlayer.getSceneIndex(action).getValue();
@@ -590,21 +594,15 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 
 	// Create scene players
 	mInternals->mScenePlayers.removeAll();
-
-	const	CScene&	initialScene = mInternals->mScenePackage.getInitialScene();
 	for (UInt32 i = 0; i < mInternals->mScenePackage.getScenesCount(); i++) {
 		// Create scene player
 		const	CScene&	scene = mInternals->mScenePackage.getSceneAtIndex(i);
 		mInternals->mScenePlayers +=
 				CScenePlayer(scene, mInternals->mSceneAppResourceManagementInfo, mInternals->mScenePlayerProcsInfo);
-
-		// Handle initial scene
-		if (scene == initialScene) {
-			// Is initial scene
-			mInternals->mCurrentScenePlayer = OR<CScenePlayer>(mInternals->mScenePlayers.getLast());
-			mInternals->mCurrentScenePlayer->load(mInternals->mGPU);
-		}
 	}
+
+	// Set to initial scene
+	mInternals->setCurrent(mInternals->mScenePackage.getInitialSceneIndex());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -682,8 +680,7 @@ void CSceneAppPlayer::handlePeriodic(UniversalTime outputTime)
 
 				case kSceneTransitionStateCompleted:
 					// Completed
-					mInternals->setCurrent(mInternals->mCurrentSceneTransitionPlayer->getToScenePlayer(),
-							*mInternals->mCurrentSceneTransitionPlayerToSceneIndex);
+					mInternals->setCurrent(*mInternals->mCurrentSceneTransitionPlayerToSceneIndex, true);
 					mInternals->mCurrentSceneTransitionPlayer = OO<CSceneTransitionPlayer>();
 					break;
 
