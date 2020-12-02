@@ -133,7 +133,7 @@ void CSceneItemPlayer::reset()
 	// Update visible
 	mInternals->mIsVisible = mInternals->mSceneItem.getIsVisible();
 	if (mInternals->mSceneItem.getOptions() & kSceneItemOptionsHideIfNoAudioInput)
-		mInternals->mIsVisible &= CAudioSession::shared.inputIsAvailable();
+		mInternals->mIsVisible &= CAudioSession::mShared.inputIsAvailable();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
