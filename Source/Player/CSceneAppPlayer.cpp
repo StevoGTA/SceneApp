@@ -392,7 +392,9 @@ void CSceneAppPlayerInternals::setCurrentSceneIndex(CSceneIndex sceneIndex)
 	if (background1AudioInfo.hasInstance()) {
 		// Have background audio
 		mCurrentScenePlayerBackground1MediaPlayer = mSceneAppMediaEngine.getMediaPlayer(*background1AudioInfo);
-		mCurrentScenePlayerBackground1MediaPlayer->play();
+		if (mCurrentScenePlayerBackground1MediaPlayer.hasInstance())
+			// Play
+			mCurrentScenePlayerBackground1MediaPlayer->play();
 	} else
 		// No background audio
 		mCurrentScenePlayerBackground1MediaPlayer = OI<CMediaPlayer>();
@@ -401,7 +403,9 @@ void CSceneAppPlayerInternals::setCurrentSceneIndex(CSceneIndex sceneIndex)
 	if (background2AudioInfo.hasInstance()) {
 		// Have background audio
 		mCurrentScenePlayerBackground2MediaPlayer = mSceneAppMediaEngine.getMediaPlayer(*background2AudioInfo);
-		mCurrentScenePlayerBackground2MediaPlayer->play();
+		if (mCurrentScenePlayerBackground2MediaPlayer.hasInstance())
+			// Play
+			mCurrentScenePlayerBackground2MediaPlayer->play();
 	} else
 		// No background audio
 		mCurrentScenePlayerBackground2MediaPlayer = OI<CMediaPlayer>();
