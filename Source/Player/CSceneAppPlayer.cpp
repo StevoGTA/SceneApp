@@ -601,12 +601,12 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 	CLogServices::logMessage(CString(OSSTR("Loading scenes from ")) + scenePackageInfo.mFilename);
 #endif
 
-	UError	error;
+	OI<SError>	error;
 	CDictionary	info =
 						CBinaryPropertyList::dictionaryFrom(
 								mInternals->mSceneAppPlayerProcsInfo.createByteParceller(scenePackageInfo.mFilename),
 								error);
-	ReturnIfUError(error);
+	ReturnIfError(error);
 
 	mInternals->mOptions =
 			(ESceneAppPlayerOptions) info.getUInt64(CString(OSSTR("options")), kSceneAppPlayerOptionsDefault);
