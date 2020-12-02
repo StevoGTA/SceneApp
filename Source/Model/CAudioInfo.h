@@ -9,17 +9,16 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Looping
 
-// TODO: Look into making loop count optional
 const	UInt32	kAudioInfoLoopCountForever = 0;
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - Options
 
 enum EAudioInfoOptions {
-	kAudioInfoOptionsNone					= 0,
-	kAudioInfoOptionsStopBeforePlay			= 1 << 0,
-	kAudioInfoOptionsUseDefinedLoopInFile	= 1 << 1,
-	kAudioInfoOptionsLoadFileIntoMemory		= 1 << 2,
+	kAudioInfoOptionsNone						= 0,
+	kAudioInfoOptionsStopBeforePlay				= 1 << 0,
+	kAudioInfoOptionsUseDefinedLoopInResource	= 1 << 1,
+	kAudioInfoOptionsLoadFileIntoMemory			= 1 << 2,
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -41,7 +40,7 @@ class CAudioInfo {
 	// Methods
 	public:
 									// Lifecycle methods
-									CAudioInfo();
+									CAudioInfo(const CString& resourceFilename);
 									CAudioInfo(const CDictionary& info);
 									CAudioInfo(const CAudioInfo& other);
 									~CAudioInfo();
@@ -56,8 +55,8 @@ class CAudioInfo {
 		const	CString&			getResourceFilename() const;
 				void				setResourceFilename(const CString& resourceFilename);
 
-				UInt32				getLoopCount() const;
-				void				setLoopCount(UInt32 loopCount);
+				OV<UInt32>			getLoopCount() const;
+				void				setLoopCount(OV<UInt32> loopCount);
 
 				EAudioInfoOptions	getOptions() const;
 				void				setOptions(EAudioInfoOptions options);

@@ -32,7 +32,7 @@ class CSceneItemButtonArrayButtonInternals :
 					mScreenPositionPoint(other.mScreenPositionPoint)
 			{}
 
-		OO<CActions>	mActions;
+		OI<CActions>	mActions;
 		S2DRectF32		mUpImageRect;
 		S2DRectF32		mDownImageRect;
 		S2DPointF32		mScreenPositionPoint;
@@ -58,7 +58,7 @@ CSceneItemButtonArrayButton::CSceneItemButtonArrayButton(const CDictionary& info
 	mInternals = new CSceneItemButtonArrayButtonInternals();
 
 	if (info.contains(sActionsInfoKey))
-		mInternals->mActions = OO<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
+		mInternals->mActions = OI<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
 	mInternals->mUpImageRect = S2DRectF32(info.getString(sUpImageRectKey));
 	mInternals->mDownImageRect = S2DRectF32(info.getString(sDownImageRectKey));
 	mInternals->mScreenPositionPoint = S2DPointF32(info.getString(sScreenPositionPointKey));
@@ -121,7 +121,7 @@ CDictionary CSceneItemButtonArrayButton::getInfo() const
 {
 	CDictionary	info;
 
-	if (mInternals->mActions.hasObject())
+	if (mInternals->mActions.hasInstance())
 		info.set(sActionsInfoKey, mInternals->mActions->getInfo());
 	info.set(sUpImageRectKey, mInternals->mUpImageRect.asString());
 	info.set(sDownImageRectKey, mInternals->mDownImageRect.asString());
@@ -131,14 +131,14 @@ CDictionary CSceneItemButtonArrayButton::getInfo() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const OO<CActions>& CSceneItemButtonArrayButton::getActions() const
+const OI<CActions>& CSceneItemButtonArrayButton::getActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButtonArrayButton::setActions(const OO<CActions>& actions)
+void CSceneItemButtonArrayButton::setActions(const OI<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write

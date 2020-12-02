@@ -47,21 +47,21 @@ class CSceneItemAnimation : public CSceneItem {
 				CDictionary					getInfo() const;
 
 											// Instance methods
-		const	OO<CActions>&				getStartedActions() const;
-				void						setStartedActions(const OO<CActions>& actions);
+		const	OI<CActions>&				getStartedActions() const;
+				void						setStartedActions(const OI<CActions>& actions);
 
-		const	OO<CActions>&				getFinishedActions() const;
-				void						setFinishedActions(const OO<CActions>& actions);
+		const	OI<CActions>&				getFinishedActions() const;
+				void						setFinishedActions(const OI<CActions>& actions);
 
-		const	OO<CAudioInfo>&				getAudioInfo() const;
-				void						setAudioInfo(const OO<CAudioInfo>& audioInfo);
+		const	OI<CAudioInfo>&				getAudioInfo() const;
+				void						setAudioInfo(const OI<CAudioInfo>& audioInfo);
 
-//		const	OO<CCelAnimationInfo>&		getCelAnimationInfo() const;
-//				void						setCelAnimationInfo(const OO<CCelAnimationInfo>& celAnimationInfo);
+//		const	OI<CCelAnimationInfo>&		getCelAnimationInfo() const;
+//				void						setCelAnimationInfo(const OI<CCelAnimationInfo>& celAnimationInfo);
 
-		const	OO<CKeyframeAnimationInfo>&	getKeyframeAnimationInfo() const;
+		const	OI<CKeyframeAnimationInfo>&	getKeyframeAnimationInfo() const;
 				void						setKeyframeAnimationInfo(
-													const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo);
+													const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo);
 
 				UInt32						getLoopCount() const;
 				void						setLoopCount(UInt32 loopCount);

@@ -86,13 +86,13 @@ CDictionary CScenePackage::getInfo() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const CScene& CScenePackage::getInitialScene() const
+UInt32 CScenePackage::getInitialSceneIndex() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Validation check
 	AssertFailIf(!mInternals->mInitialSceneIndex.hasValue());
 
-	return mInternals->mScenes[*mInternals->mInitialSceneIndex];
+	return *mInternals->mInitialSceneIndex;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

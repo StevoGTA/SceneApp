@@ -65,8 +65,8 @@ CActions CSceneItemPlayerButtonArray::getAllActions() const
 					getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
 			iterator.hasValue(); iterator.advance()) {
 		// Get actions for this button
-		const	OO<CActions>&	actions = iterator.getValue().getActions();
-		if (actions.hasObject())
+		const	OI<CActions>&	actions = iterator.getValue().getActions();
+		if (actions.hasInstance())
 			// Add to all actions
 			allActions += *actions;
 	}
@@ -220,8 +220,8 @@ void CSceneItemPlayerButtonArray::touchEndedOrMouseUpAtPoint(const S2DPointF32& 
 	// Check if active button is down
 	if (mInternals->mActiveButtonDown) {
 		// Collect actions
-		OO<CActions>	actions = mInternals->mActiveButton->getActions();
-		if (actions.hasObject())
+		OI<CActions>	actions = mInternals->mActiveButton->getActions();
+		if (actions.hasInstance())
 			// Perform actions
 			perform(*actions);
 	}

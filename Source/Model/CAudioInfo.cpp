@@ -20,7 +20,7 @@ static	CString	sOptionsKey(OSSTR("options"));
 
 class CAudioInfoInternals : public TCopyOnWriteReferenceCountable<CAudioInfoInternals> {
 	public:
-		CAudioInfoInternals(Float32 gain, const CString& resourceFilename, UInt32 loopCount,
+		CAudioInfoInternals(Float32 gain, const CString& resourceFilename, OV<UInt32> loopCount,
 				EAudioInfoOptions options) :
 			TCopyOnWriteReferenceCountable(),
 					mGain(gain), mResourceFilename(resourceFilename), mLoopCount(loopCount), mOptions(options)
@@ -33,7 +33,7 @@ class CAudioInfoInternals : public TCopyOnWriteReferenceCountable<CAudioInfoInte
 
 		Float32				mGain;
 		CString				mResourceFilename;
-		UInt32				mLoopCount;
+		OV<UInt32>			mLoopCount;
 		EAudioInfoOptions	mOptions;
 };
 
@@ -44,19 +44,23 @@ class CAudioInfoInternals : public TCopyOnWriteReferenceCountable<CAudioInfoInte
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CAudioInfo::CAudioInfo()
+CAudioInfo::CAudioInfo(const CString& resourceFilename)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CAudioInfoInternals(1.0, CString::mEmpty, 1, kAudioInfoOptionsNone);
+	mInternals = new CAudioInfoInternals(1.0, resourceFilename, 1, kAudioInfoOptionsNone);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CAudioInfo::CAudioInfo(const CDictionary& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Setup
+	const	CString&	resourceFilename = info.getString(sResourceFilenameKey);
+	AssertFailIf(resourceFilename.isEmpty())
+
 	mInternals =
 			new CAudioInfoInternals(info.getFloat32(sGainKey, 1.0), info.getString(sResourceFilenameKey),
-					info.getUInt32(sLoopCountKey, 1),
+					info.contains(sLoopCountKey) ? OV<UInt32>(info.getUInt32(sLoopCountKey)) : OV<UInt32>(),
 					(EAudioInfoOptions) info.getUInt32(sOptionsKey, kAudioInfoOptionsNone));
 }
 
@@ -119,7 +123,8 @@ CDictionary CAudioInfo::getInfo() const
 
 	info.set(sGainKey, mInternals->mGain);
 	info.set(sResourceFilenameKey, mInternals->mResourceFilename);
-	info.set(sLoopCountKey, mInternals->mLoopCount);
+	if (mInternals->mLoopCount.hasValue())
+		info.set(sLoopCountKey, *mInternals->mLoopCount);
 	info.set(sOptionsKey, (UInt32) mInternals->mOptions);
 
 	return info;
@@ -162,14 +167,14 @@ void CAudioInfo::setResourceFilename(const CString& resourceFilename)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-UInt32 CAudioInfo::getLoopCount() const
+OV<UInt32> CAudioInfo::getLoopCount() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mLoopCount;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CAudioInfo::setLoopCount(UInt32 loopCount)
+void CAudioInfo::setLoopCount(OV<UInt32> loopCount)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write

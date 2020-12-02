@@ -26,8 +26,8 @@ CActions CSceneItemPlayerHotspot::getAllActions() const
 {
 	CActions	actionsArray;
 
-	const	OO<CActions>&	actions = getSceneItemHotspot().getActions();
-	if (actions.hasObject())
+	const	OI<CActions>&	actions = getSceneItemHotspot().getActions();
+	if (actions.hasInstance())
 		actionsArray.addFrom(*actions);
 
 	return actionsArray;
@@ -45,7 +45,7 @@ void CSceneItemPlayerHotspot::touchBeganOrMouseDownAtPoint(const S2DPointF32& po
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	const	OO<CActions>&	actions = getSceneItemHotspot().getActions();
-	if (actions.hasObject())
+	const	OI<CActions>&	actions = getSceneItemHotspot().getActions();
+	if (actions.hasInstance())
 		perform(*actions, point);
 }

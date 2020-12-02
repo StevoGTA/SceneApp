@@ -28,7 +28,7 @@ class CKeyframeAnimationPlayerKeyframe {
 																		previousKeyframeAnimationPlayerKeyframe);
 														~CKeyframeAnimationPlayerKeyframe();
 
-		const	OO<CActions>&							getActions() const;
+		const	OI<CActions>&							getActions() const;
 		const	OV<UniversalTimeInterval>&				getDelay() const;
 		const	OV<EAnimationKeyframeTransitionType>&	getTransitionType() const;
 
@@ -126,7 +126,7 @@ CKeyframeAnimationPlayerKeyframe::~CKeyframeAnimationPlayerKeyframe()
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-const OO<CActions>& CKeyframeAnimationPlayerKeyframe::getActions() const
+const OI<CActions>& CKeyframeAnimationPlayerKeyframe::getActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mAnimationKeyframe.getActions();
@@ -342,10 +342,10 @@ CActions CKeyframeAnimationPlayer::getAllActions() const
 					mInternals->mKeyframeAnimationPlayerKeyframes.getIterator();
 			iterator.hasValue(); iterator.advance()) {
 		// Get actions
-		const	OO<CActions>&	actions = iterator.getValue().mAnimationKeyframe.getActions();
+		const	OI<CActions>&	actions = iterator.getValue().mAnimationKeyframe.getActions();
 
 		// Check if have actions
-		if (actions.hasObject())
+		if (actions.hasInstance())
 			// Add to total list
 			allActions.addFrom(*actions);
 	}
@@ -468,8 +468,8 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 			bool	hasBeenDeleted = false;
 			mInternals->mHasBeenDeleted = OR<bool>(hasBeenDeleted);
 
-			const	OO<CActions>&	actions = mInternals->mPreviousPlayerKeyframe->getActions();
-			if (actions.hasObject())
+			const	OI<CActions>&	actions = mInternals->mPreviousPlayerKeyframe->getActions();
+			if (actions.hasInstance())
 				// Handle actions
 				procsInfo.performActions(*this, *actions);
 

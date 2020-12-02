@@ -24,7 +24,7 @@ class CSceneItemHotspotInternals : public TCopyOnWriteReferenceCountable<CSceneI
 					mActions(other.mActions), mScreenRect(other.mScreenRect)
 			{}
 
-		OO<CActions>	mActions;
+		OI<CActions>	mActions;
 		S2DRectF32		mScreenRect;
 };
 
@@ -48,7 +48,7 @@ CSceneItemHotspot::CSceneItemHotspot(const CDictionary& info) : CSceneItem(info)
 	mInternals = new CSceneItemHotspotInternals();
 
 	if (info.contains(sActionsInfoKey))
-		mInternals->mActions = OO<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
+		mInternals->mActions = OI<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
 	mInternals->mScreenRect = S2DRectF32(info.getString(sScreenRectKey));
 }
 
@@ -97,7 +97,7 @@ CDictionary CSceneItemHotspot::getInfo() const
 {
 	CDictionary	info = CSceneItem::getInfo();
 
-	if (mInternals->mActions.hasObject())
+	if (mInternals->mActions.hasInstance())
 		info.set(sActionsInfoKey, mInternals->mActions->getInfo());
 	info.set(sScreenRectKey, mInternals->mScreenRect.asString());
 
@@ -107,14 +107,14 @@ CDictionary CSceneItemHotspot::getInfo() const
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-const OO<CActions>& CSceneItemHotspot::getActions() const
+const OI<CActions>& CSceneItemHotspot::getActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemHotspot::setActions(const OO<CActions>& actions)
+void CSceneItemHotspot::setActions(const OI<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write

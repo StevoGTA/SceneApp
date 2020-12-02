@@ -73,8 +73,8 @@ class CAnimationKeyframe {
 				TArray<CDictionary>						getProperties() const;
 				CDictionary								getInfo() const;
 
-		const	OO<CActions>&							getActions() const;
-				void									setActions(const OO<CActions>& actions);
+		const	OI<CActions>&							getActions() const;
+				void									setActions(const OI<CActions>& actions);
 
 		const	OV<S2DPointF32>&						getAnchorPoint() const;
 				void									setAnchorPoint(const OV<S2DPointF32>& anchorPoint);

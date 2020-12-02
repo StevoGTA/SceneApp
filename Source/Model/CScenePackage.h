@@ -40,7 +40,7 @@ class CScenePackage {
 		const	S2DSizeF32&					getSize() const;
 				CDictionary					getInfo() const;
 
-		const	CScene&						getInitialScene() const;
+				UInt32						getInitialSceneIndex() const;
 				UInt32						getScenesCount() const;
 		const	CScene&						getSceneAtIndex(CSceneIndex index) const;
 				OV<CSceneIndex>				getIndexOfScene(const CScene& scene);

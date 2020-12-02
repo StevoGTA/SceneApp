@@ -4,7 +4,7 @@
 
 #include "CSceneItemPlayer.h"
 
-//#include "CAudioSession.h"
+#include "CAudioSession.h"
 #include "CLogServices.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -132,8 +132,8 @@ void CSceneItemPlayer::reset()
 {
 	// Update visible
 	mInternals->mIsVisible = mInternals->mSceneItem.getIsVisible();
-//	if (mInternals->mSceneItem.getOptions() & kSceneItemOptionsHideIfNoAudioInput)
-//		mInternals->mIsVisible &= CAudioSession::audioInputIsAvailable();
+	if (mInternals->mSceneItem.getOptions() & kSceneItemOptionsHideIfNoAudioInput)
+		mInternals->mIsVisible &= CAudioSession::shared.inputIsAvailable();
 }
 
 //----------------------------------------------------------------------------------------------------------------------

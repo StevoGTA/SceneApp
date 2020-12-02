@@ -268,10 +268,10 @@ CByteParceller sSceneAppPlayerCreateByteParceller(const CString& resourceFilenam
 	SceneAppViewController*	sceneAppViewController = (__bridge SceneAppViewController*) userData;
 
 	return CByteParceller(
-			new CMappedFileDataSource(
+			I<CDataSource>(new CMappedFileDataSource(
 					CFile(
 							sceneAppViewController.sceneAppContentRootFilesystemPath->appendingComponent(
-									resourceFilename))));
+									resourceFilename)))));
 }
 
 //----------------------------------------------------------------------------------------------------------------------

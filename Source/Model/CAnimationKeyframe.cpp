@@ -36,7 +36,7 @@ class CAnimationKeyframeInternals : public TCopyOnWriteReferenceCountable<CAnima
 					mOptions(other.mOptions)
 			{}
 
-		OO<CActions>							mActions;
+		OI<CActions>							mActions;
 		OV<S2DPointF32>							mAnchorPoint;
 		OV<S2DPointF32>							mScreenPositionPoint;
 		OV<Float32>								mAngleDegrees;
@@ -68,7 +68,7 @@ CAnimationKeyframe::CAnimationKeyframe(const CDictionary& info)
 	mInternals = new CAnimationKeyframeInternals();
 
 	if (info.contains(sActionsInfoKey))
-		mInternals->mActions = OO<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
+		mInternals->mActions = OI<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
 	if (info.contains(sAnchorPointKey))
 		mInternals->mAnchorPoint = OV<S2DPointF32>(info.getString(sAnchorPointKey));
 	if (info.contains(sScreenPositionPointKey))
@@ -188,7 +188,7 @@ CDictionary CAnimationKeyframe::getInfo() const
 {
 	CDictionary	info;
 
-	if (mInternals->mActions.hasObject())
+	if (mInternals->mActions.hasInstance())
 		info.set(sActionsInfoKey, mInternals->mActions->getInfo());
 
 	if (mInternals->mAnchorPoint.hasValue())
@@ -221,14 +221,14 @@ CDictionary CAnimationKeyframe::getInfo() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const OO<CActions>& CAnimationKeyframe::getActions() const
+const OI<CActions>& CAnimationKeyframe::getActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CAnimationKeyframe::setActions(const OO<CActions>& actions)
+void CAnimationKeyframe::setActions(const OI<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write

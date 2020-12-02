@@ -36,7 +36,6 @@ class CActionInternals : public TReferenceCountable<CActionInternals> {
 
 // Names
 CString	CAction::mNameOpenURL(OSSTR("openURL"));
-CString	CAction::mNamePlayAudio(OSSTR("playAudio"));
 CString	CAction::mNamePlayMovie(OSSTR("playMovie"));
 CString	CAction::mNameSceneCover(OSSTR("sceneCover"));
 CString	CAction::mNameSceneCut(OSSTR("sceneCut"));
@@ -47,12 +46,11 @@ CString	CAction::mNameSendItemCommand(OSSTR("sendItemCommand"));
 CString	CAction::mNameSendAppCommand(OSSTR("sendAppCommand"));
 
 // Info keys and value types
-CString	CAction::mInfoAudioFilenameKey(OSSTR("audioFilename"));
 CString	CAction::mInfoCommandKey(OSSTR("command"));
 CString	CAction::mInfoControlModeKey(OSSTR("controlMode"));
+CString	CAction::mInfoFilenameKey(OSSTR("filename"));
 CString	CAction::mInfoItemNameKey(OSSTR("itemName"));
 CString	CAction::mInfoLoadSceneIndexFromKey(OSSTR("loadSceneIndexFrom"));
-CString	CAction::mInfoMovieFilenameKey(OSSTR("movieFilename"));
 CString	CAction::mInfoPropertyNameKey(OSSTR("propertyName"));
 CString	CAction::mInfoPropertyValueKey(OSSTR("propertyValue"));
 CString	CAction::mInfoSceneIndexKey(OSSTR("sceneIndex"));

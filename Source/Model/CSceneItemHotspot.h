@@ -32,8 +32,8 @@ class CSceneItemHotspot : public CSceneItem {
 				CDictionary			getInfo() const;
 
 									// Instance methods
-		const	OO<CActions>&		getActions() const;
-				void				setActions(const OO<CActions>& actions);
+		const	OI<CActions>&		getActions() const;
+				void				setActions(const OI<CActions>& actions);
 
 		const	S2DRectF32&			getScreenRect() const;
 				void				setScreenRect(const S2DRectF32& rect);

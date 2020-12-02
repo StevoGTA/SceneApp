@@ -34,8 +34,8 @@ class CSceneItemButtonArrayButton {
 						TArray<CDictionary>			getProperties() const;
 						CDictionary					getInfo() const;
 
-				const	OO<CActions>&				getActions() const;
-						void						setActions(const OO<CActions>& actions);
+				const	OI<CActions>&				getActions() const;
+						void						setActions(const OI<CActions>& actions);
 
 				const	S2DRectF32&					getUpImageRect() const;
 						void						setUpImageRect(const S2DRectF32& upImageRect);

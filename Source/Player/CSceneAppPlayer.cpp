@@ -7,6 +7,7 @@
 #include "CBinaryPropertyList.h"
 #include "CLogServices.h"
 #include "CPreferences.h"
+#include "CSceneAppMediaEngine.h"
 #include "CSceneItemPlayerAnimation.h"
 #include "CSceneItemPlayerButton.h"
 #include "CSceneItemPlayerButtonArray.h"
@@ -33,7 +34,7 @@ struct STouchHandlerInfo {
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - Local proc declarations
 
-static	CByteParceller	sSceneAppPlayerCreateByteParceller(const CString& resourceFilename, void* userData);
+static	CByteParceller	sCreateByteParceller(const CString& resourceFilename, void* userData);
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -52,7 +53,7 @@ class CSceneAppPlayerInternals {
 				void				cancelAllSceneTransitionTouches();
 
 				OR<CScenePlayer>	getScenePlayer(const CString& sceneName);
-				void				setCurrent(CScenePlayer& scenePlayer, CSceneIndex sceneIndex);
+				void				setCurrentSceneIndex(CSceneIndex sceneIndex);
 				void				setCurrent(CSceneTransitionPlayer* sceneTransitionPlayer, CSceneIndex sceneIndex);
 
 		static	bool				compareReference(const STouchHandlerInfo& touchHandlerInfo, void* reference)
@@ -68,6 +69,7 @@ class CSceneAppPlayerInternals {
 
 		CGPU&												mGPU;
 		CGPUTextureManager									mGPUTextureManager;
+		CSceneAppMediaEngine								mSceneAppMediaEngine;
 		CSceneAppPlayer&									mSceneAppPlayer;
 
 		SSceneAppPlayerProcsInfo							mSceneAppPlayerProcsInfo;
@@ -79,7 +81,9 @@ class CSceneAppPlayerInternals {
 
 		TNArray<CScenePlayer>								mScenePlayers;
 		OR<CScenePlayer>									mCurrentScenePlayer;
-		OO<CSceneTransitionPlayer>							mCurrentSceneTransitionPlayer;
+		OI<CMediaPlayer>									mCurrentScenePlayerBackground1MediaPlayer;
+		OI<CMediaPlayer>									mCurrentScenePlayerBackground2MediaPlayer;
+		OI<CSceneTransitionPlayer>							mCurrentSceneTransitionPlayer;
 		OV<CSceneIndex>										mCurrentSceneTransitionPlayerToSceneIndex;
 
 		TNLockingArray<SSceneAppPlayerTouchBeganInfo>		mTouchBeganInfos;
@@ -96,9 +100,11 @@ class CSceneAppPlayerInternals {
 //----------------------------------------------------------------------------------------------------------------------
 CSceneAppPlayerInternals::CSceneAppPlayerInternals(CSceneAppPlayer& sceneAppPlayer, CGPU& gpu,
 		const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo) :
-	mOptions(kSceneAppPlayerOptionsDefault), mGPU(gpu), mGPUTextureManager(gpu), mSceneAppPlayer(sceneAppPlayer),
+	mOptions(kSceneAppPlayerOptionsDefault), mGPU(gpu), mGPUTextureManager(gpu),
+			mSceneAppMediaEngine(CSceneAppMediaEngine::SInfo(sCreateByteParceller, this)),
+			mSceneAppPlayer(sceneAppPlayer),
 			mSceneAppPlayerProcsInfo(sceneAppPlayerProcsInfo),
-			mSceneAppResourceManagementInfo(sSceneAppPlayerCreateByteParceller, mGPUTextureManager, this),
+			mSceneAppResourceManagementInfo(sCreateByteParceller, mGPUTextureManager, mSceneAppMediaEngine, this),
 			mScenePlayerProcsInfo(scenePlayerGetViewportSizeProc, scenePlayerCreateSceneItemPlayerProc,
 					scenePlayerActionsPerformProc, this),
 			mSceneTransitionPlayerProcsInfo(scenePlayerGetViewportSizeProc, this),
@@ -123,7 +129,7 @@ void CSceneAppPlayerInternals::handleTouchesBegan()
 
 		// Check if handling multitouch
 		if (
-				(mCurrentSceneTransitionPlayer.hasObject() &&
+				(mCurrentSceneTransitionPlayer.hasInstance() &&
 						!mCurrentSceneTransitionPlayer->supportsMultitouch()) ||
 				((mOptions & kSceneAppPlayerOptionsTouchHandlingMask) == kSceneAppPlayerOptionsLastSingleTouchOnly))
 			// Last single touch only
@@ -134,7 +140,7 @@ void CSceneAppPlayerInternals::handleTouchesBegan()
 	}
 
 	// Check if need to cancel current touches
-	if (mCurrentSceneTransitionPlayer.hasObject() ||
+	if (mCurrentSceneTransitionPlayer.hasInstance() ||
 			((mOptions & kSceneAppPlayerOptionsTouchHandlingMask) == kSceneAppPlayerOptionsLastSingleTouchOnly))
 		// Cancel current scene touches
 		cancelAllSceneTouches();
@@ -146,7 +152,7 @@ void CSceneAppPlayerInternals::handleTouchesBegan()
 
 		// Check for scene transition player
 		STouchHandlerInfo	touchHandlerInfo(touchBeganInfo.mReference);
-		if (!mCurrentSceneTransitionPlayer.hasObject()) {
+		if (!mCurrentSceneTransitionPlayer.hasInstance()) {
 			// Pass to scene player
 			mSceneTouchHandlerInfos += touchHandlerInfo;
 
@@ -154,7 +160,7 @@ void CSceneAppPlayerInternals::handleTouchesBegan()
 					touchBeganInfo.mReference);
 
 			// Check if transmogrophied into a transition
-			if ((mSceneTouchHandlerInfos.getCount() == 0) && mCurrentSceneTransitionPlayer.hasObject())
+			if ((mSceneTouchHandlerInfos.getCount() == 0) && mCurrentSceneTransitionPlayer.hasInstance())
 				// Touch began transmogrophied into a transition
 				mSceneTransitionTouchHandlerInfos += touchHandlerInfo;
 		} else {
@@ -177,7 +183,7 @@ void CSceneAppPlayerInternals::handleTouchesMoved()
 		SSceneAppPlayerTouchMovedInfo	touchMovedInfo = mTouchMovedInfos.popFirst();
 
 		// Check for scene transition player
-		if (!mCurrentSceneTransitionPlayer.hasObject()) {
+		if (!mCurrentSceneTransitionPlayer.hasInstance()) {
 			// Look for active touch handler info
 			OR<STouchHandlerInfo>	touchHandlerInfo =
 											mSceneTouchHandlerInfos.getFirst(compareReference,
@@ -209,7 +215,7 @@ void CSceneAppPlayerInternals::handleTouchesEnded()
 		SSceneAppPlayerTouchEndedInfo	touchEndedInfo = mTouchEndedInfos.popFirst();
 
 		// Check for scene transition player
-		if (!mCurrentSceneTransitionPlayer.hasObject()) {
+		if (!mCurrentSceneTransitionPlayer.hasInstance()) {
 			// Look for active touch handler info
 			OV<STouchHandlerInfo>	touchHandlerInfoValue =
 											mSceneTouchHandlerInfos.popFirst(compareReference,
@@ -245,7 +251,7 @@ void CSceneAppPlayerInternals::handleTouchesCancelled()
 		SSceneAppPlayerTouchCancelledInfo	touchCancelledInfo = mTouchCancelledInfos.popFirst();
 
 		// Check for scene transition player
-		if (!mCurrentSceneTransitionPlayer.hasObject()) {
+		if (!mCurrentSceneTransitionPlayer.hasInstance()) {
 			// Look for active touch handler info
 			OV<STouchHandlerInfo>	touchHandlerInfoValue =
 											mSceneTouchHandlerInfos.popFirst(compareReference,
@@ -288,7 +294,7 @@ void CSceneAppPlayerInternals::cancelAllSceneTransitionTouches()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check if have current transition scene player
-	if (!mCurrentSceneTransitionPlayer.hasObject())
+	if (!mCurrentSceneTransitionPlayer.hasInstance())
 		return;
 
 	// Iterate all
@@ -317,14 +323,16 @@ OR<CScenePlayer> CSceneAppPlayerInternals::getScenePlayer(const CString& sceneNa
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex sceneIndex)
+void CSceneAppPlayerInternals::setCurrentSceneIndex(CSceneIndex sceneIndex)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
+	CScenePlayer&	scenePlayer = mScenePlayers[sceneIndex];
+
 	TBuffer<bool>	performLoad(mScenePlayers.getCount());
 	for (CArrayItemIndex i = 0; i < mScenePlayers.getCount(); i++)
 		// Setup
-		(*performLoad)[i] = mScenePlayers[i].getScene() == scenePlayer.getScene();
+		(*performLoad)[i] = i == (CArrayItemIndex) sceneIndex;
 
 	// Iterate all actions for this scene player
 	CActions	actions = scenePlayer.getAllActions();
@@ -364,6 +372,7 @@ void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex
 	}
 
 	// Update
+	OR<CScenePlayer>	previousScenePlayer = mCurrentScenePlayer;
 	mCurrentScenePlayer = OR<CScenePlayer>(scenePlayer);
 
 	// Check if need to store the scene index
@@ -375,8 +384,32 @@ void CSceneAppPlayerInternals::setCurrent(CScenePlayer& scenePlayer, CSceneIndex
 	cancelAllSceneTouches();
 	cancelAllSceneTransitionTouches();
 
-	// Start
+	// Start new scene player
 	mCurrentScenePlayer->start();
+
+	// Setup Background Audio
+	const	OI<CAudioInfo>&	background1AudioInfo = mCurrentScenePlayer->getScene().getBackground1AudioInfo();
+	if (background1AudioInfo.hasInstance()) {
+		// Have background audio
+		mCurrentScenePlayerBackground1MediaPlayer = mSceneAppMediaEngine.getMediaPlayer(*background1AudioInfo);
+		mCurrentScenePlayerBackground1MediaPlayer->play();
+	} else
+		// No background audio
+		mCurrentScenePlayerBackground1MediaPlayer = OI<CMediaPlayer>();
+
+	const	OI<CAudioInfo>&	background2AudioInfo = mCurrentScenePlayer->getScene().getBackground2AudioInfo();
+	if (background2AudioInfo.hasInstance()) {
+		// Have background audio
+		mCurrentScenePlayerBackground2MediaPlayer = mSceneAppMediaEngine.getMediaPlayer(*background2AudioInfo);
+		mCurrentScenePlayerBackground2MediaPlayer->play();
+	} else
+		// No background audio
+		mCurrentScenePlayerBackground2MediaPlayer = OI<CMediaPlayer>();
+
+	// Check if had previous scene player
+	if (previousScenePlayer.hasReference())
+		// Reset
+		previousScenePlayer->reset();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -384,7 +417,7 @@ void CSceneAppPlayerInternals::setCurrent(CSceneTransitionPlayer* sceneTransitio
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Store new transition
-	mCurrentSceneTransitionPlayer = OO<CSceneTransitionPlayer>(sceneTransitionPlayer);
+	mCurrentSceneTransitionPlayer = OI<CSceneTransitionPlayer>(sceneTransitionPlayer);
 	mCurrentSceneTransitionPlayerToSceneIndex = OV<CSceneIndex>(sceneIndex);
 
 	// Clear all touch handlers
@@ -455,17 +488,9 @@ void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& act
 			// Open URL
 			internals.mSceneAppPlayerProcsInfo.openURL(CURL(actionInfo.getString(CAction::mInfoURLKey)),
 					actionInfo.contains(CAction::mInfoUseWebView));
-		else if (actionName == CAction::mNamePlayAudio) {
-			// Play Audio
-//			Delete(internals.mAudioOutputTrackReference);
-//
-//			internals.mAudioOutputTrackReference =
-//					CAudioOutputTrackCache::newAudioOutputTrackReferenceFromURL(
-//							eGetURLForResourceFilename(actionInfo.getString(mInfoAudioFilenameKey)));
-//			internals.mAudioOutputTrackReference->play();
-		} else if (actionName == CAction::mNamePlayMovie) {
+		else if (actionName == CAction::mNamePlayMovie) {
 			// Play movie
-//			CString	movieFilename = actionInfo.getString(CAction::mInfoMovieFilenameKey);
+//			CString	movieFilename = actionInfo.getString(CAction::mInfoFilenameKey);
 //			CURLX	movieURL = eGetURLForResourceFilename(movieFilename);
 //			internals.mSceneAppMoviePlayer = new CSceneAppMoviePlayer(movieURL);
 //			internals.mSceneAppMoviePlayer->setControlMode(
@@ -481,11 +506,10 @@ void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& act
 			internals.setCurrent(
 					new CSceneTransitionPlayerCoverUncover(*internals.mCurrentScenePlayer, scenePlayer, actionInfo,
 							point, true, internals.mSceneTransitionPlayerProcsInfo), sceneIndex);
-		} else if (actionName == CAction::mNameSceneCut) {
+		} else if (actionName == CAction::mNameSceneCut)
 			// Cut to scene
-			CSceneIndex	sceneIndex = internals.mSceneAppPlayer.getSceneIndex(action).getValue();
-			internals.setCurrent(internals.mScenePlayers[sceneIndex], sceneIndex);
-		} else if (actionName == CAction::mNameScenePush) {
+			internals.setCurrentSceneIndex(internals.mSceneAppPlayer.getSceneIndex(action).getValue());
+		else if (actionName == CAction::mNameScenePush) {
 			// Push to scene
 			CSceneIndex		sceneIndex = internals.mSceneAppPlayer.getSceneIndex(action).getValue();
 			CScenePlayer&	scenePlayer = internals.mSceneAppPlayer.loadAndStartScenePlayer(sceneIndex);
@@ -582,7 +606,7 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 						CBinaryPropertyList::dictionaryFrom(
 								mInternals->mSceneAppPlayerProcsInfo.createByteParceller(scenePackageInfo.mFilename),
 								error);
-	ReturnIfError(error);
+	ReturnIfUError(error);
 
 	mInternals->mOptions =
 			(ESceneAppPlayerOptions) info.getUInt64(CString(OSSTR("options")), kSceneAppPlayerOptionsDefault);
@@ -591,20 +615,14 @@ void CSceneAppPlayer::loadScenes(const SScenePackageInfo& scenePackageInfo)
 	// Create scene players
 	mInternals->mScenePlayers.removeAll();
 
-	const	CScene&	initialScene = mInternals->mScenePackage.getInitialScene();
-	for (UInt32 i = 0; i < mInternals->mScenePackage.getScenesCount(); i++) {
+	for (UInt32 i = 0; i < mInternals->mScenePackage.getScenesCount(); i++)
 		// Create scene player
-		const	CScene&	scene = mInternals->mScenePackage.getSceneAtIndex(i);
 		mInternals->mScenePlayers +=
-				CScenePlayer(scene, mInternals->mSceneAppResourceManagementInfo, mInternals->mScenePlayerProcsInfo);
+				CScenePlayer(mInternals->mScenePackage.getSceneAtIndex(i),
+						mInternals->mSceneAppResourceManagementInfo, mInternals->mScenePlayerProcsInfo);
 
-		// Handle initial scene
-		if (scene == initialScene) {
-			// Is initial scene
-			mInternals->mCurrentScenePlayer = OR<CScenePlayer>(mInternals->mScenePlayers.getLast());
-			mInternals->mCurrentScenePlayer->load(mInternals->mGPU);
-		}
-	}
+	// Set initial scene
+	mInternals->setCurrentSceneIndex(mInternals->mScenePackage.getInitialSceneIndex());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -671,7 +689,7 @@ void CSceneAppPlayer::handlePeriodic(UniversalTime outputTime)
 	// Update
 	if (deltaTimeInterval > 0.0) {
 		// Update
-		if (mInternals->mCurrentSceneTransitionPlayer.hasObject()) {
+		if (mInternals->mCurrentSceneTransitionPlayer.hasInstance()) {
 			// Update transition
 			mInternals->mCurrentSceneTransitionPlayer->update(deltaTimeInterval);
 
@@ -682,14 +700,13 @@ void CSceneAppPlayer::handlePeriodic(UniversalTime outputTime)
 
 				case kSceneTransitionStateCompleted:
 					// Completed
-					mInternals->setCurrent(mInternals->mCurrentSceneTransitionPlayer->getToScenePlayer(),
-							*mInternals->mCurrentSceneTransitionPlayerToSceneIndex);
-					mInternals->mCurrentSceneTransitionPlayer = OO<CSceneTransitionPlayer>();
+					mInternals->setCurrentSceneIndex(*mInternals->mCurrentSceneTransitionPlayerToSceneIndex);
+					mInternals->mCurrentSceneTransitionPlayer = OI<CSceneTransitionPlayer>();
 					break;
 
 				case kSceneTransitionStateReset:
 					// Reset
-					mInternals->mCurrentSceneTransitionPlayer = OO<CSceneTransitionPlayer>();
+					mInternals->mCurrentSceneTransitionPlayer = OI<CSceneTransitionPlayer>();
 					break;
 			}
 		} else
@@ -706,7 +723,7 @@ void CSceneAppPlayer::handlePeriodic(UniversalTime outputTime)
 	S3DVectorF32	up3D(0.0f, 1.0f, 0.0f);
 	mInternals->mGPU.renderStart(mInternals->mScenePackage.getSize(), fieldOfViewAngle3D, aspectRatio3D, 0.01f, 100.0f,
 			camera3D, target3D, up3D);
-	if (mInternals->mCurrentSceneTransitionPlayer.hasObject())
+	if (mInternals->mCurrentSceneTransitionPlayer.hasInstance())
 		// Render transition
 		mInternals->mCurrentSceneTransitionPlayer->render(mInternals->mGPU);
 	else
@@ -787,7 +804,7 @@ void CSceneAppPlayer::shakeBegan()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check for scene transition player
-	if (!mInternals->mCurrentSceneTransitionPlayer.hasObject())
+	if (!mInternals->mCurrentSceneTransitionPlayer.hasInstance())
 		// Pass to scene player
 		mInternals->mCurrentScenePlayer->shakeBegan();
 }
@@ -797,7 +814,7 @@ void CSceneAppPlayer::shakeEnded()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check for scene transition player
-	if (!mInternals->mCurrentSceneTransitionPlayer.hasObject())
+	if (!mInternals->mCurrentSceneTransitionPlayer.hasInstance())
 		// Pass to scene player
 		mInternals->mCurrentScenePlayer->shakeEnded();
 }
@@ -807,7 +824,7 @@ void CSceneAppPlayer::shakeCancelled()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check for scene transition player
-	if (!mInternals->mCurrentSceneTransitionPlayer.hasObject())
+	if (!mInternals->mCurrentSceneTransitionPlayer.hasInstance())
 		// Pass to scene player
 		mInternals->mCurrentScenePlayer->shakeCancelled();
 }
@@ -873,7 +890,7 @@ CScenePlayer& CSceneAppPlayer::loadAndStartScenePlayer(CSceneIndex sceneIndex) c
 
 	// Load and start
 	scenePlayer.load(mInternals->mGPU);
-	scenePlayer.reset();
+	scenePlayer.start();
 
 	return scenePlayer;
 }
@@ -911,7 +928,7 @@ CScenePlayer& CSceneAppPlayer::getCurrentScenePlayer() const
 // MARK: - Local proc definitions
 
 //----------------------------------------------------------------------------------------------------------------------
-CByteParceller sSceneAppPlayerCreateByteParceller(const CString& resourceFilename, void* userData)
+CByteParceller sCreateByteParceller(const CString& resourceFilename, void* userData)
 {
 	// Setup
 	CSceneAppPlayerInternals*	sceneAppPlayerInternals = (CSceneAppPlayerInternals*) userData;

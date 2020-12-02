@@ -25,7 +25,7 @@ class CScenePlayerInternals : public TReferenceCountable<CScenePlayerInternals> 
 												const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 												const SScenePlayerProcsInfo& scenePlayerProcsInfo,
 												CScenePlayer& scenePlayer) :
-											mIsLoaded(false), mIsRunning(false), mScene(scene),
+											TReferenceCountable(), mIsLoaded(false), mIsRunning(false), mScene(scene),
 													mScenePlayer(scenePlayer),
 													mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
 													mSceneItemPlayerProcsInfo(sceneItemPlayerActionsPerformProc,
@@ -129,7 +129,7 @@ CActions CScenePlayer::getAllActions() const
 void CScenePlayer::load(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Ensure is loaded
+	// Check if already loaded
 	if (mInternals->mIsLoaded)
 		return;
 
@@ -292,7 +292,7 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32
 	mInternals->mInitialTouchPoint = point;
 
 	// Check for 2 taps/clicks and have double tap action
-	if ((tapOrClickCount == 2) && mInternals->mScene.getDoubleTapActions().hasObject())
+	if ((tapOrClickCount == 2) && mInternals->mScene.getDoubleTapActions().hasInstance())
 		// 2 taps or clicks and have double tap action
 		mInternals->mScenePlayerProcsInfo.performActions(*mInternals->mScene.getDoubleTapActions());
 	else {

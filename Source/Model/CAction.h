@@ -45,7 +45,6 @@ class CAction {
 	public:
 									// Names
 		static	CString				mNameOpenURL;
-		static	CString				mNamePlayAudio;
 		static	CString				mNamePlayMovie;
 		static	CString				mNameSceneCover;
 		static	CString				mNameSceneCut;
@@ -56,12 +55,11 @@ class CAction {
 		static	CString				mNameSendAppCommand;
 
 									// Info keys and value types
-		static	CString				mInfoAudioFilenameKey;		// CString
 		static	CString				mInfoCommandKey;			// CString
 		static	CString				mInfoControlModeKey;		// UInt32
+		static	CString				mInfoFilenameKey;			// CString
 		static	CString				mInfoItemNameKey;			// CString
 		static	CString				mInfoLoadSceneIndexFromKey;	// CString
-		static	CString				mInfoMovieFilenameKey;		// CString
 		static	CString				mInfoPropertyNameKey;		// CString
 		static	CString				mInfoPropertyValueKey;		// SDictionaryValue
 		static	CString				mInfoSceneIndexKey;			// UInt32

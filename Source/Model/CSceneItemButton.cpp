@@ -33,11 +33,11 @@ class CSceneItemButtonInternals : public TCopyOnWriteReferenceCountable<CSceneIt
 							mHitRadius(other.mHitRadius), mStartTimeInterval(other.mStartTimeInterval)
 			{}
 
-		OO<CActions>				mActions;
-		OO<CAudioInfo>				mAudioInfo;
-		OO<CKeyframeAnimationInfo>	mUpKeyframeAnimationInfo;
-		OO<CKeyframeAnimationInfo>	mDownKeyframeAnimationInfo;
-		OO<CKeyframeAnimationInfo>	mDisabledKeyframeAnimationInfo;
+		OI<CActions>				mActions;
+		OI<CAudioInfo>				mAudioInfo;
+		OI<CKeyframeAnimationInfo>	mUpKeyframeAnimationInfo;
+		OI<CKeyframeAnimationInfo>	mDownKeyframeAnimationInfo;
+		OI<CKeyframeAnimationInfo>	mDisabledKeyframeAnimationInfo;
 		Float32						mHitRadius;
 		OV<UniversalTimeInterval>	mStartTimeInterval;
 };
@@ -66,17 +66,17 @@ CSceneItemButton::CSceneItemButton(const CDictionary& info) : CSceneItem(info)
 	mInternals = new CSceneItemButtonInternals();
 
 	if (info.contains(sActionsInfoKey))
-		mInternals->mActions = OO<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
+		mInternals->mActions = OI<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
 	if (info.contains(sAudioInfoKey))
-		mInternals->mAudioInfo = OO<CAudioInfo>(CAudioInfo(info.getDictionary(sAudioInfoKey)));
+		mInternals->mAudioInfo = OI<CAudioInfo>(CAudioInfo(info.getDictionary(sAudioInfoKey)));
 	mInternals->mUpKeyframeAnimationInfo =
-			OO<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(info.getDictionary(sUpKeyframeAnimationInfoKey)));
+			OI<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(info.getDictionary(sUpKeyframeAnimationInfoKey)));
 	if (info.contains(sDownKeyframeAnimationInfoKey))
 		mInternals->mDownKeyframeAnimationInfo =
-				OO<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(info.getDictionary(sDownKeyframeAnimationInfoKey)));
+				OI<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(info.getDictionary(sDownKeyframeAnimationInfoKey)));
 	if (info.contains(sDisabledKeyframeAnimationInfoKey))
 		mInternals->mDisabledKeyframeAnimationInfo =
-				OO<CKeyframeAnimationInfo>(
+				OI<CKeyframeAnimationInfo>(
 						CKeyframeAnimationInfo(info.getDictionary(sDisabledKeyframeAnimationInfoKey)));
 	if (info.contains(sStartTimeIntervalKey))
 		mInternals->mStartTimeInterval = OV<UniversalTimeInterval>(info.getFloat64(sStartTimeIntervalKey));
@@ -158,15 +158,15 @@ CDictionary CSceneItemButton::getInfo() const
 {
 	CDictionary	info = CSceneItem::getInfo();
 
-	if (mInternals->mActions.hasObject())
+	if (mInternals->mActions.hasInstance())
 		info.set(sActionsInfoKey, mInternals->mActions->getInfo());
-	if (mInternals->mAudioInfo.hasObject())
+	if (mInternals->mAudioInfo.hasInstance())
 		info.set(sAudioInfoKey, mInternals->mAudioInfo->getInfo());
-	if (mInternals->mUpKeyframeAnimationInfo.hasObject())
+	if (mInternals->mUpKeyframeAnimationInfo.hasInstance())
 		info.set(sUpKeyframeAnimationInfoKey, mInternals->mUpKeyframeAnimationInfo->getInfo());
-	if (mInternals->mDownKeyframeAnimationInfo.hasObject())
+	if (mInternals->mDownKeyframeAnimationInfo.hasInstance())
 		info.set(sDownKeyframeAnimationInfoKey, mInternals->mDownKeyframeAnimationInfo->getInfo());
-	if (mInternals->mDisabledKeyframeAnimationInfo.hasObject())
+	if (mInternals->mDisabledKeyframeAnimationInfo.hasInstance())
 		info.set(sDisabledKeyframeAnimationInfoKey, mInternals->mDisabledKeyframeAnimationInfo->getInfo());
 	if (mInternals->mStartTimeInterval.hasValue())
 		info.set(sStartTimeIntervalKey, *mInternals->mStartTimeInterval);
@@ -178,14 +178,14 @@ CDictionary CSceneItemButton::getInfo() const
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-const OO<CActions>& CSceneItemButton::getActions() const
+const OI<CActions>& CSceneItemButton::getActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButton::setActions(const OO<CActions>& actions)
+void CSceneItemButton::setActions(const OI<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
@@ -196,14 +196,14 @@ void CSceneItemButton::setActions(const OO<CActions>& actions)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const OO<CAudioInfo>& CSceneItemButton::getAudioInfo() const
+const OI<CAudioInfo>& CSceneItemButton::getAudioInfo() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mAudioInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButton::setAudioInfo(const OO<CAudioInfo>& audioInfo)
+void CSceneItemButton::setAudioInfo(const OI<CAudioInfo>& audioInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
@@ -214,14 +214,14 @@ void CSceneItemButton::setAudioInfo(const OO<CAudioInfo>& audioInfo)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const OO<CKeyframeAnimationInfo>& CSceneItemButton::getUpKeyframeAnimationInfo() const
+const OI<CKeyframeAnimationInfo>& CSceneItemButton::getUpKeyframeAnimationInfo() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mUpKeyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButton::setUpKeyframeAnimationInfo(const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo)
+void CSceneItemButton::setUpKeyframeAnimationInfo(const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
@@ -232,14 +232,14 @@ void CSceneItemButton::setUpKeyframeAnimationInfo(const OO<CKeyframeAnimationInf
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const OO<CKeyframeAnimationInfo>& CSceneItemButton::getDownKeyframeAnimationInfo() const
+const OI<CKeyframeAnimationInfo>& CSceneItemButton::getDownKeyframeAnimationInfo() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mDownKeyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButton::setDownKeyframeAnimationInfo(const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo)
+void CSceneItemButton::setDownKeyframeAnimationInfo(const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
@@ -250,14 +250,14 @@ void CSceneItemButton::setDownKeyframeAnimationInfo(const OO<CKeyframeAnimationI
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const OO<CKeyframeAnimationInfo>& CSceneItemButton::getDisabledKeyframeAnimationInfo() const
+const OI<CKeyframeAnimationInfo>& CSceneItemButton::getDisabledKeyframeAnimationInfo() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mDisabledKeyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButton::setDisabledKeyframeAnimationInfo(const OO<CKeyframeAnimationInfo>& keyframeAnimationInfo)
+void CSceneItemButton::setDisabledKeyframeAnimationInfo(const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write

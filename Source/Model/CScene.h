@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CAction.h"
+#include "CAudioInfo.h"
 #include "C2DGeometry.h"
 #include "CSceneItem.h"
 
@@ -46,17 +47,23 @@ class CScene : public CEquatable {
 			const	CString&			getName() const;
 					void				setName(const CString& name);
 
-			const	S2DRectF32&			getBoundsRect() const;
-					void				setBoundsRect(const S2DRectF32& rect);
-
-			const	OO<CActions>&		getDoubleTapActions() const;
-					void				setDoubleTapActions(const OO<CActions>& doubleTapActions);
-
 					ESceneOptions		getOptions() const;
 					void				setOptions(ESceneOptions options);
 
 			const	CString&			getStoreSceneIndexAsString() const;
 					void				setStoreSceneIndexAsString(const CString& string);
+
+			const	S2DRectF32&			getBoundsRect() const;
+					void				setBoundsRect(const S2DRectF32& rect);
+
+			const	OI<CAudioInfo>&		getBackground1AudioInfo() const;
+					void				setBackground1AudioInfo(const OI<CAudioInfo>& audioInfo);
+
+			const	OI<CAudioInfo>&		getBackground2AudioInfo() const;
+					void				setBackground2AudioInfo(const OI<CAudioInfo>& audioInfo);
+
+			const	OI<CActions>&		getDoubleTapActions() const;
+					void				setDoubleTapActions(const OI<CActions>& doubleTapActions);
 
 			const	TArray<CSceneItem>&	getSceneItems() const;
 
