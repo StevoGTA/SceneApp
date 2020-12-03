@@ -46,7 +46,7 @@ CKeyframeAnimationInfo::CKeyframeAnimationInfo(const CDictionary& info)
 	mInternals = new CKeyframeAnimationInfoInternals();
 
 	TArray<CDictionary>	keyframeInfos = info.getArrayOfDictionaries(sKeyframeArrayKey);
-	for (CArrayItemIndex i = 0; i < keyframeInfos.getCount(); i++)
+	for (CArray::ItemIndex i = 0; i < keyframeInfos.getCount(); i++)
 		mInternals->mAnimationKeyframesArray += CAnimationKeyframe(keyframeInfos[i]);
 }
 
@@ -90,7 +90,7 @@ CDictionary CKeyframeAnimationInfo::getInfo() const
 	CDictionary	info;
 
 	TNArray<CDictionary>	keyframeInfos;
-	for (CArrayItemIndex i = 0; i < mInternals->mAnimationKeyframesArray.getCount(); i++)
+	for (CArray::ItemIndex i = 0; i < mInternals->mAnimationKeyframesArray.getCount(); i++)
 		keyframeInfos += mInternals->mAnimationKeyframesArray[i].getInfo();
 	info.set(sKeyframeArrayKey, keyframeInfos);
 

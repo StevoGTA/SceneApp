@@ -277,7 +277,7 @@ CKeyframeAnimationPlayer::CKeyframeAnimationPlayer(const CKeyframeAnimationInfo&
 															mInternals->mKeyframeAnimationInfo.
 																	getAnimationKeyframesArray();
 			OR<CKeyframeAnimationPlayerKeyframe>	previousPlayerKeyframe;
-	for (CArrayItemIndex i = 0; i < array.getCount(); i++) {
+	for (CArray::ItemIndex i = 0; i < array.getCount(); i++) {
 		CKeyframeAnimationPlayerKeyframe*	playerKeyframe =
 													new CKeyframeAnimationPlayerKeyframe(array[i],
 															previousPlayerKeyframe);
@@ -481,9 +481,9 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 			mInternals->mHasBeenDeleted = OR<bool>();
 
 			// Update next keyframe
-			OV<CArrayItemIndex>	index =
-										keyframeAnimationPlayerKeyframes.getIndexOf(
-												*mInternals->mPreviousPlayerKeyframe);
+			OV<CArray::ItemIndex>	index =
+											keyframeAnimationPlayerKeyframes.getIndexOf(
+													*mInternals->mPreviousPlayerKeyframe);
 			if (*index < (keyframeAnimationPlayerKeyframes.getCount() - 1))
 				// Next keyframe please!
 				mInternals->mNextPlayerKeyframe =

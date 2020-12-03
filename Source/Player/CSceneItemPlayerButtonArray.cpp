@@ -157,7 +157,7 @@ void CSceneItemPlayerButtonArray::render(CGPU& gpu, const SGPURenderObjectRender
 			CGPURenderObject2DIndexes				indexes =
 															CGPURenderObject2DIndexes::withCount(
 																	buttonArrayButtons.getCount() * 2);
-	for (CArrayItemIndex i = 0; i < buttonArrayButtons.getCount(); i++) {
+	for (CArray::ItemIndex i = 0; i < buttonArrayButtons.getCount(); i++) {
 		// Render this button
 		const	CSceneItemButtonArrayButton&	button = buttonArrayButtons[i];
 

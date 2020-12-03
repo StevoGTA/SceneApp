@@ -301,7 +301,7 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32
 
 		// Search for target scene item player from front to back
 		CSceneItemPlayer*	targetSceneItemPlayer = nil;
-		for (CArrayItemIndex i = mInternals->mSceneItemPlayers.getCount(); i > 0; i--) {
+		for (CArray::ItemIndex i = mInternals->mSceneItemPlayers.getCount(); i > 0; i--) {
 			// Get next scene item player
 			CSceneItemPlayer&	sceneItemPlayer = mInternals->mSceneItemPlayers[i - 1];
 

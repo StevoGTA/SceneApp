@@ -81,7 +81,7 @@ CScene::CScene(const CDictionary& info)
 		mInternals->mDoubleTapActions = new CActions(info.getDictionary(sDoubleTapActionsInfoKey));
 
 	TArray<CDictionary>	itemInfos = info.getArrayOfDictionaries(sItemsKey);
-	for (CArrayItemIndex i = 0; i < itemInfos.getCount(); i++) {
+	for (CArray::ItemIndex i = 0; i < itemInfos.getCount(); i++) {
 		// Create and add item
 		const	CDictionary&	sceneItemInfo = itemInfos[i];
 		const	CString			itemType = sceneItemInfo.getString(sItemTypeKey);
@@ -167,7 +167,7 @@ CDictionary CScene::getInfo() const
 		info.set(sDoubleTapActionsInfoKey, mInternals->mDoubleTapActions->getInfo());
 
 	TNArray<CDictionary>	itemInfos;
-	for (CArrayItemIndex i = 0; i < mInternals->mSceneItems.getCount(); i++) {
+	for (CArray::ItemIndex i = 0; i < mInternals->mSceneItems.getCount(); i++) {
 		CDictionary	sceneItemInfo;
 		sceneItemInfo.set(sItemTypeKey, mInternals->mSceneItems[i].getType());
 		sceneItemInfo.set(CSceneItem::mItemInfoKey, mInternals->mSceneItems[i].getInfo());

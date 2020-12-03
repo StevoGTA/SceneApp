@@ -44,7 +44,8 @@ CScenePackage::CScenePackage(const S2DSizeF32& size, const CDictionary& info)
 	mInternals = new CScenePackageInternals(size);
 
 	mInternals->mScenes =
-			TNArray<CScene>(info.getArrayOfDictionaries(sScenesKey), (CScene (*)(CArrayItemRef item)) CScene::makeFrom);
+			TNArray<CScene>(info.getArrayOfDictionaries(sScenesKey),
+					(CScene (*)(CArray::ItemRef item)) CScene::makeFrom);
 	mInternals->mInitialSceneIndex = info.getSInt32(sInitialSceneIndexKey, 0);
 }
 
@@ -78,7 +79,7 @@ CDictionary CScenePackage::getInfo() const
 	CDictionary	info;
 
 	info.set(sScenesKey,
-			TNArray<CDictionary>(mInternals->mScenes, (CDictionary (*)(CArrayItemRef item)) CScene::getInfoFrom));
+			TNArray<CDictionary>(mInternals->mScenes, (CDictionary (*)(CArray::ItemRef item)) CScene::getInfoFrom));
 	if (mInternals->mInitialSceneIndex.hasValue())
 		info.set(sInitialSceneIndexKey, *mInternals->mInitialSceneIndex);
 
@@ -114,7 +115,7 @@ OV<CSceneIndex> CScenePackage::getIndexOfScene(const CScene& scene)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Get index
-	OV<CArrayItemIndex>	index = mInternals->mScenes.getIndexOf(scene);
+	OV<CArray::ItemIndex>	index = mInternals->mScenes.getIndexOf(scene);
 
 	return index.hasValue() ? OV<CSceneIndex>(*index) : OV<CSceneIndex>();
 }

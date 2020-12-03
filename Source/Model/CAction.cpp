@@ -176,7 +176,7 @@ CActions::CActions(const CDictionary& info) : TNArray<CAction>()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	TArray<CDictionary>	actionInfos = info.getArrayOfDictionaries(sActionsKey);
-	for (CArrayItemIndex i = 0; i < actionInfos.getCount(); i++)
+	for (CArray::ItemIndex i = 0; i < actionInfos.getCount(); i++)
 		*this += CAction(actionInfos[i]);
 }
 

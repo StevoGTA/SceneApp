@@ -330,9 +330,9 @@ void CSceneAppPlayerInternals::setCurrentSceneIndex(CSceneIndex sceneIndex)
 	CScenePlayer&	scenePlayer = mScenePlayers[sceneIndex];
 
 	TBuffer<bool>	performLoad(mScenePlayers.getCount());
-	for (CArrayItemIndex i = 0; i < mScenePlayers.getCount(); i++)
+	for (CArray::ItemIndex i = 0; i < mScenePlayers.getCount(); i++)
 		// Setup
-		(*performLoad)[i] = i == (CArrayItemIndex) sceneIndex;
+		(*performLoad)[i] = i == (CArray::ItemIndex) sceneIndex;
 
 	// Iterate all actions for this scene player
 	CActions	actions = scenePlayer.getAllActions();
@@ -356,7 +356,7 @@ void CSceneAppPlayerInternals::setCurrentSceneIndex(CSceneIndex sceneIndex)
 	scenePlayer.load(mGPU);
 
 	// Load linked scenes
-	for (CArrayItemIndex i = 0; i < mScenePlayers.getCount(); i++) {
+	for (CArray::ItemIndex i = 0; i < mScenePlayers.getCount(); i++) {
 		// Check if loading
 		if (performLoad[i])
 			// Load
@@ -364,7 +364,7 @@ void CSceneAppPlayerInternals::setCurrentSceneIndex(CSceneIndex sceneIndex)
 	}
 
 	// Unload other scenes
-	for (CArrayItemIndex i = 0; i < mScenePlayers.getCount(); i++) {
+	for (CArray::ItemIndex i = 0; i < mScenePlayers.getCount(); i++) {
 		// Check if loading
 		if (!performLoad[i])
 			// Unoad

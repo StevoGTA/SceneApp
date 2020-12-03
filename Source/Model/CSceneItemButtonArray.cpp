@@ -248,7 +248,7 @@ CSceneItemButtonArray::CSceneItemButtonArray(const CDictionary& info) : CSceneIt
 	mInternals->mImageResourceFilename = info.getString(sImageResourceFilenameKey);
 	mInternals->mSceneItemButtonArrayButtons =
 			TNArray<CSceneItemButtonArrayButton>(info.getArrayOfDictionaries(sButtonsInfoKey),
-					(CSceneItemButtonArrayButton (*)(CArrayItemRef item)) CSceneItemButtonArrayButton::makeFrom);
+					(CSceneItemButtonArrayButton (*)(CArray::ItemRef item)) CSceneItemButtonArrayButton::makeFrom);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -307,7 +307,7 @@ CDictionary CSceneItemButtonArray::getInfo() const
 	info.set(sImageResourceFilenameKey, mInternals->mImageResourceFilename);
 	info.set(sButtonsInfoKey,
 			TNArray<CDictionary>(mInternals->mSceneItemButtonArrayButtons,
-					(CDictionary (*)(CArrayItemRef item)) CSceneItemButtonArrayButton::getInfoFrom));
+					(CDictionary (*)(CArray::ItemRef item)) CSceneItemButtonArrayButton::getInfoFrom));
 
 	return info;
 }

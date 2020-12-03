@@ -145,7 +145,7 @@ if (audioInfoOptions != kAudioInfoOptionsNone)
 			CSceneAppMediaPlayer*	sceneAppMediaPlayer =
 											new CSceneAppMediaPlayer(resourceFilename,
 													mInternals->mSceneAppMediaPlayerMap);
-			for (CArrayItemIndex i = 0; i < audioTracks.getCount(); i++) {
+			for (CArray::ItemIndex i = 0; i < audioTracks.getCount(); i++) {
 				// Setup
 				I<CAudioTrackReader>	audioTrackReader(new CAudioTrackReader(audioTracks[i], byteParceller));
 				I<CAudioPlayer>			audioPlayer = sceneAppMediaPlayer->newAudioPlayer(resourceFilename);
