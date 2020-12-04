@@ -379,7 +379,7 @@ void CSceneAppPlayerInternals::setCurrentSceneIndex(CSceneIndex sceneIndex)
 	const	CString&	storeSceneIndexAsString = scenePlayer.getScene().getStoreSceneIndexAsString();
 	if (!storeSceneIndexAsString.isEmpty())
 		// Store
-		CPreferences::mDefault.set(SSInt32Pref(storeSceneIndexAsString.getOSString(), 0), sceneIndex);
+		CPreferences::mDefault.set(CPreferences::SInt32Pref(storeSceneIndexAsString.getOSString(), 0), sceneIndex);
 
 	cancelAllSceneTouches();
 	cancelAllSceneTransitionTouches();
@@ -871,7 +871,7 @@ OV<CSceneIndex> CSceneAppPlayer::getSceneIndex(const CAction& action) const
 	const	CString&	loadSceneIndexFrom = actionInfo.getString(CAction::mInfoLoadSceneIndexFromKey);
 	if (!loadSceneIndexFrom.isEmpty()) {
 		// Retrieve from prefs
-		SSInt32Pref	pref(loadSceneIndexFrom.getOSString(), 0);
+		CPreferences::SInt32Pref	pref(loadSceneIndexFrom.getOSString(), 0);
 
 		return CPreferences::mDefault.hasValue(pref) ?
 				OV<CSceneIndex>(CPreferences::mDefault.getSInt32(pref)) : OV<CSceneIndex>();

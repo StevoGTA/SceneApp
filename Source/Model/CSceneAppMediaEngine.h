@@ -14,7 +14,7 @@
 
 class CSceneAppMediaEngineInternals;
 class CSceneAppMediaEngine : public CMediaEngine {
-	// Types
+	// Enums
 	public:
 //		// EAudioOptions
 //		enum EAudioOptions {
@@ -25,8 +25,12 @@ class CSceneAppMediaEngine : public CMediaEngine {
 //			kAudioOptionsLoadIntoMemory				= 1 << 2,
 //		};
 //
+	// Procs
+	public:
 		typedef	CByteParceller	(*CreateByteParcellerProc)(const CString& resourceFilename, void* userData);
 
+	// Structs
+	public:
 		struct SInfo {
 							// Lifecycle methods
 							SInfo(CreateByteParcellerProc createByteParcellerProc, void* userData) :
