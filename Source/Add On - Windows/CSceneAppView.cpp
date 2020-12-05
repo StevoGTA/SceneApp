@@ -165,15 +165,17 @@ ref class CSceneAppViewInternals sealed : Platform::Object {
 							mIsRunning(true),
 							mGPU(
 									SGPUProcsInfo(
-											(CDirectXGPUGetCoreWindowProc) sDirectXGPUGetCoreWindowProc,
-											(CDirectXGPUGetDisplaySupportInfoProc)
+											(SGPUProcsInfo::GetCoreWindowProc) sDirectXGPUGetCoreWindowProc,
+											(SGPUProcsInfo::GetDisplaySupportInfoProc)
 													sDirectXGPUGetDisplaySupportInfo,
-											(CDirectXGPUGetFPSProc) sDirectXGPUGetFPS,
-											(CDirectXGPUGetDPIProc) sDirectXGPUGetDPI,
-											(CDirectXGPUGetSizeProc) sDirectXGPUGetSize,
-											(CDirectXGPUGetOrientationProc) sDirectXGPUGetOrientation,
-											(CDirectXGPURequiresDeviceValidationProc) sDirectXGPURequiresDeviceValidation,
-											(CDirectXGPUHandledDeviceValidationProc) sDirectXGPUHandledDeviceValidation,
+											(SGPUProcsInfo::GetFPSProc) sDirectXGPUGetFPS,
+											(SGPUProcsInfo::GetDPIProc) sDirectXGPUGetDPI,
+											(SGPUProcsInfo::GetSizeProc) sDirectXGPUGetSize,
+											(SGPUProcsInfo::GetOrientationProc) sDirectXGPUGetOrientation,
+											(SGPUProcsInfo::RequiresDeviceValidationProc)
+													sDirectXGPURequiresDeviceValidation,
+											(SGPUProcsInfo::HandledDeviceValidationProc)
+													sDirectXGPUHandledDeviceValidation,
 											(void*) this)),
 							mSceneAppPlayer(NULL),
 							mLastPointerPressedTimestamp(0.0), mPointerClickCount(0),
