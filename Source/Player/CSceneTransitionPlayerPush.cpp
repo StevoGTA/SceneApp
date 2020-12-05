@@ -134,17 +134,17 @@ void CSceneTransitionPlayerPush::render(CGPU& gpu) const
 		case kSceneTransitionDirectionLeft:
 			// Left
 			getFromScenePlayer().render(gpu,
-					SGPURenderObjectRenderInfo(S2DOffsetF32(-mInternals->mCurrentOffset, 0.0)));
+					CGPURenderObject::RenderInfo(S2DOffsetF32(-mInternals->mCurrentOffset, 0.0)));
 			getToScenePlayer().render(gpu,
-					SGPURenderObjectRenderInfo(
+					CGPURenderObject::RenderInfo(
 							S2DOffsetF32(-mInternals->mCurrentOffset + viewportPixelSize.mWidth, 0.0)));
 			break;
 		
 		case kSceneTransitionDirectionRight:
 			// Right
-			getFromScenePlayer().render(gpu, SGPURenderObjectRenderInfo(S2DOffsetF32(mInternals->mCurrentOffset, 0.0)));
+			getFromScenePlayer().render(gpu, CGPURenderObject::RenderInfo(S2DOffsetF32(mInternals->mCurrentOffset, 0.0)));
 			getToScenePlayer().render(gpu,
-					SGPURenderObjectRenderInfo(
+					CGPURenderObject::RenderInfo(
 							S2DOffsetF32(mInternals->mCurrentOffset - viewportPixelSize.mWidth, 0.0)));
 			break;
 	}

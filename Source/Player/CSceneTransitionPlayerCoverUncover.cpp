@@ -149,7 +149,7 @@ void CSceneTransitionPlayerCoverUncover::render(CGPU& gpu) const
 				offset.mDX = mInternals->mCurrentOffset - viewportPixelSize.mWidth;
 				break;
 		}
-		getToScenePlayer().render(gpu, SGPURenderObjectRenderInfo(offset));
+		getToScenePlayer().render(gpu, CGPURenderObject::RenderInfo(offset));
 	} else {
 		// Uncover
 		// Draw to scene
@@ -177,6 +177,6 @@ void CSceneTransitionPlayerCoverUncover::render(CGPU& gpu) const
 				offset.mDX = mInternals->mCurrentOffset;
 				break;
 		}
-		getFromScenePlayer().render(gpu, SGPURenderObjectRenderInfo(offset));
+		getFromScenePlayer().render(gpu, CGPURenderObject::RenderInfo(offset));
 	}
 }

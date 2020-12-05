@@ -28,7 +28,7 @@ class CSceneItemPlayerButton : public CSceneItemPlayer {
 
 				void				reset();
 				void				update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
-				void				render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const;
+				void				render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const;
 
 				bool				handlesTouchOrMouseAtPoint(const S2DPointF32& point) const;
 				void				touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32 tapOrClickCount,

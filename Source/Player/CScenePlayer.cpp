@@ -235,11 +235,11 @@ void CScenePlayer::update(UniversalTimeInterval deltaTimeInterval)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CScenePlayer::render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const
+void CScenePlayer::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	SGPURenderObjectRenderInfo	offsetRenderInfo = renderInfo.offset(mInternals->mCurrentOffset);
+	CGPURenderObject::RenderInfo	offsetRenderInfo = renderInfo.offset(mInternals->mCurrentOffset);
 
 	// Iterate all scene item players
 	for (TIteratorD<CSceneItemPlayer> iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();

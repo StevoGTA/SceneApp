@@ -10,7 +10,7 @@
 #include "CMediaPlayer.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK:  - CSceneAppMediaEngine
+// MARK: - CSceneAppMediaEngine
 
 class CSceneAppMediaEngineInternals;
 class CSceneAppMediaEngine : public CMediaEngine {
@@ -31,12 +31,12 @@ class CSceneAppMediaEngine : public CMediaEngine {
 
 	// Structs
 	public:
-		struct SInfo {
+		struct Info {
 							// Lifecycle methods
-							SInfo(CreateByteParcellerProc createByteParcellerProc, void* userData) :
+							Info(CreateByteParcellerProc createByteParcellerProc, void* userData) :
 								mCreateByteParcellerProc(createByteParcellerProc), mUserData(userData)
 								{}
-							SInfo(const SInfo& other) :
+							Info(const Info& other) :
 								mCreateByteParcellerProc(other.mCreateByteParcellerProc), mUserData(other.mUserData)
 								{}
 
@@ -53,7 +53,7 @@ class CSceneAppMediaEngine : public CMediaEngine {
 	// Methods
 	public:
 							// Lifecycle methods
-							CSceneAppMediaEngine(const SInfo& info);
+							CSceneAppMediaEngine(const Info& info);
 							~CSceneAppMediaEngine();
 
 							// Instance methods

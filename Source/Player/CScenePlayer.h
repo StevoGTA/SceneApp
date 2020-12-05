@@ -72,7 +72,7 @@ class CScenePlayer {
 				void		reset();
 				void		update(UniversalTimeInterval deltaTimeInterval);
 				void		render(CGPU& gpu,
-									const SGPURenderObjectRenderInfo& renderInfo = SGPURenderObjectRenderInfo())
+									const CGPURenderObject::RenderInfo& renderInfo = CGPURenderObject::RenderInfo())
 									const;
 
 				void		setItemPlayerProperty(const CString& itemName, const CString& property,

@@ -82,20 +82,20 @@ class CSceneAppMediaPlayerReference : public CMediaPlayer {
 
 class CSceneAppMediaEngineInternals {
 	public:
-		CSceneAppMediaEngineInternals(const CSceneAppMediaEngine::SInfo& info) : mInfo(info) {}
+		CSceneAppMediaEngineInternals(const CSceneAppMediaEngine::Info& info) : mInfo(info) {}
 
-		CSceneAppMediaEngine::SInfo					mInfo;
+		CSceneAppMediaEngine::Info					mInfo;
 		TReferenceDictionary<CSceneAppMediaPlayer>	mSceneAppMediaPlayerMap;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
-// MARK:  - CSceneAppMediaEngine
+// MARK: - CSceneAppMediaEngine
 
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneAppMediaEngine::CSceneAppMediaEngine(const SInfo& info) : CMediaEngine()
+CSceneAppMediaEngine::CSceneAppMediaEngine(const Info& info) : CMediaEngine()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals = new CSceneAppMediaEngineInternals(info);
@@ -151,7 +151,7 @@ if (audioInfoOptions != kAudioInfoOptionsNone)
 				I<CAudioPlayer>			audioPlayer = sceneAppMediaPlayer->newAudioPlayer(resourceFilename);
 
 				// Connect
-				SConnectResult	connectResult =
+				ConnectResult	connectResult =
 										connect((I<CAudioProcessor>&) audioTrackReader,
 												(I<CAudioProcessor>&) audioPlayer,
 												composeAudioProcessingFormat(*audioTrackReader, *audioPlayer));

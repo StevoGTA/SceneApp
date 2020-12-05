@@ -56,7 +56,7 @@ class CSceneItemPlayerAnimation : public CSceneItemPlayer {
 
 				void						reset();
 				void						update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
-				void						render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const;
+				void						render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const;
 
 											// Instance methods
 		const	CSceneItemAnimation&		getSceneItemAnimation() const

@@ -241,7 +241,7 @@ void CSceneItemPlayerAnimation::update(UniversalTimeInterval deltaTimeInterval, 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerAnimation::render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const
+void CSceneItemPlayerAnimation::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 //	if (mInternals->mCelAnimationPlayer != nil)

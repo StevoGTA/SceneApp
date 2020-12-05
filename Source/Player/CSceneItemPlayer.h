@@ -69,7 +69,7 @@ class CSceneItemPlayer {
 
 		virtual			void						reset();
 		virtual			void						update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
-		virtual			void						render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo)
+		virtual			void						render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo)
 															const = 0;
 
 		virtual			bool						handlesTouchOrMouseAtPoint(const S2DPointF32& point) const;

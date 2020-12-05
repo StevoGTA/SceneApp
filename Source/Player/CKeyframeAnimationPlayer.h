@@ -77,7 +77,7 @@ class CKeyframeAnimationPlayer {
 
 		void		reset(bool start);
 		void		update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
-		void		render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const;
+		void		render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const;
 		bool		getIsFinished() const;
 
 	// Properties

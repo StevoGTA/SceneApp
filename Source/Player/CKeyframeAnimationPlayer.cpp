@@ -562,12 +562,12 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CKeyframeAnimationPlayer::render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const
+void CKeyframeAnimationPlayer::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	if (mInternals->mIsStarted && !mInternals->mIsFinished && (mInternals->mPreviousPlayerKeyframe.hasReference()))
 		// Draw
-		mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->render(CGPURenderObject2DIndexes::forIndex(0),
+		mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->render(CGPURenderObject2D::Indexes::forIndex(0),
 				renderInfo);
 }
 

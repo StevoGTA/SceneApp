@@ -101,7 +101,7 @@ class CSceneAppPlayerInternals {
 CSceneAppPlayerInternals::CSceneAppPlayerInternals(CSceneAppPlayer& sceneAppPlayer, CGPU& gpu,
 		const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo) :
 	mOptions(kSceneAppPlayerOptionsDefault), mGPU(gpu), mGPUTextureManager(gpu),
-			mSceneAppMediaEngine(CSceneAppMediaEngine::SInfo(sCreateByteParceller, this)),
+			mSceneAppMediaEngine(CSceneAppMediaEngine::Info(sCreateByteParceller, this)),
 			mSceneAppPlayer(sceneAppPlayer),
 			mSceneAppPlayerProcsInfo(sceneAppPlayerProcsInfo),
 			mSceneAppResourceManagementInfo(sCreateByteParceller, mGPUTextureManager, mSceneAppMediaEngine, this),

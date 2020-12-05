@@ -81,7 +81,7 @@ void CSceneItemPlayerButtonArray::load(CGPU& gpu)
 	// Check if loaded
 	if (mInternals->mGPURenderObject2D == nil) {
 		// Compose items
-		TNArray<SGPURenderObject2DItem>	items;
+		TNArray<CGPURenderObject2D::Item>	items;
 		for (TIteratorD<CSceneItemButtonArrayButton> iterator =
 						getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
 				iterator.hasValue(); iterator.advance()) {
@@ -91,7 +91,7 @@ void CSceneItemPlayerButtonArray::load(CGPU& gpu)
 			const	S2DRectF32&						upImageRect = button.getUpImageRect();
 
 			// Add up image info
-			items += SGPURenderObject2DItem(S2DRectF32(screenPositionPoint, upImageRect.mSize), 0, upImageRect);
+			items += CGPURenderObject2D::Item(S2DRectF32(screenPositionPoint, upImageRect.mSize), 0, upImageRect);
 		}
 		for (TIteratorD<CSceneItemButtonArrayButton> iterator =
 						getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
@@ -102,7 +102,7 @@ void CSceneItemPlayerButtonArray::load(CGPU& gpu)
 			const	S2DRectF32&						downImageRect = button.getDownImageRect();
 
 			// Add down image info
-			items += SGPURenderObject2DItem(S2DRectF32(screenPositionPoint, downImageRect.mSize), 0, downImageRect);
+			items += CGPURenderObject2D::Item(S2DRectF32(screenPositionPoint, downImageRect.mSize), 0, downImageRect);
 		}
 
 		// Create GPU Render Object 2D
@@ -148,14 +148,14 @@ void CSceneItemPlayerButtonArray::update(UniversalTimeInterval deltaTimeInterval
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButtonArray::render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const
+void CSceneItemPlayerButtonArray::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Iterate all buttons
 	const	TArray<CSceneItemButtonArrayButton>&	buttonArrayButtons =
 															getSceneItemButtonArray().getSceneItemButtonArrayButtons();
-			CGPURenderObject2DIndexes				indexes =
-															CGPURenderObject2DIndexes::withCount(
+			CGPURenderObject2D::Indexes				indexes =
+															CGPURenderObject2D::Indexes::withCount(
 																	buttonArrayButtons.getCount() * 2);
 	for (CArray::ItemIndex i = 0; i < buttonArrayButtons.getCount(); i++) {
 		// Render this button

@@ -218,7 +218,7 @@ void CSceneItemPlayerButton::update(UniversalTimeInterval deltaTimeInterval, boo
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButton::render(CGPU& gpu, const SGPURenderObjectRenderInfo& renderInfo) const
+void CSceneItemPlayerButton::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	if (mInternals->mIsEnabled) {
