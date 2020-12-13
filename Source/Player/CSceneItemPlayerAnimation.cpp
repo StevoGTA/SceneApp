@@ -33,11 +33,10 @@ static	void								sKeyframeAnimationPlayerActionsHandlerProc(
 class CSceneItemPlayerAnimationInternals {
 	public:
 		CSceneItemPlayerAnimationInternals(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
-				const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-				const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo) :
+				const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
 			mSceneItemPlayerAnimation(sceneItemPlayerAnimation),
 					mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo), mKeyframeAnimationPlayer(nil),
-					mIsStarted(false), mCurrentTimeInterval(0.0), mSceneItemPlayerAnimationProcsInfo(nil),
+					mIsStarted(false), mCurrentTimeInterval(0.0), mSceneItemPlayerAnimationProcs(nil),
 //					mCelAnimationPlayerProcsInfo(sCelAnimationPlayerGetFinishedActionProc, nil,
 //							sCelAnimationPlayerFinishedProc, nil, this),
 					mKeyframeAnimationPlayerProcsInfo(sKeyframeAnimationPlayerShouldLoopProc, nil,
@@ -59,9 +58,9 @@ class CSceneItemPlayerAnimationInternals {
 				bool								mIsStarted;
 				UniversalTimeInterval				mCurrentTimeInterval;
 
-		const	SSceneItemPlayerAnimationProcsInfo*	mSceneItemPlayerAnimationProcsInfo;
+		const	CSceneItemPlayerAnimation::Procs*	mSceneItemPlayerAnimationProcs;
 //				SCelAnimationPlayerProcsInfo		mCelAnimationPlayerProcsInfo;
-				SKeyframeAnimationPlayerProcsInfo	mKeyframeAnimationPlayerProcsInfo;
+				CKeyframeAnimationPlayer::Procs		mKeyframeAnimationPlayerProcsInfo;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -73,12 +72,11 @@ class CSceneItemPlayerAnimationInternals {
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemPlayerAnimation::CSceneItemPlayerAnimation(const CSceneItemAnimation& sceneItemAnimation,
 		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo) :
-		CSceneItemPlayer(sceneItemAnimation, sceneItemPlayerProcsInfo)
+		const CSceneItemPlayer::Procs& sceneItemPlayerProcs) :
+		CSceneItemPlayer(sceneItemAnimation, sceneItemPlayerProcs)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals =
-			new CSceneItemPlayerAnimationInternals(*this, sceneAppResourceManagementInfo, sceneItemPlayerProcsInfo);
+	mInternals = new CSceneItemPlayerAnimationInternals(*this, sceneAppResourceManagementInfo);
 
 //	if (sceneItemAnimation.getCelAnimationInfoOrNil() != nil)
 //		mInternals->mCelAnimationPlayer =
@@ -299,11 +297,10 @@ void CSceneItemPlayerAnimation::setCommonTexturesSceneItemPlayerAnimation(
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerAnimation::setSceneItemPlayerAnimationProcsInfo(
-		const SSceneItemPlayerAnimationProcsInfo& sceneItemPlayerAnimationProcsInfo)
+void CSceneItemPlayerAnimation::setSceneItemPlayerAnimationProcs(const Procs& procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals->mSceneItemPlayerAnimationProcsInfo = &sceneItemPlayerAnimationProcsInfo;
+	mInternals->mSceneItemPlayerAnimationProcs = &procs;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -317,12 +314,12 @@ void CSceneItemPlayerAnimation::setSceneItemPlayerAnimationProcsInfo(
 //{
 //	CSceneItemPlayerAnimationInternals*	internals = (CSceneItemPlayerAnimationInternals*) userData;
 //
-//	if ((internals->mSceneItemPlayerAnimationProcsInfo != nil) &&
-//			(internals->mSceneItemPlayerAnimationProcsInfo->mShouldLoopProc != nil))
+//	if ((internals->mSceneItemPlayerAnimationProcs != nil) &&
+//			(internals->mSceneItemPlayerAnimationProcs->mShouldLoopProc != nil))
 //		// Ask
-//		return internals->mSceneItemPlayerAnimationProcsInfo->mShouldLoopProc(internals->mSceneItemPlayerAnimation,
+//		return internals->mSceneItemPlayerAnimationProcs->mShouldLoopProc(internals->mSceneItemPlayerAnimation,
 //				currentLoopCount,
-//				internals->mSceneItemPlayerAnimationProcsInfo->mUserData) ?
+//				internals->mSceneItemPlayerAnimationProcs->mUserData) ?
 //						kCelAnimationPlayerFinishedActionLoop : kCelAnimationPlayerFinishedActionFinish;
 //	else {
 //		// Figure
@@ -360,16 +357,16 @@ bool sKeyframeAnimationPlayerShouldLoopProc(CKeyframeAnimationPlayer& keyframeAn
 {
 	CSceneItemPlayerAnimationInternals*	internals = (CSceneItemPlayerAnimationInternals*) userData;
 
-	if ((internals->mSceneItemPlayerAnimationProcsInfo != nil) &&
-			internals->mSceneItemPlayerAnimationProcsInfo->canPerformShouldLoop())
+	if ((internals->mSceneItemPlayerAnimationProcs != nil) &&
+			internals->mSceneItemPlayerAnimationProcs->canPerformShouldLoop())
 		// Ask
-		return internals->mSceneItemPlayerAnimationProcsInfo->shouldLoop(internals->mSceneItemPlayerAnimation,
+		return internals->mSceneItemPlayerAnimationProcs->shouldLoop(internals->mSceneItemPlayerAnimation,
 				currentLoopCount);
 	else {
 		// Figure
 		const	CSceneItemAnimation&	sceneItemAnimation =
 												internals->mSceneItemPlayerAnimation.getSceneItemAnimation();
-		return (sceneItemAnimation.getLoopCount() == kSceneItemAnimationLoopForever) ||
+		return (sceneItemAnimation.getLoopCount() == CSceneItemAnimation::kLoopForever) ||
 				(currentLoopCount < sceneItemAnimation.getLoopCount());
 	}
 }

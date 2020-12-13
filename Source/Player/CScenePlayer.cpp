@@ -23,14 +23,13 @@ class CScenePlayerInternals : public TReferenceCountable<CScenePlayerInternals> 
 	public:
 										CScenePlayerInternals(const CScene& scene,
 												const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-												const SScenePlayerProcsInfo& scenePlayerProcsInfo,
-												CScenePlayer& scenePlayer) :
+												const CScenePlayer::Procs& procs, CScenePlayer& scenePlayer) :
 											TReferenceCountable(), mIsLoaded(false), mIsRunning(false), mScene(scene),
 													mScenePlayer(scenePlayer),
 													mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
 													mSceneItemPlayerProcsInfo(sceneItemPlayerActionsPerformProc,
 															this),
-													mScenePlayerProcsInfo(scenePlayerProcsInfo)
+													mScenePlayerProcsInfo(procs)
 											{}
 
 				OR<CSceneItemPlayer>	getSceneItemPlayerForSceneItemWithName(const CString& itemName)
@@ -69,8 +68,8 @@ class CScenePlayerInternals : public TReferenceCountable<CScenePlayerInternals> 
 				S2DPointF32								mInitialTouchPoint;
 				S2DOffsetF32							mCurrentOffset;
 		const	SSceneAppResourceManagementInfo&		mSceneAppResourceManagementInfo;
-				SSceneItemPlayerProcsInfo				mSceneItemPlayerProcsInfo;
-		const	SScenePlayerProcsInfo&					mScenePlayerProcsInfo;
+				CSceneItemPlayer::Procs					mSceneItemPlayerProcsInfo;
+		const	CScenePlayer::Procs&					mScenePlayerProcsInfo;
 				TIArray<CSceneItemPlayer>				mSceneItemPlayers;
 };
 
@@ -82,10 +81,10 @@ class CScenePlayerInternals : public TReferenceCountable<CScenePlayerInternals> 
 
 //----------------------------------------------------------------------------------------------------------------------
 CScenePlayer::CScenePlayer(const CScene& scene, const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-		const SScenePlayerProcsInfo& scenePlayerProcsInfo)
+		const Procs& procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CScenePlayerInternals(scene, sceneAppResourceManagementInfo, scenePlayerProcsInfo, *this);
+	mInternals = new CScenePlayerInternals(scene, sceneAppResourceManagementInfo, procs, *this);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -156,7 +155,7 @@ void CScenePlayer::load(CGPU& gpu)
 		mInternals->mSceneItemPlayers += sceneItemPlayer;
 
 		// Check if need to load
-		if (!(sceneItem.getOptions() & kSceneItemOptionsDontLoadWithScene))
+		if (!(sceneItem.getOptions() & CSceneItem::kOptionsDontLoadWithScene))
 			// Load
 			sceneItemPlayer->load(gpu);
 	}
@@ -250,7 +249,7 @@ void CScenePlayer::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderI
 		// Check if is visible
 		if (sceneItemPlayer.getIsVisible()) {
 			// Check how this scene item is anchored
-			if (sceneItemPlayer.getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen)
+			if (sceneItemPlayer.getSceneItem().getOptions() & CSceneItem::kOptionsAnchorToScreen)
 				// Draw anchored to screen
 				sceneItemPlayer.render(gpu, renderInfo);
 			else
@@ -312,7 +311,7 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32
 
 			// Compose scene item player point
 			S2DPointF32	sceneItemPlayerPoint =
-								(sceneItemPlayer.getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) ?
+								(sceneItemPlayer.getSceneItem().getOptions() & CSceneItem::kOptionsAnchorToScreen) ?
 										point : scenePoint;
 			if (sceneItemPlayer.handlesTouchOrMouseAtPoint(sceneItemPlayerPoint)) {
 				// Found it
@@ -331,7 +330,7 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32
 
 		// Compose scene item player point
 		S2DPointF32	sceneItemPlayerPoint =
-							(targetSceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) ?
+							(targetSceneItemPlayer->getSceneItem().getOptions() & CSceneItem::kOptionsAnchorToScreen) ?
 									point : scenePoint;
 
 		// Pass to scene item player
@@ -367,7 +366,7 @@ void CScenePlayer::touchOrMouseMovedFromPoint(const S2DPointF32& point1, const S
 		// Prepare to adjust point if needed
 		S2DPointF32	adjustedPoint1 = point1;
 		S2DPointF32	adjustedPoint2 = point2;
-		if ((targetSceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) == 0) {
+		if ((targetSceneItemPlayer->getSceneItem().getOptions() & CSceneItem::kOptionsAnchorToScreen) == 0) {
 			// Adjust points
 			adjustedPoint1 = adjustedPoint1.offset(mInternals->mCurrentOffset.inverted());
 			adjustedPoint2 = adjustedPoint2.offset(mInternals->mCurrentOffset.inverted());
@@ -400,7 +399,7 @@ void CScenePlayer::touchEndedOrMouseUpAtPoint(const S2DPointF32& point, const vo
 	if (targetSceneItemPlayer.hasReference()) {
 		// Send to Scene Item Player
 		S2DPointF32	adjustedPoint = point;
-		if ((targetSceneItemPlayer->getSceneItem().getOptions() & kSceneItemOptionsAnchorToScreen) == 0)
+		if ((targetSceneItemPlayer->getSceneItem().getOptions() & CSceneItem::kOptionsAnchorToScreen) == 0)
 			// Offset
 			adjustedPoint = adjustedPoint.offset(mInternals->mCurrentOffset.inverted());
 

@@ -12,23 +12,27 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Scene Index values
 
-typedef SInt32 CSceneIndex;
-
-const	CSceneIndex	kSceneIndexLastViewed = -1;
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Scene Options
-
-enum ESceneOptions {
-	kSceneOptionsNone		= 0,
-	kSceneOptionsDontUnload	= 1 << 0,
-};
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CScene
 
 class CSceneInternals;
 class CScene : public CEquatable {
+	// Types
+	public:
+		typedef SInt32 Index;
+
+	// Constants
+	public:
+		const	Index	kIndexLastViewed = -1;
+
+	// Enums
+	public:
+		enum Options {
+			kOptionsNone		= 0,
+			kOptionsDontUnload	= 1 << 0,
+		};
+
 	// Methods
 	public:
 										// Lifecycle methods
@@ -47,8 +51,8 @@ class CScene : public CEquatable {
 			const	CString&			getName() const;
 					void				setName(const CString& name);
 
-					ESceneOptions		getOptions() const;
-					void				setOptions(ESceneOptions options);
+					Options				getOptions() const;
+					void				setOptions(Options options);
 
 			const	CString&			getStoreSceneIndexAsString() const;
 					void				setStoreSceneIndexAsString(const CString& string);

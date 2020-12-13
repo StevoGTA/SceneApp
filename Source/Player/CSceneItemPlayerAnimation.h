@@ -8,42 +8,41 @@
 #include "CSceneItemPlayer.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: SSceneItemPlayerAnimationProcsInfo
-
-class CSceneItemPlayerAnimation;
-typedef	bool			(*CSceneItemPlayerAnimationShouldLoopProc)(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
-								UInt32 currentLoopCount, void* userData);
-
-struct SSceneItemPlayerAnimationProcsInfo {
-			// Lifecycle methods
-			SSceneItemPlayerAnimationProcsInfo(CSceneItemPlayerAnimationShouldLoopProc shouldLoopProc, void* userData) :
-				mShouldLoopProc(shouldLoopProc), mUserData(userData)
-				{}
-
-			// Instance methods
-	bool	canPerformShouldLoop() const
-				{ return mShouldLoopProc != nil; }
-	bool	shouldLoop(CSceneItemPlayerAnimation& sceneItemPlayerAnimation, UInt32 currentLoopCount) const
-				{ return mShouldLoopProc(sceneItemPlayerAnimation, currentLoopCount, mUserData); }
-
-	// Properties
-	private:
-		CSceneItemPlayerAnimationShouldLoopProc	mShouldLoopProc;
-		void*									mUserData;
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemPlayerAnimation
+// MARK: CSceneItemPlayerAnimation
 
 class CSceneItemPlayerAnimationInternals;
 class CSceneItemPlayerAnimation : public CSceneItemPlayer {
+	// Struct
+	public:
+		struct Procs {
+			// Procs
+			typedef	bool	(*AnimationShouldLoopProc)(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
+									UInt32 currentLoopCount, void* userData);
+
+					// Lifecycle methods
+					Procs(AnimationShouldLoopProc shouldLoopProc, void* userData) :
+						mShouldLoopProc(shouldLoopProc), mUserData(userData)
+						{}
+
+					// Instance methods
+			bool	canPerformShouldLoop() const
+						{ return mShouldLoopProc != nil; }
+			bool	shouldLoop(CSceneItemPlayerAnimation& sceneItemPlayerAnimation, UInt32 currentLoopCount) const
+						{ return mShouldLoopProc(sceneItemPlayerAnimation, currentLoopCount, mUserData); }
+
+			// Properties
+			private:
+				AnimationShouldLoopProc	mShouldLoopProc;
+				void*					mUserData;
+		};
+
 	// Methods
 	public:
 											// Lifecycle methods
 											CSceneItemPlayerAnimation(const CSceneItemAnimation& sceneItemAnimation,
 													const SSceneAppResourceManagementInfo&
 															sceneAppResourceManagementInfo,
-													const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo);
+													const CSceneItemPlayer::Procs& sceneItemPlayerProcs);
 											~CSceneItemPlayerAnimation();
 
 											// CSceneItemPlayer methods
@@ -71,9 +70,7 @@ class CSceneItemPlayerAnimation : public CSceneItemPlayer {
 													const CSceneItemPlayerAnimation&
 															commonTexturesSceneItemPlayerAnimation);
 
-				void						setSceneItemPlayerAnimationProcsInfo(
-													const SSceneItemPlayerAnimationProcsInfo&
-															sceneItemPlayerAnimationProcsInfo);
+				void						setSceneItemPlayerAnimationProcs(const Procs& procs);
 
 	// Properties
 	private:

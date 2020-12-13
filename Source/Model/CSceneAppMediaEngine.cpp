@@ -116,8 +116,8 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const CAudioInfo& audioInf
 {
 	// Setup
 	const	CString&			resourceFilename = audioInfo.getResourceFilename();
-			EAudioInfoOptions	audioInfoOptions = audioInfo.getOptions();
-if (audioInfoOptions != kAudioInfoOptionsNone)
+			CAudioInfo::Options	audioInfoOptions = audioInfo.getOptions();
+if (audioInfoOptions != CAudioInfo::kOptionsNone)
 	audioInfoOptions = audioInfoOptions;
 
 	CString	extension = CFilesystemPath(resourceFilename).getExtension();

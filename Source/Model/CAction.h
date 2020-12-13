@@ -7,24 +7,21 @@
 #include "CDictionary.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Action Options
-
-enum EActionOptions {
-	kActionOptionsNone			= 0,
-	kActionOptionsDontPreload	= 1 << 0,
-//	kActionOptionsUnloadCurrent	= 1 << 1,
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CAction
+// MARK: CAction
 
 class CActionInternals;
 class CAction {
+	// Enums
+	public:
+		enum Options {
+			kOptionsNone			= 0,
+			kOptionsDontPreload		= 1 << 0,
+		};
+
 	// Methods
 	public:
 								// Lifecycle methods
-								CAction(const CString& name, const CDictionary& info,
-										EActionOptions options = kActionOptionsNone);
+								CAction(const CString& name, const CDictionary& info, Options options = kOptionsNone);
 								CAction(const CDictionary& info);
 								CAction(const CAction& other);
 								~CAction();
@@ -38,8 +35,8 @@ class CAction {
 		const	CDictionary&	getActionInfo() const;
 //				void			setActionInfo(const CDictionary& info);
 
-				EActionOptions	getOptions() const;
-//				void			setOptions(EActionOptions options);
+				Options			getOptions() const;
+//				void			setOptions(Options options);
 
 	// Properties
 	public:

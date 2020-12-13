@@ -10,14 +10,7 @@
 #include "C2DGeometry.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Property info
-
-enum {
-	kSceneItemButtonArrayPropertyTypeButtonArray	= MAKE_OSTYPE('S', 'B', 'B', 'A'),
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemButtonArrayButton
+// MARK: CSceneItemButtonArrayButton
 
 class CSceneItemButtonArrayButtonInternals;
 class CSceneItemButtonArrayButton {
@@ -64,6 +57,12 @@ class CSceneItemButtonArrayButton {
 
 class CSceneItemButtonArrayInternals;
 class CSceneItemButtonArray : public CSceneItem {
+	// Enums
+	public:
+		enum PropertyType {
+			kPropertyTypeButtonArray	= MAKE_OSTYPE('S', 'B', 'B', 'A'),
+		};
+
 	// Methods
 	public:
 														// Lifecycle methods

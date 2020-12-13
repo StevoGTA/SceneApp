@@ -5,19 +5,13 @@
 #include "CSceneItem.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Local data
-
-static	CString	sNameKey(OSSTR("name"));
-static	CString	sOptionsKey(OSSTR("options"));
-static	CString	sIsVisibleKey(OSSTR("visible"));
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemInternals
+// MARK: CSceneItemInternals
 
 class CSceneItemInternals : public TCopyOnWriteReferenceCountable<CSceneItemInternals> {
 	public:
-		CSceneItemInternals() : TCopyOnWriteReferenceCountable(), mIsVisible(true), mOptions(kSceneItemOptionsNone) {}
+		CSceneItemInternals() :
+			TCopyOnWriteReferenceCountable(), mIsVisible(true), mOptions(CSceneItem::kOptionsNone)
+			{}
 		CSceneItemInternals(const CSceneItemInternals& other) :
 			TCopyOnWriteReferenceCountable(),
 					mIsVisible(other.mIsVisible), mName(other.mName), mOptions(other.mOptions)
@@ -25,7 +19,7 @@ class CSceneItemInternals : public TCopyOnWriteReferenceCountable<CSceneItemInte
 
 		bool				mIsVisible;
 		CString				mName;
-		ESceneItemOptions	mOptions;
+		CSceneItem::Options	mOptions;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -55,9 +49,9 @@ CSceneItem::CSceneItem(const CDictionary& info)
 {
 	mInternals = new CSceneItemInternals();
 
-	mInternals->mIsVisible = info.getBool(sIsVisibleKey, mInternals->mIsVisible);
-	mInternals->mName = info.getString(sNameKey, mInternals->mName);
-	mInternals->mOptions = (ESceneItemOptions) info.getUInt32(sOptionsKey, mInternals->mOptions);
+	mInternals->mIsVisible = info.getBool(CString(OSSTR("visible")), mInternals->mIsVisible);
+	mInternals->mName = info.getString(CString(OSSTR("name")), mInternals->mName);
+	mInternals->mOptions = (Options) info.getUInt32(CString(OSSTR("options")), mInternals->mOptions);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -113,14 +107,14 @@ void CSceneItem::setName(const CString& name)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-ESceneItemOptions CSceneItem::getOptions() const
+CSceneItem::Options CSceneItem::getOptions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mOptions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItem::setOptions(ESceneItemOptions options)
+void CSceneItem::setOptions(Options options)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
@@ -147,20 +141,20 @@ TArray<CDictionary> CSceneItem::getProperties() const
 	// Add properties
 	CDictionary	namePropertyInfo;
 	namePropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Name")));
-	namePropertyInfo.set(mPropertyNameKey, sNameKey);
-	namePropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeName);
+	namePropertyInfo.set(mPropertyNameKey, CString(OSSTR("name")));
+	namePropertyInfo.set(mPropertyTypeKey, kPropertyTypeName);
 	properties += namePropertyInfo;
 
 	CDictionary	visiblePropertyInfo;
 	visiblePropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Visible")));
-	visiblePropertyInfo.set(mPropertyNameKey, sIsVisibleKey);
-	visiblePropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeBoolean);
+	visiblePropertyInfo.set(mPropertyNameKey, CString(OSSTR("visible")));
+	visiblePropertyInfo.set(mPropertyTypeKey, kPropertyTypeBoolean);
 	properties += visiblePropertyInfo;
 
 	CDictionary	optionsPropertyInfo;
 	optionsPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Options")));
-	optionsPropertyInfo.set(mPropertyNameKey, sOptionsKey);
-	optionsPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeOptions);
+	optionsPropertyInfo.set(mPropertyNameKey, CString(OSSTR("options")));
+	optionsPropertyInfo.set(mPropertyTypeKey, kPropertyTypeOptions);
 	properties += optionsPropertyInfo;
 
 	return properties;
@@ -172,9 +166,9 @@ CDictionary CSceneItem::getInfo() const
 {
 	CDictionary	info;
 
-	info.set(sIsVisibleKey, (UInt32) (mInternals->mIsVisible ? 1 : 0));
-	info.set(sNameKey, mInternals->mName);
-	info.set(sOptionsKey, (UInt32) mInternals->mOptions);
+	info.set(CString(OSSTR("visible")), (UInt32) (mInternals->mIsVisible ? 1 : 0));
+	info.set(CString(OSSTR("name")), mInternals->mName);
+	info.set(CString(OSSTR("options")), (UInt32) mInternals->mOptions);
 
 	return info;
 }

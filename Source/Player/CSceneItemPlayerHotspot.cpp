@@ -11,9 +11,8 @@
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemPlayerHotspot::CSceneItemPlayerHotspot(const CSceneItemHotspot& sceneItemHotspot,
-		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo) :
-		CSceneItemPlayer(sceneItemHotspot, sceneItemPlayerProcsInfo)
+		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo, const Procs& procs) :
+		CSceneItemPlayer(sceneItemHotspot, procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
 }

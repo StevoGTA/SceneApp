@@ -8,15 +8,17 @@
 #include "CSceneAppMediaEngine.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - SSceneAppResourceManagementInfo
-
-typedef	CByteParceller	(*SSceneAppResourceManagementInfoCreateByteParcellerProc)(const CString& resourceFilename,
-								void* userData);
+// MARK: SSceneAppResourceManagementInfo
 
 struct SSceneAppResourceManagementInfo {
+	// Procs
+	public:
+		typedef	CByteParceller	(*CreateByteParcellerProc)(const CString& resourceFilename, void* userData);
+
+	// Methods
+	public:
 					// Lifecycle methods
-					SSceneAppResourceManagementInfo(
-							SSceneAppResourceManagementInfoCreateByteParcellerProc createByteParcellerProc,
+					SSceneAppResourceManagementInfo(CreateByteParcellerProc createByteParcellerProc,
 							CGPUTextureManager& gpuTextureManager, CSceneAppMediaEngine& sceneAppMediaEngine,
 							void* userData) :
 						mCreateByteParcellerProc(createByteParcellerProc), mGPUTextureManager(gpuTextureManager),
@@ -29,10 +31,10 @@ struct SSceneAppResourceManagementInfo {
 
 	// Properties
 	public:
-		CGPUTextureManager&										mGPUTextureManager;
-		CSceneAppMediaEngine&									mSceneAppMediaEngine;
+		CGPUTextureManager&		mGPUTextureManager;
+		CSceneAppMediaEngine&	mSceneAppMediaEngine;
 
 	private:
-		SSceneAppResourceManagementInfoCreateByteParcellerProc	mCreateByteParcellerProc;
-		void*													mUserData;
+		CreateByteParcellerProc	mCreateByteParcellerProc;
+		void*					mUserData;
 };

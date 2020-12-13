@@ -38,9 +38,8 @@ class CSceneItemPlayerButtonArrayInternals {
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemPlayerButtonArray::CSceneItemPlayerButtonArray(const CSceneItemButtonArray& sceneItemButtonArray,
-		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo) :
-		CSceneItemPlayer(sceneItemButtonArray, sceneItemPlayerProcsInfo)
+		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo, const Procs& procs) :
+		CSceneItemPlayer(sceneItemButtonArray, procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals = new CSceneItemPlayerButtonArrayInternals(sceneAppResourceManagementInfo);

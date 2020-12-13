@@ -45,7 +45,7 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 // MARK: Class methods
 
 //----------------------------------------------------------------------------------------------------------------------
-+ (TArray<SScenePackageInfo>) scenePackageInfosIn:(const CFolder&) folder
++ (TArray<CScenePackage::Info>) scenePackageInfosIn:(const CFolder&) folder
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Get files in folder
@@ -77,7 +77,8 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 								mousePoint.y / viewSize.height * self.scenePackageSize.mHeight);
 
 			// Inform SceneAppPlayer
-			weakSelf.sceneAppPlayerInternal->mouseDown(SSceneAppPlayerMouseDownInfo(point, (UInt32) event.clickCount));
+			weakSelf.sceneAppPlayerInternal->mouseDown(
+					CSceneAppPlayer::MouseDownInfo(point, (UInt32) event.clickCount));
 
 			// Store
 			weakSelf.previousPoint = point;
@@ -94,7 +95,7 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 
 			// Inform SceneAppPlayer
 			weakSelf.sceneAppPlayerInternal->mouseDragged(
-					SSceneAppPlayerMouseDraggedInfo(weakSelf.previousPoint, point));
+					CSceneAppPlayer::MouseDraggedInfo(weakSelf.previousPoint, point));
 
 			// Store
 			weakSelf.previousPoint = point;
@@ -110,7 +111,7 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 								mousePoint.y / viewSize.height * self.scenePackageSize.mHeight);
 
 			// Inform SceneAppPlayer
-			weakSelf.sceneAppPlayerInternal->mouseUp(SSceneAppPlayerMouseUpInfo(point));
+			weakSelf.sceneAppPlayerInternal->mouseUp(CSceneAppPlayer::MouseUpInfo(point));
 		};
 
 		((NSView<AKTGPUView>*) self.view).periodicProc = ^(UniversalTime outputTime){
@@ -165,17 +166,17 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-- (void) loadScenesFrom:(const SScenePackageInfo&) scenePackageInfo
+- (void) loadScenesFrom:(const CScenePackage::Info&) scenePackageInfo
 		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
 {
 	[self loadScenesFrom:scenePackageInfo sceneAppContentFolder:sceneAppContentFolder sceneAppPlayerCreationProc:nil];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-- (void) loadScenesFrom:(const SScenePackageInfo&) scenePackageInfo
+- (void) loadScenesFrom:(const CScenePackage::Info&) scenePackageInfo
 		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
 		sceneAppPlayerCreationProc:
-				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
+				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const CSceneAppPlayer::Procs& procs))
 						sceneAppPlayerCreationProc
 {
 	// Cleanup
@@ -187,14 +188,13 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 	self.sceneAppContentRootFilesystemPath = new CFilesystemPath(sceneAppContentFolder.getFilesystemPath());
 
 	// Setup Scene App Player
-	CGPU&						gpu = ((NSView<AKTGPUView>*) self.view).gpu;
-	SSceneAppPlayerProcsInfo	sceneAppPlayerProcsInfo(sSceneAppPlayerCreateByteParceller, sSceneAppInstallPeriodic,
-										sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL, sSceneAppPlayerHandleCommand,
-										(__bridge void*) self);
+	CGPU&					gpu = ((NSView<AKTGPUView>*) self.view).gpu;
+	CSceneAppPlayer::Procs	procs(sSceneAppPlayerCreateByteParceller, sSceneAppInstallPeriodic,
+									sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL, sSceneAppPlayerHandleCommand,
+									(__bridge void*) self);
 	self.sceneAppPlayerInternal =
 			(sceneAppPlayerCreationProc != nil) ?
-					sceneAppPlayerCreationProc(gpu, sceneAppPlayerProcsInfo) :
-					new CSceneAppPlayer(gpu, sceneAppPlayerProcsInfo);
+					sceneAppPlayerCreationProc(gpu, procs) : new CSceneAppPlayer(gpu, procs);
 
 	// Load scenes
 	self.sceneAppPlayerInternal->loadScenes(scenePackageInfo);

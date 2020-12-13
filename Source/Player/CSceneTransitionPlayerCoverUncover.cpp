@@ -9,19 +9,18 @@
 
 class CSceneTransitionPlayerCoverUncoverInternals {
 	public:
-		CSceneTransitionPlayerCoverUncoverInternals(bool isAuto, bool isCover, ESceneTransitionDirection direction,
-				UniversalTimeInterval durationTimeInterval,
-				const SSceneTransitionPlayerProcsInfo& sceneTransitionPlayerProcsInfo) :
-			mIsAuto(isAuto), mIsCover(isCover), mDirection(direction), mCurrentOffset(0.0),
-					mSceneTransitionPlayerProcsInfo(sceneTransitionPlayerProcsInfo),
+		CSceneTransitionPlayerCoverUncoverInternals(bool isAuto, bool isCover,
+				CSceneTransitionPlayer::Direction direction, UniversalTimeInterval durationTimeInterval,
+				const CSceneTransitionPlayer::Procs& procs) :
+			mIsAuto(isAuto), mIsCover(isCover), mDirection(direction), mCurrentOffset(0.0), mProcs(procs),
 					mDurationTimeInterval(durationTimeInterval)
 			{}
 
 				bool								mIsAuto;
 				bool								mIsCover;
-				ESceneTransitionDirection			mDirection;
+				CSceneTransitionPlayer::Direction	mDirection;
 				Float32								mCurrentOffset;
-		const	SSceneTransitionPlayerProcsInfo&	mSceneTransitionPlayerProcsInfo;
+		const	CSceneTransitionPlayer::Procs&		mProcs;
 				UniversalTimeInterval				mDurationTimeInterval;
 };
 
@@ -40,14 +39,12 @@ CString	CSceneTransitionPlayerCoverUncover::mInfoDurationKey(OSSTR("duration"));
 //----------------------------------------------------------------------------------------------------------------------
 CSceneTransitionPlayerCoverUncover::CSceneTransitionPlayerCoverUncover(CScenePlayer& currentScenePlayer,
 		CScenePlayer& nextScenePlayer, const CDictionary& info, const S2DPointF32& initialTouchOrMousePoint,
-		bool isCover, const SSceneTransitionPlayerProcsInfo& sceneTransitionPlayerProcsInfo) :
-		CSceneTransitionPlayer(currentScenePlayer, nextScenePlayer)
+		bool isCover, const Procs& procs) : CSceneTransitionPlayer(currentScenePlayer, nextScenePlayer)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals =
 			new CSceneTransitionPlayerCoverUncoverInternals(info.contains(mInfoIsAutoKey), isCover,
-					getSceneTransitionDirection(info.getString(mInfoDirectionKey)),
-					info.getFloat32(mInfoDurationKey, 0.3f), sceneTransitionPlayerProcsInfo);
+					getDirection(info.getString(mInfoDirectionKey)), info.getFloat32(mInfoDurationKey, 0.3f), procs);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -64,33 +61,33 @@ void CSceneTransitionPlayerCoverUncover::update(UniversalTimeInterval deltaTimeI
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	S2DSizeF32	viewportPixelSize = mInternals->mSceneTransitionPlayerProcsInfo.getViewportSize();
+	S2DSizeF32	viewportPixelSize = mInternals->mProcs.getViewportSize();
 
 	// Check for auto
 	if (mInternals->mIsAuto) {
 		// No user interaction
 		switch (mInternals->mDirection) {
-			case kSceneTransitionDirectionUp:
-			case kSceneTransitionDirectionDown:
+			case kDirectionUp:
+			case kDirectionDown:
 				// Up or Down
 				mInternals->mCurrentOffset +=
 						(Float32) (deltaTimeInterval / mInternals->mDurationTimeInterval) * viewportPixelSize.mHeight;
 				if (mInternals->mCurrentOffset > viewportPixelSize.mHeight) {
 					// Beyond bounds, done
 					mInternals->mCurrentOffset = viewportPixelSize.mHeight;
-					setState(kSceneTransitionStateCompleted);
+					setState(kStateCompleted);
 				}
 				break;
 
-			case kSceneTransitionDirectionLeft:
-			case kSceneTransitionDirectionRight:
+			case kDirectionLeft:
+			case kDirectionRight:
 				// Left or Right
 				mInternals->mCurrentOffset +=
 						(Float32) (deltaTimeInterval / mInternals->mDurationTimeInterval) * viewportPixelSize.mWidth;
 				if (mInternals->mCurrentOffset > viewportPixelSize.mWidth) {
 					// Beyond bounds, done
 					mInternals->mCurrentOffset = viewportPixelSize.mWidth;
-					setState(kSceneTransitionStateCompleted);
+					setState(kStateCompleted);
 				}
 				break;
 		}
@@ -119,7 +116,7 @@ void CSceneTransitionPlayerCoverUncover::render(CGPU& gpu) const
 {
 	// Setup
 	S2DOffsetF32	offset;
-	S2DSizeF32		viewportPixelSize = mInternals->mSceneTransitionPlayerProcsInfo.getViewportSize();
+	S2DSizeF32		viewportPixelSize = mInternals->mProcs.getViewportSize();
 
 	// Check cover/uncover
 	if (mInternals->mIsCover) {
@@ -129,22 +126,22 @@ void CSceneTransitionPlayerCoverUncover::render(CGPU& gpu) const
 
 		// Draw to scene
 		switch (mInternals->mDirection) {
-			case kSceneTransitionDirectionUp:
+			case kDirectionUp:
 				// Up
 				offset.mDY = viewportPixelSize.mHeight - mInternals->mCurrentOffset;
 				break;
 
-			case kSceneTransitionDirectionDown:
+			case kDirectionDown:
 				// Down
 				offset.mDY = mInternals->mCurrentOffset - viewportPixelSize.mHeight;
 				break;
 
-			case kSceneTransitionDirectionLeft:
+			case kDirectionLeft:
 				// Left
 				offset.mDX = viewportPixelSize.mWidth - mInternals->mCurrentOffset;
 				break;
 
-			case kSceneTransitionDirectionRight:
+			case kDirectionRight:
 				// Right
 				offset.mDX = mInternals->mCurrentOffset - viewportPixelSize.mWidth;
 				break;
@@ -157,22 +154,22 @@ void CSceneTransitionPlayerCoverUncover::render(CGPU& gpu) const
 
 		// Draw from scene
 		switch (mInternals->mDirection) {
-			case kSceneTransitionDirectionUp:
+			case kDirectionUp:
 				// Up
 				offset.mDY = -mInternals->mCurrentOffset;
 				break;
 
-			case kSceneTransitionDirectionDown:
+			case kDirectionDown:
 				// Down
 				offset.mDY = mInternals->mCurrentOffset;
 				break;
 
-			case kSceneTransitionDirectionLeft:
+			case kDirectionLeft:
 				// Left
 				offset.mDX = -mInternals->mCurrentOffset;
 				break;
 
-			case kSceneTransitionDirectionRight:
+			case kDirectionRight:
 				// Right
 				offset.mDX = mInternals->mCurrentOffset;
 				break;

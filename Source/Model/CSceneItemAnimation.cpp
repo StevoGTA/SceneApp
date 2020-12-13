@@ -8,19 +8,7 @@
 #include "CKeyframeAnimationInfo.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Local data
-
-static	CString	sAudioInfoKey(OSSTR("audioInfo"));
-static	CString	sCelAnimationInfoKey(OSSTR("celAnimationInfo"));
-static	CString	sFinishedActionsInfoKey(OSSTR("finishedActionInfo"));
-static	CString	sKeyframeAnimationInfoKey(OSSTR("keyframeAnimationInfo"));
-static	CString	sLoopCountKey(OSSTR("loopCount"));
-static	CString	sStartedActionsInfoKey(OSSTR("startedActionInfo"));
-static	CString	sStartTimeIntervalKey(OSSTR("startTime"));
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemAnimationInternals
+// MARK: CSceneItemAnimationInternals
 
 class CSceneItemAnimationInternals : public TCopyOnWriteReferenceCountable<CSceneItemAnimationInternals> {
 	public:
@@ -65,21 +53,22 @@ CSceneItemAnimation::CSceneItemAnimation(const CDictionary& info) : CSceneItem(i
 {
 	mInternals = new CSceneItemAnimationInternals();
 
-	if (info.contains(sStartedActionsInfoKey))
-		mInternals->mStartedActions = OI<CActions>(CActions(info.getDictionary(sStartedActionsInfoKey)));
-	if (info.contains(sFinishedActionsInfoKey))
-		mInternals->mFinishedActions = OI<CActions>(CActions(info.getDictionary(sFinishedActionsInfoKey)));
-	if (info.contains(sAudioInfoKey))
-		mInternals->mAudioInfo = OI<CAudioInfo>(CAudioInfo(info.getDictionary(sAudioInfoKey)));
-//	if (info.contains(sCelAnimationInfoKey))
+	if (info.contains(CString(OSSTR("startedActionInfo"))))
+		mInternals->mStartedActions = OI<CActions>(CActions(info.getDictionary(CString(OSSTR("startedActionInfo")))));
+	if (info.contains(CString(OSSTR("finishedActionInfo"))))
+		mInternals->mFinishedActions = OI<CActions>(CActions(info.getDictionary(CString(OSSTR("finishedActionInfo")))));
+	if (info.contains(CString(OSSTR("audioInfo"))))
+		mInternals->mAudioInfo = OI<CAudioInfo>(CAudioInfo(info.getDictionary(CString(OSSTR("audioInfo")))));
+//	if (info.contains(CString(OSSTR("celAnimationInfo"))))
 //		mInternals->mCelAnimationInfo =
-//				OI<CCelAnimationInfo>(CCelAnimationInfo(info.getDictionary(sCelAnimationInfoKey)));
-	if (info.contains(sKeyframeAnimationInfoKey))
+//				OI<CCelAnimationInfo>(CCelAnimationInfo(info.getDictionary(CString(OSSTR("celAnimationInfo")))));
+	if (info.contains(CString(OSSTR("keyframeAnimationInfo"))))
 		mInternals->mKeyframeAnimationInfo =
-				OI<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(info.getDictionary(sKeyframeAnimationInfoKey)));
-	mInternals->mLoopCount = info.getUInt32(sLoopCountKey, 1);
-	if (info.contains(sStartTimeIntervalKey))
-		mInternals->mStartTimeInterval = OV<UniversalTimeInterval>(info.getFloat64(sStartTimeIntervalKey));
+				OI<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(
+						info.getDictionary(CString(OSSTR("keyframeAnimationInfo")))));
+	mInternals->mLoopCount = info.getUInt32(CString(OSSTR("loopCount")), 1);
+	if (info.contains(CString(OSSTR("startTime"))))
+		mInternals->mStartTimeInterval = OV<UniversalTimeInterval>(info.getFloat64(CString(OSSTR("startTime"))));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -108,44 +97,44 @@ TArray<CDictionary> CSceneItemAnimation::getProperties() const
 	// Add properties
 	CDictionary	startedActionPropertyInfo;
 	startedActionPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Started Actions")));
-	startedActionPropertyInfo.set(mPropertyNameKey, sStartedActionsInfoKey);
-	startedActionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActions);
+	startedActionPropertyInfo.set(mPropertyNameKey, CString(OSSTR("startedActionInfo")));
+	startedActionPropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeActions);
 	properties += startedActionPropertyInfo;
 
 	CDictionary	finishedActionPropertyInfo;
 	finishedActionPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Finished Actions")));
-	finishedActionPropertyInfo.set(mPropertyNameKey, sFinishedActionsInfoKey);
-	finishedActionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActions);
+	finishedActionPropertyInfo.set(mPropertyNameKey, CString(OSSTR("finishedActionInfo")));
+	finishedActionPropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeActions);
 	properties += finishedActionPropertyInfo;
 
 	CDictionary	audioInfoPropertyInfo;
 	audioInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Audio")));
-	audioInfoPropertyInfo.set(mPropertyNameKey, sAudioInfoKey);
-	audioInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeAudioInfo);
+	audioInfoPropertyInfo.set(mPropertyNameKey, CString(OSSTR("audioInfo")));
+	audioInfoPropertyInfo.set(mPropertyTypeKey, CAudioInfo::kPropertyTypeAudioInfo);
 	properties += audioInfoPropertyInfo;
 
 //	CDictionary	celAnimationInfoPropertyInfo;
 //	celAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Cel Animation")));
-//	celAnimationInfoPropertyInfo.set(mPropertyNameKey, sCelAnimationInfoKey);
+//	celAnimationInfoPropertyInfo.set(mPropertyNameKey, CString(OSSTR("celAnimationInfo")));
 //	celAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeCelAnimationInfo);
 //	properties += celAnimationInfoPropertyInfo;
 
 	CDictionary	keyframeAnimationInfoPropertyInfo;
 	keyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Keyframe Animation")));
-	keyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, sKeyframeAnimationInfoKey);
-	keyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeKeyframeAnimationInfo);
+	keyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, CString(OSSTR("keyframeAnimationInfo")));
+	keyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey, CKeyframeAnimationInfo::kPropertyTypeKeyframeAnimationInfo);
 	properties += keyframeAnimationInfoPropertyInfo;
 
 	CDictionary	loopCountPropertyInfo;
 	loopCountPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Loop Count")));
-	loopCountPropertyInfo.set(mPropertyNameKey, sLoopCountKey);
-	loopCountPropertyInfo.set(mPropertyTypeKey, kSceneItemAnimationPropertyTypeLoopCount);
+	loopCountPropertyInfo.set(mPropertyNameKey, CString(OSSTR("loopCount")));
+	loopCountPropertyInfo.set(mPropertyTypeKey, kPropertyTypeLoopCount);
 	properties += loopCountPropertyInfo;
 
 	CDictionary	startTimeIntervalPropertyInfo;
 	startTimeIntervalPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Start Time")));
-	startTimeIntervalPropertyInfo.set(mPropertyNameKey, sStartTimeIntervalKey);
-	startTimeIntervalPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeStartTimeInterval);
+	startTimeIntervalPropertyInfo.set(mPropertyNameKey, CString(OSSTR("startTime")));
+	startTimeIntervalPropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeStartTimeInterval);
 	properties += startTimeIntervalPropertyInfo;
 
 	return properties;
@@ -158,18 +147,18 @@ CDictionary CSceneItemAnimation::getInfo() const
 	CDictionary	info = CSceneItem::getInfo();
 
 	if (mInternals->mStartedActions.hasInstance())
-		info.set(sStartedActionsInfoKey, mInternals->mStartedActions->getInfo());
+		info.set(CString(OSSTR("startedActionInfo")), mInternals->mStartedActions->getInfo());
 	if (mInternals->mFinishedActions.hasInstance())
-		info.set(sFinishedActionsInfoKey, mInternals->mFinishedActions->getInfo());
+		info.set(CString(OSSTR("finishedActionInfo")), mInternals->mFinishedActions->getInfo());
 	if (mInternals->mAudioInfo.hasInstance())
-		info.set(sAudioInfoKey, mInternals->mAudioInfo->getInfo());
+		info.set(CString(OSSTR("audioInfo")), mInternals->mAudioInfo->getInfo());
 //	if (mInternals->mCelAnimationInfo.hasInstance())
-//		info.set(sCelAnimationInfoKey, mInternals->mCelAnimationInfo->getInfo());
+//		info.set(CString(OSSTR("celAnimationInfo")), mInternals->mCelAnimationInfo->getInfo());
 	if (mInternals->mKeyframeAnimationInfo.hasInstance())
-		info.set(sKeyframeAnimationInfoKey, mInternals->mKeyframeAnimationInfo->getInfo());
-	info.set(sLoopCountKey, mInternals->mLoopCount);
+		info.set(CString(OSSTR("keyframeAnimationInfo")), mInternals->mKeyframeAnimationInfo->getInfo());
+	info.set(CString(OSSTR("loopCount")), mInternals->mLoopCount);
 	if (mInternals->mStartTimeInterval.hasValue())
-		info.set(sStartTimeIntervalKey, *mInternals->mStartTimeInterval);
+		info.set(CString(OSSTR("startTime")), *mInternals->mStartTimeInterval);
 
 	return info;
 }

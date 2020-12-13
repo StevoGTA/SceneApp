@@ -7,19 +7,7 @@
 #include "CKeyframeAnimationInfo.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Local data
-
-static	CString	sActionsInfoKey(OSSTR("actionInfo"));
-static	CString	sAudioInfoKey(OSSTR("audioInfo"));
-static	CString	sHitRadiusKey(OSSTR("hitRadius"));
-static	CString	sDisabledKeyframeAnimationInfoKey(OSSTR("disabledAnimationInfo"));
-static	CString	sDownKeyframeAnimationInfoKey(OSSTR("downAnimationInfo"));
-static	CString	sStartTimeIntervalKey(OSSTR("startTime"));
-static	CString	sUpKeyframeAnimationInfoKey(OSSTR("upAnimationInfo"));
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemButtonInternals
+// MARK: CSceneItemButtonInternals
 
 class CSceneItemButtonInternals : public TCopyOnWriteReferenceCountable<CSceneItemButtonInternals> {
 	public:
@@ -65,22 +53,23 @@ CSceneItemButton::CSceneItemButton(const CDictionary& info) : CSceneItem(info)
 {
 	mInternals = new CSceneItemButtonInternals();
 
-	if (info.contains(sActionsInfoKey))
-		mInternals->mActions = OI<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
-	if (info.contains(sAudioInfoKey))
-		mInternals->mAudioInfo = OI<CAudioInfo>(CAudioInfo(info.getDictionary(sAudioInfoKey)));
+	if (info.contains(CString(OSSTR("actionInfo"))))
+		mInternals->mActions = OI<CActions>(CActions(info.getDictionary(CString(OSSTR("actionInfo")))));
+	if (info.contains(CString(OSSTR("audioInfo"))))
+		mInternals->mAudioInfo = OI<CAudioInfo>(CAudioInfo(info.getDictionary(CString(OSSTR("audioInfo")))));
 	mInternals->mUpKeyframeAnimationInfo =
-			OI<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(info.getDictionary(sUpKeyframeAnimationInfoKey)));
-	if (info.contains(sDownKeyframeAnimationInfoKey))
+			OI<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(info.getDictionary(CString(OSSTR("upAnimationInfo")))));
+	if (info.contains(CString(OSSTR("downAnimationInfo"))))
 		mInternals->mDownKeyframeAnimationInfo =
-				OI<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(info.getDictionary(sDownKeyframeAnimationInfoKey)));
-	if (info.contains(sDisabledKeyframeAnimationInfoKey))
+				OI<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(
+						info.getDictionary(CString(OSSTR("downAnimationInfo")))));
+	if (info.contains(CString(OSSTR("disabledAnimationInfo"))))
 		mInternals->mDisabledKeyframeAnimationInfo =
 				OI<CKeyframeAnimationInfo>(
-						CKeyframeAnimationInfo(info.getDictionary(sDisabledKeyframeAnimationInfoKey)));
-	if (info.contains(sStartTimeIntervalKey))
-		mInternals->mStartTimeInterval = OV<UniversalTimeInterval>(info.getFloat64(sStartTimeIntervalKey));
-	mInternals->mHitRadius = info.getFloat32(sHitRadiusKey);
+						CKeyframeAnimationInfo(info.getDictionary(CString(OSSTR("disabledAnimationInfo")))));
+	if (info.contains(CString(OSSTR("startTime"))))
+		mInternals->mStartTimeInterval = OV<UniversalTimeInterval>(info.getFloat64(CString(OSSTR("startTime"))));
+	mInternals->mHitRadius = info.getFloat32(CString(OSSTR("hitRadius")));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -109,44 +98,47 @@ TArray<CDictionary> CSceneItemButton::getProperties() const
 	// Add properties
 	CDictionary	actionPropertyInfo;
 	actionPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Actions")));
-	actionPropertyInfo.set(mPropertyNameKey, sActionsInfoKey);
-	actionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActions);
+	actionPropertyInfo.set(mPropertyNameKey, CString(OSSTR("actionInfo")));
+	actionPropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeActions);
 	properties += actionPropertyInfo;
 
 	CDictionary	audioInfoPropertyInfo;
 	audioInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Audio")));
-	audioInfoPropertyInfo.set(mPropertyNameKey, sAudioInfoKey);
-	audioInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeAudioInfo);
+	audioInfoPropertyInfo.set(mPropertyNameKey, CString(OSSTR("audioInfo")));
+	audioInfoPropertyInfo.set(mPropertyTypeKey, CAudioInfo::kPropertyTypeAudioInfo);
 	properties += audioInfoPropertyInfo;
 
 	CDictionary	upKeyframeAnimationInfoPropertyInfo;
 	upKeyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Up Keyframe Animation")));
-	upKeyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, sUpKeyframeAnimationInfoKey);
-	upKeyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeKeyframeAnimationInfo);
+	upKeyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, CString(OSSTR("upAnimationInfo")));
+	upKeyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey,
+			CKeyframeAnimationInfo::kPropertyTypeKeyframeAnimationInfo);
 	properties += upKeyframeAnimationInfoPropertyInfo;
 
 	CDictionary	downKeyframeAnimationInfoPropertyInfo;
 	downKeyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Down Keyframe Animation")));
-	downKeyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, sDownKeyframeAnimationInfoKey);
-	downKeyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeKeyframeAnimationInfo);
+	downKeyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, CString(OSSTR("downAnimationInfo")));
+	downKeyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey,
+			CKeyframeAnimationInfo::kPropertyTypeKeyframeAnimationInfo);
 	properties += downKeyframeAnimationInfoPropertyInfo;
 
 	CDictionary	disabledKeyframeAnimationInfoPropertyInfo;
 	disabledKeyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Disabled Keyframe Animation")));
-	disabledKeyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, sDisabledKeyframeAnimationInfoKey);
-	disabledKeyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeKeyframeAnimationInfo);
+	disabledKeyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, CString(OSSTR("disabledAnimationInfo")));
+	disabledKeyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey,
+			CKeyframeAnimationInfo::kPropertyTypeKeyframeAnimationInfo);
 	properties += disabledKeyframeAnimationInfoPropertyInfo;
 
 	CDictionary	startTimeIntervalPropertyInfo;
 	startTimeIntervalPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Start Time Interval")));
-	startTimeIntervalPropertyInfo.set(mPropertyNameKey, sStartTimeIntervalKey);
-	startTimeIntervalPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeStartTimeInterval);
+	startTimeIntervalPropertyInfo.set(mPropertyNameKey, CString(OSSTR("startTime")));
+	startTimeIntervalPropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeStartTimeInterval);
 	properties += startTimeIntervalPropertyInfo;
 
 	CDictionary	hitRadiusPropertyInfo;
 	hitRadiusPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Hit Radius")));
-	hitRadiusPropertyInfo.set(mPropertyNameKey, sHitRadiusKey);
-	hitRadiusPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypePixelWidth);
+	hitRadiusPropertyInfo.set(mPropertyNameKey, CString(OSSTR("hitRadius")));
+	hitRadiusPropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypePixelWidth);
 	properties += hitRadiusPropertyInfo;
 
 	return properties;
@@ -159,18 +151,18 @@ CDictionary CSceneItemButton::getInfo() const
 	CDictionary	info = CSceneItem::getInfo();
 
 	if (mInternals->mActions.hasInstance())
-		info.set(sActionsInfoKey, mInternals->mActions->getInfo());
+		info.set(CString(OSSTR("actionInfo")), mInternals->mActions->getInfo());
 	if (mInternals->mAudioInfo.hasInstance())
-		info.set(sAudioInfoKey, mInternals->mAudioInfo->getInfo());
+		info.set(CString(OSSTR("audioInfo")), mInternals->mAudioInfo->getInfo());
 	if (mInternals->mUpKeyframeAnimationInfo.hasInstance())
-		info.set(sUpKeyframeAnimationInfoKey, mInternals->mUpKeyframeAnimationInfo->getInfo());
+		info.set(CString(OSSTR("upAnimationInfo")), mInternals->mUpKeyframeAnimationInfo->getInfo());
 	if (mInternals->mDownKeyframeAnimationInfo.hasInstance())
-		info.set(sDownKeyframeAnimationInfoKey, mInternals->mDownKeyframeAnimationInfo->getInfo());
+		info.set(CString(OSSTR("downAnimationInfo")), mInternals->mDownKeyframeAnimationInfo->getInfo());
 	if (mInternals->mDisabledKeyframeAnimationInfo.hasInstance())
-		info.set(sDisabledKeyframeAnimationInfoKey, mInternals->mDisabledKeyframeAnimationInfo->getInfo());
+		info.set(CString(OSSTR("disabledAnimationInfo")), mInternals->mDisabledKeyframeAnimationInfo->getInfo());
 	if (mInternals->mStartTimeInterval.hasValue())
-		info.set(sStartTimeIntervalKey, *mInternals->mStartTimeInterval);
-	info.set(sHitRadiusKey, mInternals->mHitRadius);
+		info.set(CString(OSSTR("startTime")), *mInternals->mStartTimeInterval);
+	info.set(CString(OSSTR("hitRadius")), mInternals->mHitRadius);
 
 	return info;
 }

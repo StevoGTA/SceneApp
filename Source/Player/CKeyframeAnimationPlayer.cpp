@@ -30,7 +30,7 @@ class CKeyframeAnimationPlayerKeyframe {
 
 		const	OI<CActions>&							getActions() const;
 		const	OV<UniversalTimeInterval>&				getDelay() const;
-		const	OV<EAnimationKeyframeTransitionType>&	getTransitionType() const;
+		const	OV<CAnimationKeyframe::TransitionType>&	getTransitionType() const;
 
 				void									load(CGPU& gpu,
 																const SSceneAppResourceManagementInfo&
@@ -140,7 +140,7 @@ const OV<UniversalTimeInterval>& CKeyframeAnimationPlayerKeyframe::getDelay() co
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const OV<EAnimationKeyframeTransitionType>& CKeyframeAnimationPlayerKeyframe::getTransitionType() const
+const OV<CAnimationKeyframe::TransitionType>& CKeyframeAnimationPlayerKeyframe::getTransitionType() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mAnimationKeyframe.getTransitionType();
@@ -227,7 +227,7 @@ class CKeyframeAnimationPlayerInternals {
 	public:
 		CKeyframeAnimationPlayerInternals(const CKeyframeAnimationInfo& keyframeAnimationInfo,
 				const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-				const SKeyframeAnimationPlayerProcsInfo& keyframeAnimationPlayerProcsInfo,
+				const CKeyframeAnimationPlayer::Procs& keyframeAnimationPlayerProcsInfo,
 				const OV<UniversalTimeInterval>& startTimeInterval) :
 			mKeyframeAnimationInfo(keyframeAnimationInfo), mIsStarted(false), mIsFinished(false),
 					//mNeedToAddToDeadPlayers(false),
@@ -253,7 +253,7 @@ class CKeyframeAnimationPlayerInternals {
 				OR<bool>									mHasBeenDeleted;
 
 		const	SSceneAppResourceManagementInfo&			mSceneAppResourceManagementInfo;
-		const	SKeyframeAnimationPlayerProcsInfo&			mKeyframeAnimationPlayerProcsInfo;
+		const	CKeyframeAnimationPlayer::Procs&			mKeyframeAnimationPlayerProcsInfo;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -264,14 +264,13 @@ class CKeyframeAnimationPlayerInternals {
 
 //----------------------------------------------------------------------------------------------------------------------
 CKeyframeAnimationPlayer::CKeyframeAnimationPlayer(const CKeyframeAnimationInfo& keyframeAnimationInfo,
-		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-		const SKeyframeAnimationPlayerProcsInfo& keyframeAnimationPlayerProcsInfo,
+		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo, const Procs& procs,
 		const OV<UniversalTimeInterval>& startTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals =
-			new CKeyframeAnimationPlayerInternals(keyframeAnimationInfo, sceneAppResourceManagementInfo,
-					keyframeAnimationPlayerProcsInfo, startTimeInterval);
+			new CKeyframeAnimationPlayerInternals(keyframeAnimationInfo, sceneAppResourceManagementInfo, procs,
+					startTimeInterval);
 
 	const	TArray<CAnimationKeyframe>&				array =
 															mInternals->mKeyframeAnimationInfo.
@@ -430,12 +429,12 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 		if (isRunning ||
 				(mInternals->mPreviousPlayerKeyframe->getTransitionType().hasValue() &&
 						(*mInternals->mPreviousPlayerKeyframe->getTransitionType() !=
-								kAnimationKeyframeTransitionTypeHoldUntilStart)))
+								CAnimationKeyframe::kTransitionTypeHoldUntilStart)))
 			// Update our current time
 			mInternals->mCurrentFrameTimeInterval += deltaTimeInterval;
 
 		// Setup
-		const	SKeyframeAnimationPlayerProcsInfo&			procsInfo = mInternals->mKeyframeAnimationPlayerProcsInfo;
+		const	Procs&										procs = mInternals->mKeyframeAnimationPlayerProcsInfo;
 				TIArray<CKeyframeAnimationPlayerKeyframe>&	keyframeAnimationPlayerKeyframes =
 																	mInternals->mKeyframeAnimationPlayerKeyframes;
 
@@ -445,7 +444,7 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 				(isRunning ||
 						(mInternals->mPreviousPlayerKeyframe->getTransitionType().hasValue() &&
 								(*mInternals->mPreviousPlayerKeyframe->getTransitionType() !=
-										kAnimationKeyframeTransitionTypeHoldUntilStart))) &&
+										CAnimationKeyframe::kTransitionTypeHoldUntilStart))) &&
 
 				// Have delay
 				mInternals->mPreviousPlayerKeyframe->getDelay().hasValue() &&
@@ -471,7 +470,7 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 			const	OI<CActions>&	actions = mInternals->mPreviousPlayerKeyframe->getActions();
 			if (actions.hasInstance())
 				// Handle actions
-				procsInfo.performActions(*this, *actions);
+				procs.performActions(*this, *actions);
 
 			// Check if deleted
 			if (hasBeenDeleted)
@@ -488,29 +487,29 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 				// Next keyframe please!
 				mInternals->mNextPlayerKeyframe =
 						OR<CKeyframeAnimationPlayerKeyframe>(keyframeAnimationPlayerKeyframes[*index + 1]);
-			else if (procsInfo.canPerformShouldLoop() && procsInfo.shouldLoop(*this, ++mInternals->mCurrentLoopCount)) {
+			else if (procs.canPerformShouldLoop() && procs.shouldLoop(*this, ++mInternals->mCurrentLoopCount)) {
 				// Looping
 				mInternals->mNextPlayerKeyframe =
 						OR<CKeyframeAnimationPlayerKeyframe>(keyframeAnimationPlayerKeyframes[0]);
 
 				// Call proc
-				procsInfo.didLoop(*this);
+				procs.didLoop(*this);
 			} else if (mInternals->mPreviousPlayerKeyframe->getDelay().hasValue()) {
 				// Finshed
 				mInternals->mIsFinished = true;
 
 				// Call proc
-				procsInfo.didFinish(*this);
+				procs.didFinish(*this);
 			}
 		}
 
 		// Now what to do!
 				Float32									percent, transitionFactor;
-		const	OV<EAnimationKeyframeTransitionType>&	transitionType =
+		const	OV<CAnimationKeyframe::TransitionType>&	transitionType =
 																mInternals->mPreviousPlayerKeyframe->
 																		getTransitionType();
 		if ((mInternals->mNextPlayerKeyframe.hasReference()) &&
-				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeLinear)) {
+				transitionType.hasValue() && (*transitionType == CAnimationKeyframe::kTransitionTypeLinear)) {
 			// Linear between keyframes
 			transitionFactor =
 					(Float32) (mInternals->mCurrentFrameTimeInterval /
@@ -518,7 +517,7 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 			mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
 					*mInternals->mNextPlayerKeyframe);
 		} else if ((mInternals->mNextPlayerKeyframe.hasReference()) &&
-				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeEaseIn)) {
+				transitionType.hasValue() && (*transitionType == CAnimationKeyframe::kTransitionTypeEaseIn)) {
 			// Linear, then ease in
 			percent =
 					(Float32) (mInternals->mCurrentFrameTimeInterval /
@@ -530,7 +529,7 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 			mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
 					*mInternals->mNextPlayerKeyframe);
 		} else if ((mInternals->mNextPlayerKeyframe.hasReference()) &&
-				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeEaseOut)) {
+				transitionType.hasValue() && (*transitionType == CAnimationKeyframe::kTransitionTypeEaseOut)) {
 			// Ease out, then linear
 			percent =
 					(Float32) (mInternals->mCurrentFrameTimeInterval /
@@ -542,7 +541,7 @@ void CKeyframeAnimationPlayer::update(UniversalTimeInterval deltaTimeInterval, b
 			mInternals->mPreviousPlayerKeyframe->setSpriteValuesToInterpolatedValues(transitionFactor,
 					*mInternals->mNextPlayerKeyframe);
 		} else if ((mInternals->mNextPlayerKeyframe.hasReference()) &&
-				transitionType.hasValue() && (*transitionType == kAnimationKeyframeTransitionTypeEaseInEaseOut)) {
+				transitionType.hasValue() && (*transitionType == CAnimationKeyframe::kTransitionTypeEaseInEaseOut)) {
 			// Ease out, then ease in
 			percent =
 					(Float32) (mInternals->mCurrentFrameTimeInterval /

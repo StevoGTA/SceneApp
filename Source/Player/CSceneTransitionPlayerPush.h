@@ -15,8 +15,7 @@ class CSceneTransitionPlayerPush : public CSceneTransitionPlayer {
 	public:
 				// Lifecycle methods
 				CSceneTransitionPlayerPush(CScenePlayer& currentScenePlayer, CScenePlayer& nextScenePlayer,
-						const CDictionary& info, const S2DPointF32& initialTouchOrMousePoint,
-						const SSceneTransitionPlayerProcsInfo& sceneTransitionPlayerProcsInfo);
+						const CDictionary& info, const S2DPointF32& initialTouchOrMousePoint, const Procs& procs);
 				~CSceneTransitionPlayerPush();
 
 				// CSceneTransitionPlayer methods

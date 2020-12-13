@@ -5,22 +5,7 @@
 #include "CSceneItemButtonArray.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Local data
-
-// Button Array Keys
-static	CString	sButtonsInfoKey(OSSTR("buttonsInfo"));
-static	CString	sImageResourceFilenameKey(OSSTR("imageFilename"));
-static	CString	sStartTimeIntervalKey(OSSTR("startTime"));
-
-// Individual Button Keys
-static	CString	sActionsInfoKey(OSSTR("actionInfo"));
-static	CString	sDownImageRectKey(OSSTR("downImageRect"));
-static	CString	sScreenPositionPointKey(OSSTR("screenPositionPt"));
-static	CString	sUpImageRectKey(OSSTR("upImageRect"));
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemButtonArrayButtonInternals
+// MARK: CSceneItemButtonArrayButtonInternals
 
 class CSceneItemButtonArrayButtonInternals :
 		public TCopyOnWriteReferenceCountable<CSceneItemButtonArrayButtonInternals> {
@@ -57,11 +42,11 @@ CSceneItemButtonArrayButton::CSceneItemButtonArrayButton(const CDictionary& info
 {
 	mInternals = new CSceneItemButtonArrayButtonInternals();
 
-	if (info.contains(sActionsInfoKey))
-		mInternals->mActions = OI<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
-	mInternals->mUpImageRect = S2DRectF32(info.getString(sUpImageRectKey));
-	mInternals->mDownImageRect = S2DRectF32(info.getString(sDownImageRectKey));
-	mInternals->mScreenPositionPoint = S2DPointF32(info.getString(sScreenPositionPointKey));
+	if (info.contains(CString(OSSTR("actionInfo"))))
+		mInternals->mActions = OI<CActions>(CActions(info.getDictionary(CString(OSSTR("actionInfo")))));
+	mInternals->mUpImageRect = S2DRectF32(info.getString(CString(OSSTR("upImageRect"))));
+	mInternals->mDownImageRect = S2DRectF32(info.getString(CString(OSSTR("downImageRect"))));
+	mInternals->mScreenPositionPoint = S2DPointF32(info.getString(CString(OSSTR("screenPositionPt"))));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -90,26 +75,26 @@ TArray<CDictionary> CSceneItemButtonArrayButton::getProperties() const
 	// Add properties
 	CDictionary	actionPropertyInfo;
 	actionPropertyInfo.set(CSceneItem::mPropertyTitleKey, CString(OSSTR("Actions")));
-	actionPropertyInfo.set(CSceneItem::mPropertyNameKey, sActionsInfoKey);
-	actionPropertyInfo.set(CSceneItem::mPropertyTypeKey, kSceneItemPropertyTypeActions);
+	actionPropertyInfo.set(CSceneItem::mPropertyNameKey, CString(OSSTR("actionInfo")));
+	actionPropertyInfo.set(CSceneItem::mPropertyTypeKey, CSceneItem::kPropertyTypeActions);
 	properties += actionPropertyInfo;
 
 	CDictionary	upImageRectPropertyInfo;
 	upImageRectPropertyInfo.set(CSceneItem::mPropertyTitleKey, CString(OSSTR("Up Image Rect")));
-	upImageRectPropertyInfo.set(CSceneItem::mPropertyNameKey, sUpImageRectKey);
-	upImageRectPropertyInfo.set(CSceneItem::mPropertyTypeKey, kSceneItemPropertyTypeScreenRect);
+	upImageRectPropertyInfo.set(CSceneItem::mPropertyNameKey, CString(OSSTR("upImageRect")));
+	upImageRectPropertyInfo.set(CSceneItem::mPropertyTypeKey, CSceneItem::kPropertyTypeScreenRect);
 	properties += upImageRectPropertyInfo;
 
 	CDictionary	downImageRectPropertyInfo;
 	downImageRectPropertyInfo.set(CSceneItem::mPropertyTitleKey, CString(OSSTR("Down Image Rect")));
-	downImageRectPropertyInfo.set(CSceneItem::mPropertyNameKey, sDownImageRectKey);
-	downImageRectPropertyInfo.set(CSceneItem::mPropertyTypeKey, kSceneItemPropertyTypeScreenRect);
+	downImageRectPropertyInfo.set(CSceneItem::mPropertyNameKey, CString(OSSTR("downImageRect")));
+	downImageRectPropertyInfo.set(CSceneItem::mPropertyTypeKey, CSceneItem::kPropertyTypeScreenRect);
 	properties += downImageRectPropertyInfo;
 
 	CDictionary	resourceFilenamePropertyInfo;
 	resourceFilenamePropertyInfo.set(CSceneItem::mPropertyTitleKey, CString(OSSTR("Screen Position Point")));
-	resourceFilenamePropertyInfo.set(CSceneItem::mPropertyNameKey, sScreenPositionPointKey);
-	resourceFilenamePropertyInfo.set(CSceneItem::mPropertyTypeKey, kSceneItemPropertyTypeScreenPoint);
+	resourceFilenamePropertyInfo.set(CSceneItem::mPropertyNameKey, CString(OSSTR("screenPositionPt")));
+	resourceFilenamePropertyInfo.set(CSceneItem::mPropertyTypeKey, CSceneItem::kPropertyTypeScreenPoint);
 	properties += resourceFilenamePropertyInfo;
 
 	return properties;
@@ -122,10 +107,10 @@ CDictionary CSceneItemButtonArrayButton::getInfo() const
 	CDictionary	info;
 
 	if (mInternals->mActions.hasInstance())
-		info.set(sActionsInfoKey, mInternals->mActions->getInfo());
-	info.set(sUpImageRectKey, mInternals->mUpImageRect.asString());
-	info.set(sDownImageRectKey, mInternals->mDownImageRect.asString());
-	info.set(sScreenPositionPointKey, mInternals->mScreenPositionPoint.asString());
+		info.set(CString(OSSTR("actionInfo")), mInternals->mActions->getInfo());
+	info.set(CString(OSSTR("upImageRect")), mInternals->mUpImageRect.asString());
+	info.set(CString(OSSTR("downImageRect")), mInternals->mDownImageRect.asString());
+	info.set(CString(OSSTR("screenPositionPt")), mInternals->mScreenPositionPoint.asString());
 
 	return info;
 }
@@ -243,11 +228,11 @@ CSceneItemButtonArray::CSceneItemButtonArray(const CDictionary& info) : CSceneIt
 {
 	mInternals = new CSceneItemButtonArrayInternals();
 
-	if (info.contains(sStartTimeIntervalKey))
-		mInternals->mStartTimeInterval = OV<UniversalTimeInterval>(info.getFloat64(sStartTimeIntervalKey));
-	mInternals->mImageResourceFilename = info.getString(sImageResourceFilenameKey);
+	if (info.contains(CString(OSSTR("startTime"))))
+		mInternals->mStartTimeInterval = OV<UniversalTimeInterval>(info.getFloat64(CString(OSSTR("startTime"))));
+	mInternals->mImageResourceFilename = info.getString(CString(OSSTR("imageFilename")));
 	mInternals->mSceneItemButtonArrayButtons =
-			TNArray<CSceneItemButtonArrayButton>(info.getArrayOfDictionaries(sButtonsInfoKey),
+			TNArray<CSceneItemButtonArrayButton>(info.getArrayOfDictionaries(CString(OSSTR("buttonsInfo"))),
 					(CSceneItemButtonArrayButton (*)(CArray::ItemRef item)) CSceneItemButtonArrayButton::makeFrom);
 }
 
@@ -277,20 +262,20 @@ TArray<CDictionary> CSceneItemButtonArray::getProperties() const
 	// Add properties
 	CDictionary	startTimePropertyInfo;
 	startTimePropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Start Time Interval")));
-	startTimePropertyInfo.set(mPropertyNameKey, sStartTimeIntervalKey);
-	startTimePropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeStartTimeInterval);
+	startTimePropertyInfo.set(mPropertyNameKey, CString(OSSTR("startTime")));
+	startTimePropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeStartTimeInterval);
 	properties += startTimePropertyInfo;
 
 	CDictionary	resourceFilenamePropertyInfo;
 	resourceFilenamePropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Image Filename")));
-	resourceFilenamePropertyInfo.set(mPropertyNameKey, sImageResourceFilenameKey);
-	resourceFilenamePropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeFilename);
+	resourceFilenamePropertyInfo.set(mPropertyNameKey, CString(OSSTR("imageFilename")));
+	resourceFilenamePropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeFilename);
 	properties += resourceFilenamePropertyInfo;
 
 	CDictionary	buttonArrayPropertyInfo;
 	buttonArrayPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Button Array")));
-	buttonArrayPropertyInfo.set(mPropertyNameKey, sButtonsInfoKey);
-	buttonArrayPropertyInfo.set(mPropertyTypeKey, kSceneItemButtonArrayPropertyTypeButtonArray);
+	buttonArrayPropertyInfo.set(mPropertyNameKey, CString(OSSTR("buttonsInfo")));
+	buttonArrayPropertyInfo.set(mPropertyTypeKey, kPropertyTypeButtonArray);
 	properties += buttonArrayPropertyInfo;
 
 	return properties;
@@ -303,9 +288,9 @@ CDictionary CSceneItemButtonArray::getInfo() const
 	CDictionary	info = CSceneItem::getInfo();
 
 	if (mInternals->mStartTimeInterval.hasValue())
-		info.set(sStartTimeIntervalKey, *mInternals->mStartTimeInterval);
-	info.set(sImageResourceFilenameKey, mInternals->mImageResourceFilename);
-	info.set(sButtonsInfoKey,
+		info.set(CString(OSSTR("startTime")), *mInternals->mStartTimeInterval);
+	info.set(CString(OSSTR("imageFilename")), mInternals->mImageResourceFilename);
+	info.set(CString(OSSTR("buttonsInfo")),
 			TNArray<CDictionary>(mInternals->mSceneItemButtonArrayButtons,
 					(CDictionary (*)(CArray::ItemRef item)) CSceneItemButtonArrayButton::getInfoFrom));
 

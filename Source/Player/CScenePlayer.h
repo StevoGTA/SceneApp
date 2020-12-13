@@ -8,56 +8,55 @@
 #include "CSceneItemPlayer.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: SScenePlayerProcsInfo
-
-class CScenePlayer;
-typedef	S2DSizeF32			(*CScenePlayerGetViewportSizeProc)(void* userData);
-typedef	CSceneItemPlayer*	(*CScenePlayerCreateSceneItemPlayerProc)(const CSceneItem& sceneItem,
-									const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-									const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo, void* userData);
-typedef	void				(*CScenePlayerPerformActionsProc)(const CActions& actions, const S2DPointF32& point,
-									void* userData);
-
-struct SScenePlayerProcsInfo {
-						// Lifecycle methods
-						SScenePlayerProcsInfo(CScenePlayerGetViewportSizeProc getViewportSizeProc,
-								CScenePlayerCreateSceneItemPlayerProc createSceneItemPlayerProc,
-								CScenePlayerPerformActionsProc performActionsProc, void* userData) :
-							mGetViewportSizeProc(getViewportSizeProc),
-									mCreateSceneItemPlayerProc(createSceneItemPlayerProc),
-									mPerformActionsProc(performActionsProc), mUserData(userData)
-							{}
-
-						// Instance methods
-	S2DSizeF32			getViewportSize() const
-							{ return mGetViewportSizeProc(mUserData); }
-	CSceneItemPlayer*	createSceneItemPlayer(const CSceneItem& sceneItem,
-								const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-								const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo) const
-							{ return mCreateSceneItemPlayerProc(sceneItem, sceneAppResourceManagementInfo,
-									sceneItemPlayerProcsInfo, mUserData); }
-	void				performActions(const CActions& actions, const S2DPointF32& point = S2DPointF32()) const
-							{ mPerformActionsProc(actions, point, mUserData); }
-
-	// Properties
-	private:
-		CScenePlayerGetViewportSizeProc			mGetViewportSizeProc;
-		CScenePlayerCreateSceneItemPlayerProc	mCreateSceneItemPlayerProc;
-		CScenePlayerPerformActionsProc			mPerformActionsProc;
-		void*									mUserData;
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CScenePlayer
+// MARK: CScenePlayer
 
 class CScenePlayerInternals;
 class CScenePlayer {
+	// Structs
+	public:
+		struct Procs {
+			// Procs
+			typedef	S2DSizeF32			(*GetViewportSizeProc)(void* userData);
+			typedef	CSceneItemPlayer*	(*CreateSceneItemPlayerProc)(const CSceneItem& sceneItem,
+												const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
+												const CSceneItemPlayer::Procs& procs, void* userData);
+			typedef	void				(*PerformActionsProc)(const CActions& actions, const S2DPointF32& point,
+												void* userData);
+
+								// Lifecycle methods
+								Procs(GetViewportSizeProc getViewportSizeProc,
+										CreateSceneItemPlayerProc createSceneItemPlayerProc,
+										PerformActionsProc performActionsProc, void* userData) :
+									mGetViewportSizeProc(getViewportSizeProc),
+											mCreateSceneItemPlayerProc(createSceneItemPlayerProc),
+											mPerformActionsProc(performActionsProc), mUserData(userData)
+									{}
+
+								// Instance methods
+			S2DSizeF32			getViewportSize() const
+									{ return mGetViewportSizeProc(mUserData); }
+			CSceneItemPlayer*	createSceneItemPlayer(const CSceneItem& sceneItem,
+										const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
+										const CSceneItemPlayer::Procs& procs) const
+									{ return mCreateSceneItemPlayerProc(sceneItem, sceneAppResourceManagementInfo,
+											procs, mUserData); }
+			void				performActions(const CActions& actions, const S2DPointF32& point = S2DPointF32()) const
+									{ mPerformActionsProc(actions, point, mUserData); }
+
+			// Properties
+			private:
+				GetViewportSizeProc			mGetViewportSizeProc;
+				CreateSceneItemPlayerProc	mCreateSceneItemPlayerProc;
+				PerformActionsProc			mPerformActionsProc;
+				void*						mUserData;
+		};
+
 	// Methods
 	public:
 							// Lifecycle methods
 							CScenePlayer(const CScene& scene,
 									const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-									const SScenePlayerProcsInfo& scenePlayerProcsInfo);
+									const Procs& procs);
 							CScenePlayer(const CScenePlayer& other);
 							~CScenePlayer();
 

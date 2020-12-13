@@ -5,16 +5,7 @@
 #include "CSceneItemHotspot.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Local data
-
-static	CString	sActionsInfoKey(OSSTR("actionInfo"));
-static	CString	sScreenRectKey(OSSTR("screenRect"));
-
-CString	CSceneItemHotspot::mType(OSSTR("hotspot"));
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemHotspotInternals
+// MARK: CSceneItemHotspotInternals
 
 class CSceneItemHotspotInternals : public TCopyOnWriteReferenceCountable<CSceneItemHotspotInternals> {
 	public:
@@ -32,6 +23,10 @@ class CSceneItemHotspotInternals : public TCopyOnWriteReferenceCountable<CSceneI
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItemHotspot
 
+// MARK: Properties
+
+CString	CSceneItemHotspot::mType(OSSTR("hotspot"));
+
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -47,9 +42,9 @@ CSceneItemHotspot::CSceneItemHotspot(const CDictionary& info) : CSceneItem(info)
 {
 	mInternals = new CSceneItemHotspotInternals();
 
-	if (info.contains(sActionsInfoKey))
-		mInternals->mActions = OI<CActions>(CActions(info.getDictionary(sActionsInfoKey)));
-	mInternals->mScreenRect = S2DRectF32(info.getString(sScreenRectKey));
+	if (info.contains(CString(OSSTR("actionInfo"))))
+		mInternals->mActions = OI<CActions>(CActions(info.getDictionary(CString(OSSTR("actionInfo")))));
+	mInternals->mScreenRect = S2DRectF32(info.getString(CString(OSSTR("screenRect"))));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -78,14 +73,14 @@ TArray<CDictionary> CSceneItemHotspot::getProperties() const
 	// Add properties
 	CDictionary	actionPropertyInfo;
 	actionPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Actions")));
-	actionPropertyInfo.set(mPropertyNameKey, sActionsInfoKey);
-	actionPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeActions);
+	actionPropertyInfo.set(mPropertyNameKey, CString(OSSTR("actionInfo")));
+	actionPropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeActions);
 	properties += actionPropertyInfo;
 
 	CDictionary	screenRectPropertyInfo;
 	screenRectPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Screen Rect")));
-	screenRectPropertyInfo.set(mPropertyNameKey, sScreenRectKey);
-	screenRectPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeScreenRect);
+	screenRectPropertyInfo.set(mPropertyNameKey, CString(OSSTR("screenRect")));
+	screenRectPropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeScreenRect);
 	properties += screenRectPropertyInfo;
 
 	return properties;
@@ -98,8 +93,8 @@ CDictionary CSceneItemHotspot::getInfo() const
 	CDictionary	info = CSceneItem::getInfo();
 
 	if (mInternals->mActions.hasInstance())
-		info.set(sActionsInfoKey, mInternals->mActions->getInfo());
-	info.set(sScreenRectKey, mInternals->mScreenRect.asString());
+		info.set(CString(OSSTR("actionInfo")), mInternals->mActions->getInfo());
+	info.set(CString(OSSTR("screenRect")), mInternals->mScreenRect.asString());
 
 	return info;
 }

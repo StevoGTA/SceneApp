@@ -10,13 +10,14 @@
 class CSceneTransitionPlayerInternals {
 	public:
 		CSceneTransitionPlayerInternals(CScenePlayer& fromScenePlayer, CScenePlayer& toScenePlayer) :
-				mFromScenePlayer(fromScenePlayer), mToScenePlayer(toScenePlayer), mState(kSceneTransitionStateActive)
+				mFromScenePlayer(fromScenePlayer), mToScenePlayer(toScenePlayer),
+				mState(CSceneTransitionPlayer::kStateActive)
 			{}
 
-		CScenePlayer&			mFromScenePlayer;
-		CScenePlayer&			mToScenePlayer;
+		CScenePlayer&					mFromScenePlayer;
+		CScenePlayer&					mToScenePlayer;
 		
-		ESceneTransitionState	mState;
+		CSceneTransitionPlayer::State	mState;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -63,14 +64,14 @@ CScenePlayer& CSceneTransitionPlayer::getToScenePlayer() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-ESceneTransitionState CSceneTransitionPlayer::getState() const
+CSceneTransitionPlayer::State CSceneTransitionPlayer::getState() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mState;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneTransitionPlayer::setState(ESceneTransitionState state)
+void CSceneTransitionPlayer::setState(State state)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals->mState = state;
@@ -87,20 +88,20 @@ void CSceneTransitionPlayer::update(UniversalTimeInterval deltaTimeInterval)
 // MARK: Subclass methods
 
 //----------------------------------------------------------------------------------------------------------------------
-ESceneTransitionDirection CSceneTransitionPlayer::getSceneTransitionDirection(const CString& string)
+CSceneTransitionPlayer::Direction CSceneTransitionPlayer::getDirection(const CString& string)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check string
 	if (string == mInfoDirectionUpValue)
 		// Up
-		return kSceneTransitionDirectionUp;
+		return kDirectionUp;
 	else if (string == mInfoDirectionDownValue)
 		// Down
-		return kSceneTransitionDirectionDown;
+		return kDirectionDown;
 	else if (string == mInfoDirectionLeftValue)
 		// Left
-		return kSceneTransitionDirectionLeft;
+		return kDirectionLeft;
 	else
 		// Right
-		return kSceneTransitionDirectionRight;
+		return kDirectionRight;
 }

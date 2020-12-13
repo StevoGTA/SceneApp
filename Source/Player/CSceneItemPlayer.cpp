@@ -24,16 +24,14 @@ CString	CSceneItemPlayer::mCommandNameReset(OSSTR("reset"));
 
 class CSceneItemPlayerInternals {
 	public:
-		CSceneItemPlayerInternals(const CSceneItem& sceneItem,
-				const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo) :
-			mIsVisible(false), mIsLoaded(false), mSceneItem(sceneItem),
-					mSceneItemPlayerProcsInfo(sceneItemPlayerProcsInfo)
+		CSceneItemPlayerInternals(const CSceneItem& sceneItem, const CSceneItemPlayer::Procs& procs) :
+			mIsVisible(false), mIsLoaded(false), mSceneItem(sceneItem), mProcs(procs)
 			{}
 
-			bool						mIsVisible;
-			bool						mIsLoaded;
-	const	CSceneItem&					mSceneItem;
-			SSceneItemPlayerProcsInfo	mSceneItemPlayerProcsInfo;
+			bool					mIsVisible;
+			bool					mIsLoaded;
+	const	CSceneItem&				mSceneItem;
+			CSceneItemPlayer::Procs	mProcs;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -43,12 +41,11 @@ class CSceneItemPlayerInternals {
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayer::CSceneItemPlayer(const CSceneItem& sceneItem,
-		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo)
+CSceneItemPlayer::CSceneItemPlayer(const CSceneItem& sceneItem, const Procs& procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	mInternals = new CSceneItemPlayerInternals(sceneItem, sceneItemPlayerProcsInfo);
+	mInternals = new CSceneItemPlayerInternals(sceneItem, procs);
 
 	// Reset
 	reset();
@@ -96,7 +93,7 @@ void CSceneItemPlayer::perform(const CActions& actions, const S2DPointF32& point
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Call proc
-	mInternals->mSceneItemPlayerProcsInfo.performActions(actions, point);
+	mInternals->mProcs.performActions(actions, point);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -132,7 +129,7 @@ void CSceneItemPlayer::reset()
 {
 	// Update visible
 	mInternals->mIsVisible = mInternals->mSceneItem.getIsVisible();
-	if (mInternals->mSceneItem.getOptions() & kSceneItemOptionsHideIfNoAudioInput)
+	if (mInternals->mSceneItem.getOptions() & CSceneItem::kOptionsHideIfNoAudioInput)
 		mInternals->mIsVisible &= CAudioSession::mShared.inputIsAvailable();
 }
 
@@ -252,7 +249,7 @@ void CSceneItemPlayer::setPeerProperty(const CString& sceneName, const CString& 
 	info.set(CAction::mInfoPropertyValueKey, value);
 
 	// Call proc
-	mInternals->mSceneItemPlayerProcsInfo.performActions(CActions(CAction(CAction::mNameSetItemNameValue, info)));
+	mInternals->mProcs.performActions(CActions(CAction(CAction::mNameSetItemNameValue, info)));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -267,5 +264,5 @@ void CSceneItemPlayer::setPeerProperty(const CString& name, const CString& prope
 	info.set(CAction::mInfoPropertyValueKey, value);
 
 	// Call proc
-	mInternals->mSceneItemPlayerProcsInfo.performActions(CActions(CAction(CAction::mNameSetItemNameValue, info)));
+	mInternals->mProcs.performActions(CActions(CAction(CAction::mNameSetItemNameValue, info)));
 }

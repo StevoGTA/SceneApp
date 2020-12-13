@@ -10,45 +10,41 @@
 #include "CSceneItem.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: SSceneItemPlayerProcsInfo
-
-typedef	void	(*CSceneItemPlayerPerformActionsProc)(const CActions& actions, const S2DPointF32& point,
-						void* userData);
-
-struct SSceneItemPlayerProcsInfo {
-			// Lifecycle methods
-			SSceneItemPlayerProcsInfo(CSceneItemPlayerPerformActionsProc performActionsProc, void* userData) :
-				mPerformActionsProc(performActionsProc), mUserData(userData)
-				{}
-
-			// Instance methods
-	void	performActions(const CActions& actions, const S2DPointF32& point = S2DPointF32()) const
-				{ mPerformActionsProc(actions, point, mUserData); }
-
-	// Properties
-	private:
-		CSceneItemPlayerPerformActionsProc	mPerformActionsProc;
-		void*								mUserData;
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Procs
-
-class CSceneItemPlayer;
-typedef	CSceneItemPlayer*	(*CSceneItemPlayerCreateProc)(const CSceneItem& sceneItem,
-									const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-									const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo);
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemPlayer
+// MARK: CSceneItemPlayer
 
 class CSceneItemPlayerInternals;
 class CSceneItemPlayer {
+	// Structs
+	public:
+		struct Procs {
+			// Procs
+			typedef	void	(*PerformActionsProc)(const CActions& actions, const S2DPointF32& point, void* userData);
+
+					// Lifecycle methods
+					Procs(PerformActionsProc performActionsProc, void* userData) :
+						mPerformActionsProc(performActionsProc), mUserData(userData)
+						{}
+
+					// Instance methods
+			void	performActions(const CActions& actions, const S2DPointF32& point = S2DPointF32()) const
+						{ mPerformActionsProc(actions, point, mUserData); }
+
+			// Properties
+			private:
+				PerformActionsProc	mPerformActionsProc;
+				void*				mUserData;
+		};
+
+	// Procs
+	public:
+		typedef	CSceneItemPlayer*	(*CreateProc)(const CSceneItem& sceneItem,
+											const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
+											const Procs& procs);
+
 	// Methods
 	public:
 													// Lifecycle methods
-													CSceneItemPlayer(const CSceneItem& sceneItem,
-															const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo);
+													CSceneItemPlayer(const CSceneItem& sceneItem, const Procs& procs);
 		virtual										~CSceneItemPlayer();
 
 													// Instance methods

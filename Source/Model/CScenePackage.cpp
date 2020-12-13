@@ -5,23 +5,15 @@
 #include "CScenePackage.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Local data
-
-static	CString	sInitialSceneIndexKey(OSSTR("initialSceneIndex"));
-static	CString	sViewportZoomKey(OSSTR("viewportZoom"));
-static	CString	sScenesKey(OSSTR("scenes"));
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CScenePackageInternals
+// MARK: CScenePackageInternals
 
 class CScenePackageInternals : public TReferenceCountable<CScenePackageInternals> {
 	public:
 		CScenePackageInternals(const S2DSizeF32& size) : TReferenceCountable(), mSize(size) {}
 
-		S2DSizeF32		mSize;
-		TNArray<CScene>	mScenes;
-		OV<CSceneIndex>	mInitialSceneIndex;
+		S2DSizeF32			mSize;
+		TNArray<CScene>		mScenes;
+		OV<CScene::Index>	mInitialSceneIndex;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -44,9 +36,9 @@ CScenePackage::CScenePackage(const S2DSizeF32& size, const CDictionary& info)
 	mInternals = new CScenePackageInternals(size);
 
 	mInternals->mScenes =
-			TNArray<CScene>(info.getArrayOfDictionaries(sScenesKey),
+			TNArray<CScene>(info.getArrayOfDictionaries(CString(OSSTR("scenes"))),
 					(CScene (*)(CArray::ItemRef item)) CScene::makeFrom);
-	mInternals->mInitialSceneIndex = info.getSInt32(sInitialSceneIndexKey, 0);
+	mInternals->mInitialSceneIndex = info.getSInt32(CString(OSSTR("initialSceneIndex")), 0);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -78,10 +70,10 @@ CDictionary CScenePackage::getInfo() const
 {
 	CDictionary	info;
 
-	info.set(sScenesKey,
+	info.set(CString(OSSTR("scenes")),
 			TNArray<CDictionary>(mInternals->mScenes, (CDictionary (*)(CArray::ItemRef item)) CScene::getInfoFrom));
 	if (mInternals->mInitialSceneIndex.hasValue())
-		info.set(sInitialSceneIndexKey, *mInternals->mInitialSceneIndex);
+		info.set(CString(OSSTR("initialSceneIndex")), *mInternals->mInitialSceneIndex);
 
 	return info;
 }
@@ -104,20 +96,20 @@ UInt32 CScenePackage::getInitialSceneIndex() const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const CScene& CScenePackage::getSceneAtIndex(CSceneIndex index) const
+const CScene& CScenePackage::getSceneAtIndex(CScene::Index index) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mScenes[index];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-OV<CSceneIndex> CScenePackage::getIndexOfScene(const CScene& scene)
+OV<CScene::Index> CScenePackage::getIndexOfScene(const CScene& scene)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Get index
 	OV<CArray::ItemIndex>	index = mInternals->mScenes.getIndexOf(scene);
 
-	return index.hasValue() ? OV<CSceneIndex>(*index) : OV<CSceneIndex>();
+	return index.hasValue() ? OV<CScene::Index>(*index) : OV<CScene::Index>();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -140,11 +132,11 @@ CScenePackage& CScenePackage::operator=(const CScenePackage& other)
 // MARK: Class methods
 
 //----------------------------------------------------------------------------------------------------------------------
-TArray<SScenePackageInfo> CScenePackage::getScenePackageInfos(const TArray<CFile>& files)
+TArray<CScenePackage::Info> CScenePackage::getScenePackageInfos(const TArray<CFile>& files)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	TNArray<SScenePackageInfo>	scenePackageInfos;
+	TNArray<Info>	scenePackageInfos;
 
 	// Iterate files
 	for (TIteratorD<CFile> iterator = files.getIterator(); iterator.hasValue(); iterator.advance()) {
@@ -165,8 +157,7 @@ TArray<SScenePackageInfo> CScenePackage::getScenePackageInfos(const TArray<CFile
 			Float32			aspectRatio = width / height;
 
 			// Add info
-			scenePackageInfos.add(
-					SScenePackageInfo(filename, S2DSizeF32(width, height), totalPixels, aspectRatio));
+			scenePackageInfos.add(Info(filename, S2DSizeF32(width, height), totalPixels, aspectRatio));
 		}
 	}
 

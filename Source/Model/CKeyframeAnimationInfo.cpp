@@ -7,13 +7,7 @@
 #include "CSceneItem.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Local data
-
-static	CString	sKeyframeArrayKey(OSSTR("keyframes"));
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CKeyframeAnimationInfoInternals
+// MARK: CKeyframeAnimationInfoInternals
 
 class CKeyframeAnimationInfoInternals : public TCopyOnWriteReferenceCountable<CKeyframeAnimationInfoInternals> {
 	public:
@@ -45,7 +39,7 @@ CKeyframeAnimationInfo::CKeyframeAnimationInfo(const CDictionary& info)
 {
 	mInternals = new CKeyframeAnimationInfoInternals();
 
-	TArray<CDictionary>	keyframeInfos = info.getArrayOfDictionaries(sKeyframeArrayKey);
+	TArray<CDictionary>	keyframeInfos = info.getArrayOfDictionaries(CString(OSSTR("keyframes")));
 	for (CArray::ItemIndex i = 0; i < keyframeInfos.getCount(); i++)
 		mInternals->mAnimationKeyframesArray += CAnimationKeyframe(keyframeInfos[i]);
 }
@@ -76,8 +70,8 @@ TArray<CDictionary> CKeyframeAnimationInfo::getProperties() const
 	// Add properties
 	CDictionary	keyframesPropertyInfo;
 	keyframesPropertyInfo.set(CSceneItem::mPropertyTitleKey, CString(OSSTR("Keyframes")));
-	keyframesPropertyInfo.set(CSceneItem::mPropertyNameKey, sKeyframeArrayKey);
-	keyframesPropertyInfo.set(CSceneItem::mPropertyTypeKey, kKeyframeAnimationPropertyTypeKeyframeArray);
+	keyframesPropertyInfo.set(CSceneItem::mPropertyNameKey, CString(OSSTR("keyframes")));
+	keyframesPropertyInfo.set(CSceneItem::mPropertyTypeKey, kPropertyTypeKeyframeArray);
 	properties += keyframesPropertyInfo;
 
 	return properties;
@@ -92,7 +86,7 @@ CDictionary CKeyframeAnimationInfo::getInfo() const
 	TNArray<CDictionary>	keyframeInfos;
 	for (CArray::ItemIndex i = 0; i < mInternals->mAnimationKeyframesArray.getCount(); i++)
 		keyframeInfos += mInternals->mAnimationKeyframesArray[i].getInfo();
-	info.set(sKeyframeArrayKey, keyframeInfos);
+	info.set(CString(OSSTR("keyframes")), keyframeInfos);
 
 	return info;
 }

@@ -10,9 +10,8 @@
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerCustom::CSceneItemPlayerCustom(const CSceneItemCustom& sceneItemCustom,
-		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo) :
-		CSceneItemPlayer(sceneItemCustom, sceneItemPlayerProcsInfo)
+CSceneItemPlayerCustom::CSceneItemPlayerCustom(const CSceneItemCustom& sceneItemCustom, const Procs& procs) :
+		CSceneItemPlayer(sceneItemCustom, procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
 }

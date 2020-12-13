@@ -7,21 +7,12 @@
 #include "CSceneItem.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Local data
-
-static	CString	sResourceFilenameKey(OSSTR("filename"));
-static	CString	sGainKey(OSSTR("gain"));
-static	CString	sLoopCountKey(OSSTR("loopCount"));
-static	CString	sOptionsKey(OSSTR("options"));
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CAudioInfoInternals
+// MARK: CAudioInfoInternals
 
 class CAudioInfoInternals : public TCopyOnWriteReferenceCountable<CAudioInfoInternals> {
 	public:
 		CAudioInfoInternals(Float32 gain, const CString& resourceFilename, OV<UInt32> loopCount,
-				EAudioInfoOptions options) :
+				CAudioInfo::Options options) :
 			TCopyOnWriteReferenceCountable(),
 					mGain(gain), mResourceFilename(resourceFilename), mLoopCount(loopCount), mOptions(options)
 			{}
@@ -34,7 +25,7 @@ class CAudioInfoInternals : public TCopyOnWriteReferenceCountable<CAudioInfoInte
 		Float32				mGain;
 		CString				mResourceFilename;
 		OV<UInt32>			mLoopCount;
-		EAudioInfoOptions	mOptions;
+		CAudioInfo::Options	mOptions;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -47,7 +38,7 @@ class CAudioInfoInternals : public TCopyOnWriteReferenceCountable<CAudioInfoInte
 CAudioInfo::CAudioInfo(const CString& resourceFilename)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CAudioInfoInternals(1.0, resourceFilename, 1, kAudioInfoOptionsNone);
+	mInternals = new CAudioInfoInternals(1.0, resourceFilename, 1, kOptionsNone);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -55,13 +46,15 @@ CAudioInfo::CAudioInfo(const CDictionary& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	const	CString&	resourceFilename = info.getString(sResourceFilenameKey);
+	const	CString&	resourceFilename = info.getString(CString(OSSTR("filename")));
 	AssertFailIf(resourceFilename.isEmpty())
 
 	mInternals =
-			new CAudioInfoInternals(info.getFloat32(sGainKey, 1.0), info.getString(sResourceFilenameKey),
-					info.contains(sLoopCountKey) ? OV<UInt32>(info.getUInt32(sLoopCountKey)) : OV<UInt32>(),
-					(EAudioInfoOptions) info.getUInt32(sOptionsKey, kAudioInfoOptionsNone));
+			new CAudioInfoInternals(info.getFloat32(CString(OSSTR("gain")), 1.0),
+					info.getString(CString(OSSTR("filename"))),
+					info.contains(CString(OSSTR("loopCount"))) ?
+							OV<UInt32>(info.getUInt32(CString(OSSTR("loopCount")))) : OV<UInt32>(),
+					(Options) info.getUInt32(CString(OSSTR("options")), kOptionsNone));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -90,26 +83,26 @@ TArray<CDictionary> CAudioInfo::getProperties() const
 	// Add properties
 	CDictionary	gainPropertyInfo;
 	gainPropertyInfo.set(CSceneItem::mPropertyTitleKey, CString(OSSTR("Gain")));
-	gainPropertyInfo.set(CSceneItem::mPropertyNameKey, sGainKey);
-	gainPropertyInfo.set(CSceneItem::mPropertyTypeKey, kAudioInfoPropertyTypeGain);
+	gainPropertyInfo.set(CSceneItem::mPropertyNameKey, CString(OSSTR("gain")));
+	gainPropertyInfo.set(CSceneItem::mPropertyTypeKey, kPropertyTypeGain);
 	properties += gainPropertyInfo;
 
 	CDictionary	resourceFilenamePropertyInfo;
 	resourceFilenamePropertyInfo.set(CSceneItem::mPropertyTitleKey, CString(OSSTR("Resource Filename")));
-	resourceFilenamePropertyInfo.set(CSceneItem::mPropertyNameKey, sResourceFilenameKey);
-	resourceFilenamePropertyInfo.set(CSceneItem::mPropertyTypeKey, kSceneItemPropertyTypeFilename);
+	resourceFilenamePropertyInfo.set(CSceneItem::mPropertyNameKey, CString(OSSTR("filename")));
+	resourceFilenamePropertyInfo.set(CSceneItem::mPropertyTypeKey, CSceneItem::kPropertyTypeFilename);
 	properties += resourceFilenamePropertyInfo;
 
 	CDictionary	loopCountPropertyInfo;
 	loopCountPropertyInfo.set(CSceneItem::mPropertyTitleKey, CString(OSSTR("Loop Count")));
-	loopCountPropertyInfo.set(CSceneItem::mPropertyNameKey, sLoopCountKey);
-	loopCountPropertyInfo.set(CSceneItem::mPropertyTypeKey, kAudioInfoPropertyTypeLoopCount);
+	loopCountPropertyInfo.set(CSceneItem::mPropertyNameKey, CString(OSSTR("loopCount")));
+	loopCountPropertyInfo.set(CSceneItem::mPropertyTypeKey, kPropertyTypeLoopCount);
 	properties += loopCountPropertyInfo;
 
 	CDictionary	optionsPropertyInfo;
 	optionsPropertyInfo.set(CSceneItem::mPropertyTitleKey, CString(OSSTR("Options")));
-	optionsPropertyInfo.set(CSceneItem::mPropertyNameKey, sOptionsKey);
-	optionsPropertyInfo.set(CSceneItem::mPropertyTypeKey, kAudioInfoPropertyTypeOptions);
+	optionsPropertyInfo.set(CSceneItem::mPropertyNameKey, CString(OSSTR("options")));
+	optionsPropertyInfo.set(CSceneItem::mPropertyTypeKey, kPropertyTypeOptions);
 	properties += optionsPropertyInfo;
 
 	return properties;
@@ -121,11 +114,11 @@ CDictionary CAudioInfo::getInfo() const
 {
 	CDictionary	info;
 
-	info.set(sGainKey, mInternals->mGain);
-	info.set(sResourceFilenameKey, mInternals->mResourceFilename);
+	info.set(CString(OSSTR("gain")), mInternals->mGain);
+	info.set(CString(OSSTR("filename")), mInternals->mResourceFilename);
 	if (mInternals->mLoopCount.hasValue())
-		info.set(sLoopCountKey, *mInternals->mLoopCount);
-	info.set(sOptionsKey, (UInt32) mInternals->mOptions);
+		info.set(CString(OSSTR("loopCount")), *mInternals->mLoopCount);
+	info.set(CString(OSSTR("options")), (UInt32) mInternals->mOptions);
 
 	return info;
 }
@@ -185,14 +178,14 @@ void CAudioInfo::setLoopCount(OV<UInt32> loopCount)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-EAudioInfoOptions CAudioInfo::getOptions() const
+CAudioInfo::Options CAudioInfo::getOptions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mOptions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CAudioInfo::setOptions(EAudioInfoOptions options)
+void CAudioInfo::setOptions(Options options)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write

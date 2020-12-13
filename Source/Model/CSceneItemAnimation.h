@@ -10,25 +10,22 @@
 #include "CSceneItem.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Loop Count values
-
-// 0: Loop Forever
-// 1 - 0xFFFFFFFE: Loop that many times and then hold last frame
-const	UInt32	kSceneItemAnimationLoopForever = 0;
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Property info
-
-enum {
-	kSceneItemAnimationPropertyTypeAudioInfo	= MAKE_OSTYPE('A', 'u', 'I', 'n'),
-	kSceneItemAnimationPropertyTypeLoopCount	= MAKE_OSTYPE('L', 'p', 'C', 't'),
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemAnimation
+// MARK: CSceneItemAnimation
 
 class CSceneItemAnimationInternals;
 class CSceneItemAnimation : public CSceneItem {
+	// Constants
+	public:
+		// 0: Loop Forever
+		// 1 - 0xFFFFFFFE: Loop that many times and then hold last frame
+		static	const	UInt32	kLoopForever = 0;
+
+	// Enums
+	public:
+		enum PropertyType {
+			kPropertyTypeLoopCount	= MAKE_OSTYPE('L', 'p', 'C', 't'),
+		};
+
 	// Methods
 	public:
 											// Lifecycle methods

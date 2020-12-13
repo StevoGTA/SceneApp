@@ -13,25 +13,11 @@
 //#include "CSceneItemText.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Local data
-
-static	CString	sBackground1AudioInfoKey(OSSTR("background1AudioInfo"));
-static	CString	sBackground2AudioInfoKey(OSSTR("background2AudioInfo"));
-static	CString	sBoundsRectKey(OSSTR("bounds"));
-static	CString	sDoubleTapActionsInfoKey(OSSTR("doubleTapAction"));
-static	CString	sItemsKey(OSSTR("items"));
-static	CString	sItemTypeKey(OSSTR("itemType"));
-static	CString	sNameKey(OSSTR("name"));
-static	CString	sOptionsKey(OSSTR("options"));
-static	CString	sStoreSceneIndexAsKey(OSSTR("storeSceneIndexAs"));
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneInternals
+// MARK: CSceneInternals
 
 class CSceneInternals : public TCopyOnWriteReferenceCountable<CSceneInternals> {
 	public:
-		CSceneInternals() : TCopyOnWriteReferenceCountable(), mOptions(kSceneOptionsNone) {}
+		CSceneInternals() : TCopyOnWriteReferenceCountable(), mOptions(CScene::kOptionsNone) {}
 		CSceneInternals(const CSceneInternals& other) :
 			TCopyOnWriteReferenceCountable(),
 					mDoubleTapActions(other.mDoubleTapActions), mBackground1AudioInfo(other.mBackground1AudioInfo),
@@ -43,7 +29,7 @@ class CSceneInternals : public TCopyOnWriteReferenceCountable<CSceneInternals> {
 		OI<CActions>		mDoubleTapActions;
 		OI<CAudioInfo>		mBackground1AudioInfo;
 		OI<CAudioInfo>		mBackground2AudioInfo;
-		ESceneOptions		mOptions;
+		CScene::Options		mOptions;
 		CString				mName;
 		CString				mStoreSceneIndexAsString;
 		S2DRectF32			mBoundsRect;
@@ -69,22 +55,24 @@ CScene::CScene(const CDictionary& info)
 {
 	mInternals = new CSceneInternals();
 
-	mInternals->mName = info.getString(sNameKey);
-	mInternals->mOptions = (ESceneOptions) info.getUInt8(sOptionsKey);
-	mInternals->mStoreSceneIndexAsString = info.getString(sStoreSceneIndexAsKey);
-	mInternals->mBoundsRect = S2DRectF32(info.getString(sBoundsRectKey));
-	if (info.contains(sBackground1AudioInfoKey))
-		mInternals->mBackground1AudioInfo = OI<CAudioInfo>(CAudioInfo(info.getDictionary(sBackground1AudioInfoKey)));
-	if (info.contains(sBackground2AudioInfoKey))
-		mInternals->mBackground2AudioInfo = OI<CAudioInfo>(CAudioInfo(info.getDictionary(sBackground2AudioInfoKey)));
-	if (info.contains(sDoubleTapActionsInfoKey))
-		mInternals->mDoubleTapActions = new CActions(info.getDictionary(sDoubleTapActionsInfoKey));
+	mInternals->mName = info.getString(CString(OSSTR("name")));
+	mInternals->mOptions = (Options) info.getUInt8(CString(OSSTR("options")));
+	mInternals->mStoreSceneIndexAsString = info.getString(CString(OSSTR("storeSceneIndexAs")));
+	mInternals->mBoundsRect = S2DRectF32(info.getString(CString(OSSTR("bounds"))));
+	if (info.contains(CString(OSSTR("background1AudioInfo"))))
+		mInternals->mBackground1AudioInfo =
+				OI<CAudioInfo>(CAudioInfo(info.getDictionary(CString(OSSTR("background1AudioInfo")))));
+	if (info.contains(CString(OSSTR("background2AudioInfo"))))
+		mInternals->mBackground2AudioInfo =
+				OI<CAudioInfo>(CAudioInfo(info.getDictionary(CString(OSSTR("background2AudioInfo")))));
+	if (info.contains(CString(OSSTR("doubleTapAction"))))
+		mInternals->mDoubleTapActions = new CActions(info.getDictionary(CString(OSSTR("doubleTapAction"))));
 
-	TArray<CDictionary>	itemInfos = info.getArrayOfDictionaries(sItemsKey);
+	TArray<CDictionary>	itemInfos = info.getArrayOfDictionaries(CString(OSSTR("items")));
 	for (CArray::ItemIndex i = 0; i < itemInfos.getCount(); i++) {
 		// Create and add item
 		const	CDictionary&	sceneItemInfo = itemInfos[i];
-		const	CString			itemType = sceneItemInfo.getString(sItemTypeKey);
+		const	CString			itemType = sceneItemInfo.getString(CString(OSSTR("itemType")));
 		const	CDictionary		itemInfo = sceneItemInfo.getDictionary(CSceneItem::mItemInfoKey);
 
 		// What we get?
@@ -155,25 +143,25 @@ CDictionary CScene::getInfo() const
 {
 	CDictionary	info;
 
-	info.set(sNameKey, mInternals->mName);
-	info.set(sOptionsKey, mInternals->mOptions);
-	info.set(sStoreSceneIndexAsKey, mInternals->mStoreSceneIndexAsString);
-	info.set(sBoundsRectKey, mInternals->mBoundsRect.asString());
+	info.set(CString(OSSTR("name")), mInternals->mName);
+	info.set(CString(OSSTR("options")), mInternals->mOptions);
+	info.set(CString(OSSTR("storeSceneIndexAs")), mInternals->mStoreSceneIndexAsString);
+	info.set(CString(OSSTR("bounds")), mInternals->mBoundsRect.asString());
 	if (mInternals->mBackground1AudioInfo.hasInstance())
-		info.set(sBackground1AudioInfoKey, mInternals->mBackground1AudioInfo->getInfo());
+		info.set(CString(OSSTR("background1AudioInfo")), mInternals->mBackground1AudioInfo->getInfo());
 	if (mInternals->mBackground2AudioInfo.hasInstance())
-		info.set(sBackground2AudioInfoKey, mInternals->mBackground2AudioInfo->getInfo());
+		info.set(CString(OSSTR("background2AudioInfo")), mInternals->mBackground2AudioInfo->getInfo());
 	if (mInternals->mDoubleTapActions.hasInstance())
-		info.set(sDoubleTapActionsInfoKey, mInternals->mDoubleTapActions->getInfo());
+		info.set(CString(OSSTR("doubleTapAction")), mInternals->mDoubleTapActions->getInfo());
 
 	TNArray<CDictionary>	itemInfos;
 	for (CArray::ItemIndex i = 0; i < mInternals->mSceneItems.getCount(); i++) {
 		CDictionary	sceneItemInfo;
-		sceneItemInfo.set(sItemTypeKey, mInternals->mSceneItems[i].getType());
+		sceneItemInfo.set(CString(OSSTR("itemType")), mInternals->mSceneItems[i].getType());
 		sceneItemInfo.set(CSceneItem::mItemInfoKey, mInternals->mSceneItems[i].getInfo());
 		itemInfos += sceneItemInfo;
 	}
-	info.set(sItemsKey, itemInfos);
+	info.set(CString(OSSTR("items")), itemInfos);
 
 	return info;
 }
@@ -197,14 +185,14 @@ void CScene::setName(const CString& name)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-ESceneOptions CScene::getOptions() const
+CScene::Options CScene::getOptions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mOptions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CScene::setOptions(ESceneOptions options)
+void CScene::setOptions(Options options)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write

@@ -16,7 +16,7 @@ class CSceneTransitionPlayerCoverUncover : public CSceneTransitionPlayer {
 				// Lifecycle methods
 				CSceneTransitionPlayerCoverUncover(CScenePlayer& currentScenePlayer, CScenePlayer& nextScenePlayer,
 						const CDictionary& info, const S2DPointF32& initialTouchOrMousePoint, bool isCover,
-						const SSceneTransitionPlayerProcsInfo& sceneTransitionPlayerProcsInfo);
+						const Procs& procs);
 				~CSceneTransitionPlayerCoverUncover();
 
 				// CSceneTransitionPlayer methods

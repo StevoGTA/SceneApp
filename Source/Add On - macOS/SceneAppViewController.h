@@ -22,17 +22,17 @@ NS_ASSUME_NONNULL_BEGIN
 																	const CDictionary& commandInfo);
 
 // MARK: Class methods
-+ (TArray<SScenePackageInfo>) scenePackageInfosIn:(const CFolder&) folder;
++ (TArray<CScenePackage::Info>) scenePackageInfosIn:(const CFolder&) folder;
 
 // MARK: Instance methods
 - (instancetype) initWithView:(NSView<AKTGPUView>*) view;
 
-- (void) loadScenesFrom:(const SScenePackageInfo&) scenePackageInfo
+- (void) loadScenesFrom:(const CScenePackage::Info&) scenePackageInfo
 		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder;
-- (void) loadScenesFrom:(const SScenePackageInfo&) scenePackageInfo
+- (void) loadScenesFrom:(const CScenePackage::Info&) scenePackageInfo
 		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
 		sceneAppPlayerCreationProc:
-				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
+				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const CSceneAppPlayer::Procs& procs))
 						sceneAppPlayerCreationProc;
 
 @end

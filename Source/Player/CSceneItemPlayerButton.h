@@ -17,7 +17,7 @@ class CSceneItemPlayerButton : public CSceneItemPlayer {
 									// Lifecycle methods
 									CSceneItemPlayerButton(const CSceneItemButton& sceneItemButton,
 											const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-											const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo);
+											const Procs& procs);
 									~CSceneItemPlayerButton();
 
 									// CSceneItemPlayer methods

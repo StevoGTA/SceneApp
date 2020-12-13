@@ -22,8 +22,7 @@ static	void	sKeyframeAnimationPlayerActionsHandlerProc(CKeyframeAnimationPlayer&
 class CSceneItemPlayerButtonInternals {
 	public:
 				CSceneItemPlayerButtonInternals(CSceneItemPlayerButton& sceneItemPlayerButton,
-						const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-						const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo) :
+						const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
 					mSceneItemPlayerButton(sceneItemPlayerButton),
 							mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo), mIsEnabled(true),
 							mUpKeyframeAnimationPlayer(nil), mDownKeyframeAnimationPlayer(nil),
@@ -71,7 +70,7 @@ class CSceneItemPlayerButtonInternals {
 				CKeyframeAnimationPlayer*			mDisabledKeyframeAnimationPlayer;
 				CKeyframeAnimationPlayer*			mCurrentKeyframeAnimationPlayer;
 
-				SKeyframeAnimationPlayerProcsInfo	mKeyframeAnimationPlayerProcsInfo;
+				CKeyframeAnimationPlayer::Procs		mKeyframeAnimationPlayerProcsInfo;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -86,12 +85,11 @@ CString	CSceneItemPlayerButton::mPropertyNameEnabled(OSSTR("enabled"));
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemPlayerButton::CSceneItemPlayerButton(const CSceneItemButton& sceneItemButton,
-		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-		const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo) :
-		CSceneItemPlayer(sceneItemButton, sceneItemPlayerProcsInfo)
+		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo, const Procs& procs) :
+		CSceneItemPlayer(sceneItemButton, procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemPlayerButtonInternals(*this, sceneAppResourceManagementInfo, sceneItemPlayerProcsInfo);
+	mInternals = new CSceneItemPlayerButtonInternals(*this, sceneAppResourceManagementInfo);
 
 	OI<CKeyframeAnimationInfo>	upKeyframeAnimationInfo = sceneItemButton.getUpKeyframeAnimationInfo();
 	if (upKeyframeAnimationInfo.hasInstance()) {

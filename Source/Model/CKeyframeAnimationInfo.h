@@ -7,19 +7,18 @@
 #include "CAnimationKeyframe.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Property info
-
-enum {
-	kSceneItemPropertyTypeKeyframeAnimationInfo	= MAKE_OSTYPE('K', 'e', 'A', 'I'),
-	
-	kKeyframeAnimationPropertyTypeKeyframeArray	= MAKE_OSTYPE('K', 'A', 'I', 'K'),
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CKeyframeAnimationInfo
+// MARK: CKeyframeAnimationInfo
 
 class CKeyframeAnimationInfoInternals;
 class CKeyframeAnimationInfo {
+	// Enums
+	public:
+		enum PropertyType {
+			kPropertyTypeKeyframeAnimationInfo	= MAKE_OSTYPE('K', 'e', 'A', 'I'),
+
+			kPropertyTypeKeyframeArray			= MAKE_OSTYPE('K', 'A', 'I', 'K'),
+		};
+
 	// Methods
 	public:
 											// Lifecycle methods

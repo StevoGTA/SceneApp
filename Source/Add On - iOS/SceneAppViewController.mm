@@ -51,7 +51,7 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 // MARK: Class methods
 
 //----------------------------------------------------------------------------------------------------------------------
-+ (TArray<SScenePackageInfo>) scenePackageInfosIn:(const CFolder&) folder
++ (TArray<CScenePackage::Info>) scenePackageInfosIn:(const CFolder&) folder
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Get files in folder
@@ -65,7 +65,7 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 
 //----------------------------------------------------------------------------------------------------------------------
 - (instancetype) initWithView:(UIView<UKTGPUView>*) view
-		scenePackageInfo:(const SScenePackageInfo&) scenePackageInfo
+		scenePackageInfo:(const CScenePackage::Info&) scenePackageInfo
 		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
 {
 	return [self initWithView:view scenePackageInfo:scenePackageInfo sceneAppContentFolder:sceneAppContentFolder
@@ -74,10 +74,10 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 
 //----------------------------------------------------------------------------------------------------------------------
 - (instancetype) initWithView:(UIView<UKTGPUView>*) view
-		scenePackageInfo:(const SScenePackageInfo&) scenePackageInfo
+		scenePackageInfo:(const CScenePackage::Info&) scenePackageInfo
 		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
 		sceneAppPlayerCreationProc:
-				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo))
+				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const CSceneAppPlayer::Procs& procs))
 						sceneAppPlayerCreationProc
 {
 	self = [super initWithNibName:nil bundle:nil];
@@ -95,12 +95,12 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 			CGSize	viewSize = weakSelf.view.bounds.size;
 
 			// Convert native touches to SceneApp touches
-			TNArray<SSceneAppPlayerTouchBeganInfo>	touchBeganInfosArray;
+			TNArray<CSceneAppPlayer::TouchBeganInfo>	touchBeganInfosArray;
 			for (UITouch* touch in touches) {
 				// Add info
 				CGPoint	pt = [touch locationInView:weakSelf.view];
 				touchBeganInfosArray +=
-						SSceneAppPlayerTouchBeganInfo(
+						CSceneAppPlayer::TouchBeganInfo(
 								S2DPointF32(pt.x / viewSize.width * self.scenePackageSize.mWidth,
 										pt.y / viewSize.height * self.scenePackageSize.mHeight),
 								(UInt32) touch.tapCount, (__bridge void*) touch);
@@ -114,13 +114,13 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 			CGSize	viewSize = weakSelf.view.bounds.size;
 
 			// Convert native touches to SceneApp touches
-			TNArray<SSceneAppPlayerTouchMovedInfo>	touchMovedInfosArray;
+			TNArray<CSceneAppPlayer::TouchMovedInfo>	touchMovedInfosArray;
 			for (UITouch* touch in touches) {
 				// Add info
 				CGPoint	previousPt = [touch previousLocationInView:weakSelf.view];
 				CGPoint	currentPt = [touch locationInView:weakSelf.view];
 				touchMovedInfosArray +=
-						SSceneAppPlayerTouchMovedInfo(
+						CSceneAppPlayer::TouchMovedInfo(
 								S2DPointF32(previousPt.x / viewSize.width * self.scenePackageSize.mWidth,
 										previousPt.y / viewSize.height * self.scenePackageSize.mHeight),
 								S2DPointF32(currentPt.x / viewSize.width * self.scenePackageSize.mWidth,
@@ -136,8 +136,8 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 			CGSize	viewSize = weakSelf.view.bounds.size;
 
 			// Convert native touches to SceneApp touches
-			TNArray<SSceneAppPlayerTouchMovedInfo>	touchMovedInfosArray;
-			TNArray<SSceneAppPlayerTouchEndedInfo>	touchEndedInfosArray;
+			TNArray<CSceneAppPlayer::TouchMovedInfo>	touchMovedInfosArray;
+			TNArray<CSceneAppPlayer::TouchEndedInfo>	touchEndedInfosArray;
 			for (UITouch* touch in touches) {
 				// Add info
 				CGPoint	previousPt = [touch previousLocationInView:weakSelf.view];
@@ -145,14 +145,14 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 				if (!CGPointEqualToPoint(previousPt, currentPt))
 					// Need to add a move to final point
 					touchMovedInfosArray +=
-							SSceneAppPlayerTouchMovedInfo(
+							CSceneAppPlayer::TouchMovedInfo(
 									S2DPointF32(previousPt.x / viewSize.width * self.scenePackageSize.mWidth,
 											previousPt.y / viewSize.height * self.scenePackageSize.mHeight),
 									S2DPointF32(currentPt.x / viewSize.width * self.scenePackageSize.mWidth,
 											currentPt.y / viewSize.height * self.scenePackageSize.mHeight),
 									(__bridge void*) touch);
 				touchEndedInfosArray +=
-						SSceneAppPlayerTouchEndedInfo(
+						CSceneAppPlayer::TouchEndedInfo(
 								S2DPointF32(currentPt.x / viewSize.width * self.scenePackageSize.mWidth,
 										currentPt.y / viewSize.height * self.scenePackageSize.mHeight),
 								(__bridge void*) touch);
@@ -164,10 +164,10 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 		};
 		((UIView<UKTGPUView>*) self.view).touchesCancelledProc = ^(NSSet<UITouch*>* touches, UIEvent* event){
 			// Collect info
-			TNArray<SSceneAppPlayerTouchCancelledInfo>	touchCancelledInfosArray;
+			TNArray<CSceneAppPlayer::TouchCancelledInfo>	touchCancelledInfosArray;
 			for (UITouch* touch in touches)
 				// Add info
-				touchCancelledInfosArray += SSceneAppPlayerTouchCancelledInfo((__bridge void*) touch);
+				touchCancelledInfosArray += CSceneAppPlayer::TouchCancelledInfo((__bridge void*) touch);
 
 			// Inform SceneAppPlayer
 			weakSelf.sceneAppPlayerInternal->touchesCancelled(touchCancelledInfosArray);
@@ -192,14 +192,13 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 		};
 
 		// Setup Scene App Player
-		CGPU&						gpu = ((UIView<UKTGPUView>*) self.view).gpu;
-		SSceneAppPlayerProcsInfo	sceneAppPlayerProcsInfo(sSceneAppPlayerCreateByteParceller,
-											sSceneAppInstallPeriodic, sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL,
-											sSceneAppPlayerHandleCommand, (__bridge void*) self);
+		CGPU&					gpu = ((UIView<UKTGPUView>*) self.view).gpu;
+		CSceneAppPlayer::Procs	procs(sSceneAppPlayerCreateByteParceller, sSceneAppInstallPeriodic,
+										sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL, sSceneAppPlayerHandleCommand,
+										(__bridge void*) self);
 		self.sceneAppPlayerInternal =
 				(sceneAppPlayerCreationProc != nil) ?
-						sceneAppPlayerCreationProc(gpu, sceneAppPlayerProcsInfo) :
-						new CSceneAppPlayer(gpu, sceneAppPlayerProcsInfo);
+						sceneAppPlayerCreationProc(gpu, procs) : new CSceneAppPlayer(gpu, procs);
 		self.sceneAppPlayerInternal->loadScenes(scenePackageInfo);
 
 		// Setup Notifications

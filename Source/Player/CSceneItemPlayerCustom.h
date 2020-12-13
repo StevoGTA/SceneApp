@@ -15,7 +15,7 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 	public:
 													// Lifecycle methods
 													CSceneItemPlayerCustom(const CSceneItemCustom& sceneItemCustom,
-															const SSceneItemPlayerProcsInfo& sceneItemPlayerProcsInfo);
+															const Procs& procs);
 
 													// CSceneItemPlayer methods
 						CActions					getAllActions() const;

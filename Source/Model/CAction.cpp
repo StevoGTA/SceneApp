@@ -5,27 +5,16 @@
 #include "CAction.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Local data
-
-static	CString	sNameKey(OSSTR("actionName"));
-static	CString	sInfoKey(OSSTR("actionInfo"));
-static	CString	sDontPreloadKey(OSSTR("dontPreload"));		// Can be anything
-static	CString	sUnloadCurrentKey(OSSTR("unloadCurrent"));	// Can be anything
-
-static	CString	sActionsKey(OSSTR("actions"));
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CActionInternals
+// MARK: CActionInternals
 
 class CActionInternals : public TReferenceCountable<CActionInternals> {
 	public:
-		CActionInternals(const CString& name, const CDictionary& info, EActionOptions options) :
-			TReferenceCountable(), mName(name), mInfo(info), mOptions(kActionOptionsNone) {}
+		CActionInternals(const CString& name, const CDictionary& info, CAction::Options options) :
+			TReferenceCountable(), mName(name), mInfo(info), mOptions(options) {}
 
-		CString			mName;
-		CDictionary		mInfo;
-		EActionOptions	mOptions;
+		CString				mName;
+		CDictionary			mInfo;
+		CAction::Options	mOptions;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -61,7 +50,7 @@ CString	CAction::mInfoUseWebView(OSSTR("useWebView"));
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CAction::CAction(const CString& name, const CDictionary& info, EActionOptions options)
+CAction::CAction(const CString& name, const CDictionary& info, Options options)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals = new CActionInternals(name, info, options);
@@ -71,11 +60,13 @@ CAction::CAction(const CString& name, const CDictionary& info, EActionOptions op
 CAction::CAction(const CDictionary& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	EActionOptions	options = kActionOptionsNone;
-	if (info.contains(sDontPreloadKey))
-		options = (EActionOptions) (options | kActionOptionsDontPreload);
+	Options	options = kOptionsNone;
+	if (info.contains(CString(OSSTR("dontPreload"))))
+		options = (Options) (options | kOptionsDontPreload);
 
-	mInternals = new CActionInternals(info.getString(sNameKey), info.getDictionary(sInfoKey), options);
+	mInternals =
+			new CActionInternals(info.getString(CString(OSSTR("actionName"))),
+					info.getDictionary(CString(OSSTR("actionInfo"))), options);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -100,12 +91,10 @@ CDictionary CAction::getInfo() const
 {
 	CDictionary	info;
 
-	info.set(sNameKey, mInternals->mName);
-	info.set(sInfoKey, mInternals->mInfo);
-	if (mInternals->mOptions & kActionOptionsDontPreload)
-		info.set(sDontPreloadKey, (UInt32) 1);
-//	if (mInternals->mOptions & kActionOptionsUnloadCurrent)
-//		info.set(sUnloadCurrentKey, (UInt32) 1);
+	info.set(CString(OSSTR("actionName")), mInternals->mName);
+	info.set(CString(OSSTR("actionInfo")), mInternals->mInfo);
+	if (mInternals->mOptions & kOptionsDontPreload)
+		info.set(CString(OSSTR("dontPreload")), (UInt32) 1);
 
 	return info;
 }
@@ -139,7 +128,7 @@ const CDictionary& CAction::getActionInfo() const
 //}
 //
 //----------------------------------------------------------------------------------------------------------------------
-EActionOptions CAction::getOptions() const
+CAction::Options CAction::getOptions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mOptions;
@@ -175,7 +164,7 @@ CActions::CActions(const CAction& action) : TNArray<CAction>()
 CActions::CActions(const CDictionary& info) : TNArray<CAction>()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	TArray<CDictionary>	actionInfos = info.getArrayOfDictionaries(sActionsKey);
+	TArray<CDictionary>	actionInfos = info.getArrayOfDictionaries(CString(OSSTR("actions")));
 	for (CArray::ItemIndex i = 0; i < actionInfos.getCount(); i++)
 		*this += CAction(actionInfos[i]);
 }
@@ -199,7 +188,7 @@ CDictionary CActions::getInfo() const
 	TNArray<CDictionary>	actionInfos;
 	for (TIteratorD<CAction> iterator = getIterator(); iterator.hasValue(); iterator.advance())
 		actionInfos += iterator.getValue().getInfo();
-	info.set(sActionsKey, actionInfos);
+	info.set(CString(OSSTR("actions")), actionInfos);
 
 	return info;
 }

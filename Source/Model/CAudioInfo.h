@@ -7,36 +7,27 @@
 #include "CDictionary.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: Looping
-
-const	UInt32	kAudioInfoLoopCountForever = 0;
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Options
-
-enum EAudioInfoOptions {
-	kAudioInfoOptionsNone						= 0,
-	kAudioInfoOptionsStopBeforePlay				= 1 << 0,
-	kAudioInfoOptionsUseDefinedLoopInResource	= 1 << 1,
-	kAudioInfoOptionsLoadFileIntoMemory			= 1 << 2,
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Property info
-
-enum {
-	kSceneItemPropertyTypeAudioInfo	= MAKE_OSTYPE('A', 'u', 'I', 'n'),
-
-	kAudioInfoPropertyTypeGain		= MAKE_OSTYPE('A', 'u', 'I', 'G'),
-	kAudioInfoPropertyTypeLoopCount	= MAKE_OSTYPE('A', 'u', 'I', 'L'),
-	kAudioInfoPropertyTypeOptions	= MAKE_OSTYPE('A', 'u', 'I', 'O'),
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CAudioInfo
+// MARK: CAudioInfo
 
 class CAudioInfoInternals;
 class CAudioInfo {
+	// Enums
+	public:
+		enum Options {
+			kOptionsNone						= 0,
+			kOptionsStopBeforePlay				= 1 << 0,
+			kOptionsUseDefinedLoopInResource	= 1 << 1,
+			kOptionsLoadFileIntoMemory			= 1 << 2,
+		};
+
+		enum PropertyType {
+			kPropertyTypeAudioInfo	= MAKE_OSTYPE('A', 'u', 'I', 'n'),
+
+			kPropertyTypeGain		= MAKE_OSTYPE('A', 'u', 'I', 'G'),
+			kPropertyTypeLoopCount	= MAKE_OSTYPE('A', 'u', 'I', 'L'),
+			kPropertyTypeOptions	= MAKE_OSTYPE('A', 'u', 'I', 'O'),
+		};
+
 	// Methods
 	public:
 									// Lifecycle methods
@@ -58,8 +49,8 @@ class CAudioInfo {
 				OV<UInt32>			getLoopCount() const;
 				void				setLoopCount(OV<UInt32> loopCount);
 
-				EAudioInfoOptions	getOptions() const;
-				void				setOptions(EAudioInfoOptions options);
+				Options				getOptions() const;
+				void				setOptions(Options options);
 
 	// Properties
 	private:
