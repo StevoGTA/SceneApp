@@ -318,7 +318,7 @@ ref class CSceneAppViewInternals sealed : Platform::Object {
 							mPointerClickCount = 1;
 
 						// Inform SceneAppPlayer
-						mSceneAppPlayer->mouseDown(SSceneAppPlayerMouseDownInfo(point, mPointerClickCount));
+						mSceneAppPlayer->mouseDown(CSceneAppPlayer::MouseDownInfo(point, mPointerClickCount));
 
 						// Store
 						mPreviousPoint = point;
@@ -336,7 +336,7 @@ ref class CSceneAppViewInternals sealed : Platform::Object {
 											pointerPoint->Position.Y / mSize.mHeight * mScenePackageSize.mHeight);
 
 						// Inform SceneAppPlayer
-						mSceneAppPlayer->mouseDragged(SSceneAppPlayerMouseDraggedInfo(mPreviousPoint, point));
+						mSceneAppPlayer->mouseDragged(CSceneAppPlayer::MouseDraggedInfo(mPreviousPoint, point));
 
 						// Store
 						mPreviousPoint = point;
@@ -353,7 +353,7 @@ ref class CSceneAppViewInternals sealed : Platform::Object {
 											pointerPoint->Position.Y / mSize.mHeight * mScenePackageSize.mHeight);
 
 						// Inform SceneAppPlayer
-						mSceneAppPlayer->mouseUp(SSceneAppPlayerMouseUpInfo(point));
+						mSceneAppPlayer->mouseUp(CSceneAppPlayer::MouseUpInfo(point));
 
 						// Handled
 						args->Handled = true;
@@ -361,7 +361,7 @@ ref class CSceneAppViewInternals sealed : Platform::Object {
 		void	onPointerCaptureLost(CoreWindow^ sender, PointerEventArgs^ args)
 					{
 						// Inform SceneAppPlayer
-						mSceneAppPlayer->mouseCancelled(SSceneAppPlayerMouseCancelledInfo());
+						mSceneAppPlayer->mouseCancelled(CSceneAppPlayer::MouseCancelledInfo());
 					}
 
 		void	onDisplayDPIChanged(DisplayInformation^ sender, Platform::Object^ args)
@@ -465,7 +465,7 @@ void CSceneAppView::Uninitialize()
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneAppView::loadScenes(const SScenePackageInfo& scenePackageInfo, const CFolder& sceneAppContentFolder,
+void CSceneAppView::loadScenes(const CScenePackage::Info& scenePackageInfo, const CFolder& sceneAppContentFolder,
 		CSceneAppViewSceneAppPlayerCreationProc sceneAppPlayerCreationProc)
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -478,15 +478,14 @@ void CSceneAppView::loadScenes(const SScenePackageInfo& scenePackageInfo, const 
 	mInternals->mScenePackageSize = scenePackageInfo.mSize;
 
 	// Setup Scene App Player
-	SSceneAppPlayerProcsInfo	sceneAppPlayerProcsInfo(
-										(CSceneAppPlayerCreateByteParcellerProc)
-												sSceneAppPlayerCreateByteParceller,
-										(CSceneAppPlayerInstallPeriodicProc)
-												sSceneAppPlayerInstallPeriodic,
-										(CSceneAppPlayerRemovePeriodicProc) sSceneAppPlayerRemovePeriodic,
-										(CSceneAppPlayerOpenURLProc) sSceneAppPlayerOpenURL,
-										(CSceneAppPlayerHandleCommandProc) sSceneAppPlayerHandleCommand,
-										(void*) mInternals);
+	CSceneAppPlayer::Procs	sceneAppPlayerProcsInfo(
+									(CSceneAppPlayer::Procs::CreateByteParcellerProc)
+											sSceneAppPlayerCreateByteParceller,
+									(CSceneAppPlayer::Procs::InstallPeriodicProc) sSceneAppPlayerInstallPeriodic,
+									(CSceneAppPlayer::Procs::RemovePeriodicProc) sSceneAppPlayerRemovePeriodic,
+									(CSceneAppPlayer::Procs::OpenURLProc) sSceneAppPlayerOpenURL,
+									(CSceneAppPlayer::Procs::HandleCommandProc) sSceneAppPlayerHandleCommand,
+									(void*) mInternals);
 	mInternals->mSceneAppPlayer =
 			(sceneAppPlayerCreationProc != nil) ?
 					sceneAppPlayerCreationProc(mInternals->mGPU, sceneAppPlayerProcsInfo) :
@@ -499,7 +498,7 @@ void CSceneAppView::loadScenes(const SScenePackageInfo& scenePackageInfo, const 
 // MARK: Class methods
 
 //----------------------------------------------------------------------------------------------------------------------
-TArray<SScenePackageInfo> CSceneAppView::getScenePackageInfos(const CFolder& folder)
+TArray<CScenePackage::Info> CSceneAppView::getScenePackageInfos(const CFolder& folder)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Get files in folder

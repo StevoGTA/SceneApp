@@ -15,7 +15,7 @@ using namespace Platform;
 // MARK: CSceneAppView
 
 typedef	CSceneAppPlayer*	(*CSceneAppViewSceneAppPlayerCreationProc)(CGPU& gpu,
-									const SSceneAppPlayerProcsInfo& sceneAppPlayerProcsInfo);
+									const CSceneAppPlayer::Procs& sceneAppPlayerProcsInfo);
 
 ref class CSceneAppViewInternals;
 ref class CSceneAppView sealed : public IFrameworkView {
@@ -33,13 +33,13 @@ ref class CSceneAppView sealed : public IFrameworkView {
 											CSceneAppView(const SDirectXDisplaySupportInfo& displaySupportInfo);
 
 											// Instance methods
-				void						loadScenes(const SScenePackageInfo& scenePackageInfo,
+				void						loadScenes(const CScenePackage::Info& scenePackageInfo,
 													const CFolder& sceneAppContentFolder,
 													CSceneAppViewSceneAppPlayerCreationProc
 															sceneAppPlayerCreationProc = NULL);
 
 											// Class methods
-		static	TArray<SScenePackageInfo>	getScenePackageInfos(const CFolder& folder);
+		static	TArray<CScenePackage::Info>	getScenePackageInfos(const CFolder& folder);
 
 	// Properties
 	private:
