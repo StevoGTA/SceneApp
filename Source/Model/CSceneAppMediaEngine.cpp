@@ -15,9 +15,9 @@
 
 class CSceneAppMediaPlayer : public CMediaPlayer {
 	public:
-				CSceneAppMediaPlayer(const CString& resourceFilename,
+				CSceneAppMediaPlayer(CNotificationCenter& notificationCenter, const CString& resourceFilename,
 						TReferenceDictionary<CSceneAppMediaPlayer>& sceneAppMediaPlayerMap) :
-					CMediaPlayer(), mResourceFilename(resourceFilename),
+					CMediaPlayer(notificationCenter), mResourceFilename(resourceFilename),
 							mSceneAppMediaPlayerMap(sceneAppMediaPlayerMap), mReferenceCount(0)
 					{}
 
@@ -46,8 +46,9 @@ class CSceneAppMediaPlayer : public CMediaPlayer {
 
 class CSceneAppMediaPlayerReference : public CMediaPlayer {
 	public:
-						CSceneAppMediaPlayerReference(CSceneAppMediaPlayer& sceneAppMediaPlayer) :
-							CMediaPlayer(), mSceneAppMediaPlayer(sceneAppMediaPlayer)
+						CSceneAppMediaPlayerReference(CNotificationCenter& notificationCenter,
+								CSceneAppMediaPlayer& sceneAppMediaPlayer) :
+							CMediaPlayer(notificationCenter), mSceneAppMediaPlayer(sceneAppMediaPlayer)
 							{ mSceneAppMediaPlayer.addReference(); }
 						~CSceneAppMediaPlayerReference()
 							{ mSceneAppMediaPlayer.removeReference(); }
@@ -82,8 +83,11 @@ class CSceneAppMediaPlayerReference : public CMediaPlayer {
 
 class CSceneAppMediaEngineInternals {
 	public:
-		CSceneAppMediaEngineInternals(const CSceneAppMediaEngine::Info& info) : mInfo(info) {}
+		CSceneAppMediaEngineInternals(CNotificationCenter& notificationCenter, const CSceneAppMediaEngine::Info& info) :
+			mNotificationCenter(notificationCenter), mInfo(info)
+			{}
 
+		CNotificationCenter&						mNotificationCenter;
 		CSceneAppMediaEngine::Info					mInfo;
 		TReferenceDictionary<CSceneAppMediaPlayer>	mSceneAppMediaPlayerMap;
 };
@@ -95,10 +99,10 @@ class CSceneAppMediaEngineInternals {
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneAppMediaEngine::CSceneAppMediaEngine(const Info& info) : CMediaEngine()
+CSceneAppMediaEngine::CSceneAppMediaEngine(CNotificationCenter& notificationCenter, const Info& info) : CMediaEngine()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneAppMediaEngineInternals(info);
+	mInternals = new CSceneAppMediaEngineInternals(notificationCenter, info);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -130,7 +134,8 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 													mInternals->mSceneAppMediaPlayerMap[resourceFilename];
 		if (sceneAppMediaPlayerReference.hasReference())
 			// Have reference
-			return OI<CMediaPlayer>(new CSceneAppMediaPlayerReference(*sceneAppMediaPlayerReference));
+			return OI<CMediaPlayer>(
+					new CSceneAppMediaPlayerReference(mInternals->mNotificationCenter, *sceneAppMediaPlayerReference));
 		else {
 			// Create new
 			CByteParceller		byteParceller = mInternals->mInfo.createByteParceller(resourceFilename);
@@ -143,7 +148,7 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 			// Setup Media Player
 			TArray<CAudioTrack>		audioTracks = mediaSource.getAudioTracks();
 			CSceneAppMediaPlayer*	sceneAppMediaPlayer =
-											new CSceneAppMediaPlayer(resourceFilename,
+											new CSceneAppMediaPlayer(mInternals->mNotificationCenter, resourceFilename,
 													mInternals->mSceneAppMediaPlayerMap);
 			for (CArray::ItemIndex i = 0; i < audioTracks.getCount(); i++) {
 				// Setup
@@ -174,7 +179,8 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 			// Success
 			mInternals->mSceneAppMediaPlayerMap.set(resourceFilename, *sceneAppMediaPlayer);
 
-			return OI<CMediaPlayer>(new CSceneAppMediaPlayerReference(*sceneAppMediaPlayer));
+			return OI<CMediaPlayer>(
+					new CSceneAppMediaPlayerReference(mInternals->mNotificationCenter, *sceneAppMediaPlayer));
 		}
 	} else {
 		// Unimplemented

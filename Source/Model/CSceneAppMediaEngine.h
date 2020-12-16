@@ -8,9 +8,10 @@
 #include "CByteParceller.h"
 #include "CMediaEngine.h"
 #include "CMediaPlayer.h"
+#include "CNotificationCenter.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneAppMediaEngine
+// MARK: CSceneAppMediaEngine
 
 class CSceneAppMediaEngineInternals;
 class CSceneAppMediaEngine : public CMediaEngine {
@@ -53,7 +54,7 @@ class CSceneAppMediaEngine : public CMediaEngine {
 	// Methods
 	public:
 							// Lifecycle methods
-							CSceneAppMediaEngine(const Info& info);
+							CSceneAppMediaEngine(CNotificationCenter& notificationCenter, const Info& info);
 							~CSceneAppMediaEngine();
 
 							// Instance methods
