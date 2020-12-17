@@ -15,9 +15,9 @@
 
 class CSceneAppMediaPlayer : public CMediaPlayer {
 	public:
-				CSceneAppMediaPlayer(CNotificationCenter& notificationCenter, const CString& resourceFilename,
+				CSceneAppMediaPlayer(CSRSWMessageQueue& messageQueue, const CString& resourceFilename,
 						TReferenceDictionary<CSceneAppMediaPlayer>& sceneAppMediaPlayerMap) :
-					CMediaPlayer(notificationCenter), mResourceFilename(resourceFilename),
+					CMediaPlayer(messageQueue), mResourceFilename(resourceFilename),
 							mSceneAppMediaPlayerMap(sceneAppMediaPlayerMap), mReferenceCount(0)
 					{}
 
@@ -46,9 +46,9 @@ class CSceneAppMediaPlayer : public CMediaPlayer {
 
 class CSceneAppMediaPlayerReference : public CMediaPlayer {
 	public:
-						CSceneAppMediaPlayerReference(CNotificationCenter& notificationCenter,
+						CSceneAppMediaPlayerReference(CSRSWMessageQueue& messageQueue,
 								CSceneAppMediaPlayer& sceneAppMediaPlayer) :
-							CMediaPlayer(notificationCenter), mSceneAppMediaPlayer(sceneAppMediaPlayer)
+							CMediaPlayer(messageQueue), mSceneAppMediaPlayer(sceneAppMediaPlayer)
 							{ mSceneAppMediaPlayer.addReference(); }
 						~CSceneAppMediaPlayerReference()
 							{ mSceneAppMediaPlayer.removeReference(); }
@@ -83,11 +83,11 @@ class CSceneAppMediaPlayerReference : public CMediaPlayer {
 
 class CSceneAppMediaEngineInternals {
 	public:
-		CSceneAppMediaEngineInternals(CNotificationCenter& notificationCenter, const CSceneAppMediaEngine::Info& info) :
-			mNotificationCenter(notificationCenter), mInfo(info)
+		CSceneAppMediaEngineInternals(CSRSWMessageQueue& messageQueue, const CSceneAppMediaEngine::Info& info) :
+			mMessageQueue(messageQueue), mInfo(info)
 			{}
 
-		CNotificationCenter&						mNotificationCenter;
+		CSRSWMessageQueue&							mMessageQueue;
 		CSceneAppMediaEngine::Info					mInfo;
 		TReferenceDictionary<CSceneAppMediaPlayer>	mSceneAppMediaPlayerMap;
 };
@@ -99,10 +99,10 @@ class CSceneAppMediaEngineInternals {
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneAppMediaEngine::CSceneAppMediaEngine(CNotificationCenter& notificationCenter, const Info& info) : CMediaEngine()
+CSceneAppMediaEngine::CSceneAppMediaEngine(CSRSWMessageQueue& messageQueue, const Info& info) : CMediaEngine()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneAppMediaEngineInternals(notificationCenter, info);
+	mInternals = new CSceneAppMediaEngineInternals(messageQueue, info);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 		if (sceneAppMediaPlayerReference.hasReference())
 			// Have reference
 			return OI<CMediaPlayer>(
-					new CSceneAppMediaPlayerReference(mInternals->mNotificationCenter, *sceneAppMediaPlayerReference));
+					new CSceneAppMediaPlayerReference(mInternals->mMessageQueue, *sceneAppMediaPlayerReference));
 		else {
 			// Create new
 			CByteParceller		byteParceller = mInternals->mInfo.createByteParceller(resourceFilename);
@@ -148,7 +148,7 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 			// Setup Media Player
 			TArray<CAudioTrack>		audioTracks = mediaSource.getAudioTracks();
 			CSceneAppMediaPlayer*	sceneAppMediaPlayer =
-											new CSceneAppMediaPlayer(mInternals->mNotificationCenter, resourceFilename,
+											new CSceneAppMediaPlayer(mInternals->mMessageQueue, resourceFilename,
 													mInternals->mSceneAppMediaPlayerMap);
 			for (CArray::ItemIndex i = 0; i < audioTracks.getCount(); i++) {
 				// Setup
@@ -180,7 +180,7 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 			mInternals->mSceneAppMediaPlayerMap.set(resourceFilename, *sceneAppMediaPlayer);
 
 			return OI<CMediaPlayer>(
-					new CSceneAppMediaPlayerReference(mInternals->mNotificationCenter, *sceneAppMediaPlayer));
+					new CSceneAppMediaPlayerReference(mInternals->mMessageQueue, *sceneAppMediaPlayer));
 		}
 	} else {
 		// Unimplemented

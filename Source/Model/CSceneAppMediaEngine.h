@@ -54,7 +54,7 @@ class CSceneAppMediaEngine : public CMediaEngine {
 	// Methods
 	public:
 							// Lifecycle methods
-							CSceneAppMediaEngine(CNotificationCenter& notificationCenter, const Info& info);
+							CSceneAppMediaEngine(CSRSWMessageQueue& messageQueue, const Info& info);
 							~CSceneAppMediaEngine();
 
 							// Instance methods

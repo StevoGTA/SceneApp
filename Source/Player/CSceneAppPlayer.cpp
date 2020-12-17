@@ -65,7 +65,7 @@ class CSceneAppPlayerInternals {
 		static	void				scenePlayerActionsPerformProc(const CActions& actions, const S2DPointF32& point,
 											void* userData);
 
-		CDeferredNotificationCenter							mNotificationCenter;
+		CSRSWMessageQueue									mMessageQueue;
 		CSceneAppPlayer::Options							mOptions;
 
 		CGPU&												mGPU;
@@ -101,8 +101,8 @@ class CSceneAppPlayerInternals {
 //----------------------------------------------------------------------------------------------------------------------
 CSceneAppPlayerInternals::CSceneAppPlayerInternals(CSceneAppPlayer& sceneAppPlayer, CGPU& gpu,
 		const CSceneAppPlayer::Procs& procs) :
-	mOptions(CSceneAppPlayer::kOptionsDefault), mGPU(gpu), mGPUTextureManager(gpu),
-			mSceneAppMediaEngine(mNotificationCenter, CSceneAppMediaEngine::Info(sCreateByteParceller, this)),
+	mMessageQueue(10 * 1024), mOptions(CSceneAppPlayer::kOptionsDefault), mGPU(gpu), mGPUTextureManager(gpu),
+			mSceneAppMediaEngine(mMessageQueue, CSceneAppMediaEngine::Info(sCreateByteParceller, this)),
 			mSceneAppPlayer(sceneAppPlayer), mSceneAppPlayerProcs(procs),
 			mSceneAppResourceManagementInfo(sCreateByteParceller, mGPUTextureManager, mSceneAppMediaEngine, this),
 			mScenePlayerProcsInfo(scenePlayerGetViewportSizeProc, scenePlayerCreateSceneItemPlayerProc,
@@ -687,7 +687,7 @@ void CSceneAppPlayer::handlePeriodic(UniversalTime outputTime)
 	// Update
 	if (deltaTimeInterval > 0.0) {
 		// Flush notifications
-		mInternals->mNotificationCenter.flush();
+		mInternals->mMessageQueue.flush();
 		
 		// Update
 		if (mInternals->mCurrentSceneTransitionPlayer.hasInstance()) {
