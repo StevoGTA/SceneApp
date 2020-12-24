@@ -15,9 +15,9 @@
 
 class CSceneAppMediaPlayer : public CMediaPlayer {
 	public:
-				CSceneAppMediaPlayer(CSRSWMessageQueue& messageQueue, const CString& resourceFilename,
+				CSceneAppMediaPlayer(CSRSWMessageQueues& messageQueues, const CString& resourceFilename,
 						TReferenceDictionary<CSceneAppMediaPlayer>& sceneAppMediaPlayerMap) :
-					CMediaPlayer(messageQueue), mResourceFilename(resourceFilename),
+					CMediaPlayer(messageQueues), mResourceFilename(resourceFilename),
 							mSceneAppMediaPlayerMap(sceneAppMediaPlayerMap), mReferenceCount(0)
 					{}
 
@@ -46,9 +46,9 @@ class CSceneAppMediaPlayer : public CMediaPlayer {
 
 class CSceneAppMediaPlayerReference : public CMediaPlayer {
 	public:
-						CSceneAppMediaPlayerReference(CSRSWMessageQueue& messageQueue,
+						CSceneAppMediaPlayerReference(CSRSWMessageQueues& messageQueues,
 								CSceneAppMediaPlayer& sceneAppMediaPlayer) :
-							CMediaPlayer(messageQueue), mSceneAppMediaPlayer(sceneAppMediaPlayer)
+							CMediaPlayer(messageQueues), mSceneAppMediaPlayer(sceneAppMediaPlayer)
 							{ mSceneAppMediaPlayer.addReference(); }
 						~CSceneAppMediaPlayerReference()
 							{ mSceneAppMediaPlayer.removeReference(); }
@@ -83,11 +83,11 @@ class CSceneAppMediaPlayerReference : public CMediaPlayer {
 
 class CSceneAppMediaEngineInternals {
 	public:
-		CSceneAppMediaEngineInternals(CSRSWMessageQueue& messageQueue, const CSceneAppMediaEngine::Info& info) :
-			mMessageQueue(messageQueue), mInfo(info)
+		CSceneAppMediaEngineInternals(CSRSWMessageQueues& messageQueues, const CSceneAppMediaEngine::Info& info) :
+			mMessageQueues(messageQueues), mInfo(info)
 			{}
 
-		CSRSWMessageQueue&							mMessageQueue;
+		CSRSWMessageQueues&							mMessageQueues;
 		CSceneAppMediaEngine::Info					mInfo;
 		TReferenceDictionary<CSceneAppMediaPlayer>	mSceneAppMediaPlayerMap;
 };
@@ -99,10 +99,10 @@ class CSceneAppMediaEngineInternals {
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneAppMediaEngine::CSceneAppMediaEngine(CSRSWMessageQueue& messageQueue, const Info& info) : CMediaEngine()
+CSceneAppMediaEngine::CSceneAppMediaEngine(CSRSWMessageQueues& messageQueues, const Info& info) : CMediaEngine()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneAppMediaEngineInternals(messageQueue, info);
+	mInternals = new CSceneAppMediaEngineInternals(messageQueues, info);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 		if (sceneAppMediaPlayerReference.hasReference())
 			// Have reference
 			return OI<CMediaPlayer>(
-					new CSceneAppMediaPlayerReference(mInternals->mMessageQueue, *sceneAppMediaPlayerReference));
+					new CSceneAppMediaPlayerReference(mInternals->mMessageQueues, *sceneAppMediaPlayerReference));
 		else {
 			// Create new
 			CByteParceller		byteParceller = mInternals->mInfo.createByteParceller(resourceFilename);
@@ -148,7 +148,7 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 			// Setup Media Player
 			TArray<CAudioTrack>		audioTracks = mediaSource.getAudioTracks();
 			CSceneAppMediaPlayer*	sceneAppMediaPlayer =
-											new CSceneAppMediaPlayer(mInternals->mMessageQueue, resourceFilename,
+											new CSceneAppMediaPlayer(mInternals->mMessageQueues, resourceFilename,
 													mInternals->mSceneAppMediaPlayerMap);
 			for (CArray::ItemIndex i = 0; i < audioTracks.getCount(); i++) {
 				// Setup
@@ -180,7 +180,7 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 			mInternals->mSceneAppMediaPlayerMap.set(resourceFilename, *sceneAppMediaPlayer);
 
 			return OI<CMediaPlayer>(
-					new CSceneAppMediaPlayerReference(mInternals->mMessageQueue, *sceneAppMediaPlayer));
+					new CSceneAppMediaPlayerReference(mInternals->mMessageQueues, *sceneAppMediaPlayer));
 		}
 	} else {
 		// Unimplemented
