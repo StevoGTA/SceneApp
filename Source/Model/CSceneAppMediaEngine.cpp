@@ -13,6 +13,7 @@
 #if TARGET_OS_IOS || TARGET_OS_MACOS || TARGET_OS_TVOS
 	#include "CCoreAudioAudioConverter.h"
 #elif TARGET_OS_WINDOWS
+	#include "CSecretRabbitCodeAudioConverter.h"
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -206,5 +207,6 @@ I<CAudioConverter> CSceneAppMediaEngine::createAudioConverter() const
 	return I<CAudioConverter>(new CCoreAudioAudioConverter());
 #elif TARGET_OS_WINDOWS
 	// Windows
+	return I<CAudioConverter>(new CSecretRabbitCodeAudioConverter());
 #endif
 }
