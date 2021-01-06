@@ -60,6 +60,9 @@ class CSceneAppMediaEngine : public CMediaEngine {
 							// Instance methods
 		OI<CMediaPlayer>	getMediaPlayer(const CAudioInfo& audioInfo);
 
+							// Subclass methods
+		I<CAudioConverter>	createAudioConverter() const;
+
 	// Properties
 	private:
 		CSceneAppMediaEngineInternals*	mInternals;

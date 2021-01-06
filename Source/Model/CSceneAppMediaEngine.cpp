@@ -10,6 +10,11 @@
 #include "CMPEG4MediaSource.h"
 #include "CWAVEMediaSource.h"
 
+#if TARGET_OS_IOS || TARGET_OS_MACOS || TARGET_OS_TVOS
+	#include "CCoreAudioAudioConverter.h"
+#elif TARGET_OS_WINDOWS
+#endif
+
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneAppMediaPlayer
 
@@ -188,4 +193,18 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 
 		return OI<CMediaPlayer>();
 	}
+}
+
+// MARK: Subclass methods
+
+//----------------------------------------------------------------------------------------------------------------------
+I<CAudioConverter> CSceneAppMediaEngine::createAudioConverter() const
+//----------------------------------------------------------------------------------------------------------------------
+{
+#if TARGET_OS_IOS || TARGET_OS_MACOS || TARGET_OS_TVOS
+	// Apple
+	return I<CAudioConverter>(new CCoreAudioAudioConverter());
+#elif TARGET_OS_WINDOWS
+	// Windows
+#endif
 }
