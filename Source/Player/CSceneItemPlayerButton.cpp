@@ -302,7 +302,7 @@ void CSceneItemPlayerButton::touchOrMouseCancelled(const void* reference)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButton::setProperty(const CString& propertyName, const SDictionaryValue& value)
+void CSceneItemPlayerButton::setProperty(const CString& propertyName, const CDictionary::Value& value)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	if (propertyName == mPropertyNameEnabled) {

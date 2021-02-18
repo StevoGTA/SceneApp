@@ -148,9 +148,9 @@ TArray<CScenePackage::Info> CScenePackage::getScenePackageInfos(const TArray<CFi
 			// Collect info
 			TArray<CString>	dimensions =
 									filename
-											.breakUp(CString(OSSTR(".")))[0]
-											.breakUp(CString(OSSTR("_")))[1]
-											.breakUp(CString(OSSTR("x")));
+											.components(CString(OSSTR(".")))[0]
+											.components(CString(OSSTR("_")))[1]
+											.components(CString(OSSTR("x")));
 			Float32			width = dimensions[0].getFloat32();
 			Float32			height = dimensions[1].getFloat32();
 			Float32			totalPixels = width * height;

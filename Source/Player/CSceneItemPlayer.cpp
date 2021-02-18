@@ -191,7 +191,7 @@ void CSceneItemPlayer::shakeCancelled()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::setProperty(const CString& property, const SDictionaryValue& value)
+void CSceneItemPlayer::setProperty(const CString& property, const CDictionary::Value& value)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check property name
@@ -238,7 +238,7 @@ bool CSceneItemPlayer::handleCommand(CGPU& gpu, const CString& command, const CD
 
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayer::setPeerProperty(const CString& sceneName, const CString& name, const CString& property,
-		const SDictionaryValue& value) const
+		const CDictionary::Value& value) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
@@ -253,7 +253,7 @@ void CSceneItemPlayer::setPeerProperty(const CString& sceneName, const CString& 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::setPeerProperty(const CString& name, const CString& property, const SDictionaryValue& value)
+void CSceneItemPlayer::setPeerProperty(const CString& name, const CString& property, const CDictionary::Value& value)
 		const
 //----------------------------------------------------------------------------------------------------------------------
 {

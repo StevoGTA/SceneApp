@@ -38,7 +38,7 @@ class CSceneItemPlayerButton : public CSceneItemPlayer {
 				void				touchEndedOrMouseUpAtPoint(const S2DPointF32& point, const void* reference);
 				void				touchOrMouseCancelled(const void* reference);
 
-				void				setProperty(const CString& propertyName, const SDictionaryValue& value);
+				void				setProperty(const CString& propertyName, const CDictionary::Value& value);
 
 									// Instance methods
 		const	CSceneItemButton&	getSceneItemButton() const

@@ -261,7 +261,7 @@ void CScenePlayer::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderI
 
 //----------------------------------------------------------------------------------------------------------------------
 void CScenePlayer::setItemPlayerProperty(const CString& itemName, const CString& property,
-		const SDictionaryValue& value) const
+		const CDictionary::Value& value) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Retrieve scene item player

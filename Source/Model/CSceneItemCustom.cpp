@@ -23,10 +23,10 @@ class CSceneItemCustomInternals : public TCopyOnWriteReferenceCountable<CSceneIt
 
 		CDictionary							mInfo;
 		CString								mType;
-		TDictionary<CActions>				mActionsMap;
-		TDictionary<CAudioInfo>				mAudioInfoMap;
-		TDictionary<CSceneItemAnimation>	mSceneItemAnimationMap;
-		TDictionary<CSceneItemButton>		mSceneItemButtonMap;
+		TNDictionary<CActions>				mActionsMap;
+		TNDictionary<CAudioInfo>			mAudioInfoMap;
+		TNDictionary<CSceneItemAnimation>	mSceneItemAnimationMap;
+		TNDictionary<CSceneItemButton>		mSceneItemButtonMap;
 //		TDictionary<CSceneItemText*>		mSceneItemTextMap;
 };
 

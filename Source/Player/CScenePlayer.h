@@ -75,7 +75,7 @@ class CScenePlayer {
 									const;
 
 				void		setItemPlayerProperty(const CString& itemName, const CString& property,
-									const SDictionaryValue& value) const;
+									const CDictionary::Value& value) const;
 				void		handleItemPlayerCommand(CGPU& gpu, const CString& itemName, const CString& command,
 									const CDictionary& commandInfo, const S2DPointF32& point) const;
 
