@@ -154,18 +154,19 @@ CActions::CActions() : TNArray<CAction>()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CActions::CActions(const CAction& action) : TNArray<CAction>()
+CActions::CActions(const CAction& action) : TNArray<CAction>(action)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	*this += action;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CActions::CActions(const CDictionary& info) : TNArray<CAction>()
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Iterate action infos
 	TArray<CDictionary>	actionInfos = info.getArrayOfDictionaries(CString(OSSTR("actions")));
 	for (CArray::ItemIndex i = 0; i < actionInfos.getCount(); i++)
+		// Add action
 		*this += CAction(actionInfos[i]);
 }
 

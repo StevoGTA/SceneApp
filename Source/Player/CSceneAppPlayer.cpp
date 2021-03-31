@@ -600,13 +600,10 @@ void CSceneAppPlayer::loadScenes(const CScenePackage::Info& scenePackageInfo)
 	CLogServices::logMessage(CString(OSSTR("Loading scenes from ")) + scenePackageInfo.mFilename);
 #endif
 
-	OI<SError>	error;
 	CDictionary	info =
-						CBinaryPropertyList::dictionaryFrom(
-								mInternals->mSceneAppPlayerProcs.createByteParceller(scenePackageInfo.mFilename),
-								error);
-	ReturnIfError(error);
-
+						*CBinaryPropertyList::dictionaryFrom(
+								mInternals->mSceneAppPlayerProcs.createByteParceller(scenePackageInfo.mFilename))
+								.mDictionary;
 	mInternals->mOptions = (Options) info.getUInt64(CString(OSSTR("options")), kOptionsDefault);
 	mInternals->mScenePackage = CScenePackage(scenePackageInfo.mSize, info);
 
@@ -633,7 +630,7 @@ void CSceneAppPlayer::start(bool loadAllTextures)
 	// Update last periodic output time
 	if ((mInternals->mLastPeriodicOutputTime != 0.0) && (mInternals->mStopTime != 0.0))
 		// Advance last periodic time to ignore time between stop and start
-		mInternals->mLastPeriodicOutputTime += SUniversalTime::getCurrentUniversalTime() - mInternals->mStopTime;
+		mInternals->mLastPeriodicOutputTime += SUniversalTime::getCurrent() - mInternals->mStopTime;
 
 	// Install periodic
 	mInternals->mSceneAppPlayerProcs.installPeriodic();
@@ -652,7 +649,7 @@ void CSceneAppPlayer::stop(bool unloadAllTextures)
 	mInternals->mSceneAppPlayerProcs.removePeriodic();
 
 	// Note stop time
-	mInternals->mStopTime = SUniversalTime::getCurrentUniversalTime();
+	mInternals->mStopTime = SUniversalTime::getCurrent();
 
 	// Cleanup touches
 	mInternals->mSceneTouchHandlerInfos.removeAll();
