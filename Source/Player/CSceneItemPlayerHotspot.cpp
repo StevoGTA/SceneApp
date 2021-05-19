@@ -10,8 +10,7 @@
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerHotspot::CSceneItemPlayerHotspot(const CSceneItemHotspot& sceneItemHotspot,
-		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo, const Procs& procs) :
+CSceneItemPlayerHotspot::CSceneItemPlayerHotspot(const CSceneItemHotspot& sceneItemHotspot, const Procs& procs) :
 		CSceneItemPlayer(sceneItemHotspot, procs)
 //----------------------------------------------------------------------------------------------------------------------
 {

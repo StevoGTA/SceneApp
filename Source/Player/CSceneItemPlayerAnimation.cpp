@@ -125,10 +125,10 @@ void CSceneItemPlayerAnimation::load(CGPU& gpu)
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		mInternals->mKeyframeAnimationPlayer->load(gpu, !sceneItemAnimation.getStartTimeInterval().hasValue());
 
-	// Load audio
+	// Check audio info
 	const	OI<CAudioInfo>&	audioInfo = sceneItemAnimation.getAudioInfo();
 	if (audioInfo.hasInstance())
-		// Setup CMediaPlayer
+		// Setup media player
 		mInternals->mMediaPlayer =
 				mInternals->mSceneAppResourceManagementInfo.mSceneAppMediaEngine.getMediaPlayer(*audioInfo);
 
@@ -163,7 +163,7 @@ void CSceneItemPlayerAnimation::unload()
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		mInternals->mKeyframeAnimationPlayer->unload();
 	
-	// Unload audio
+	// Unload media player
 	mInternals->mMediaPlayer = OI<CMediaPlayer>();
 }
 
@@ -185,7 +185,7 @@ void CSceneItemPlayerAnimation::reset()
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		mInternals->mKeyframeAnimationPlayer->reset(!getSceneItemAnimation().getStartTimeInterval().hasValue());
 
-	// Check for audio
+	// Check for media player
 	if (mInternals->mMediaPlayer.hasInstance())
 		// Reset
 		mInternals->mMediaPlayer->reset();
@@ -202,6 +202,7 @@ void CSceneItemPlayerAnimation::reset()
 void CSceneItemPlayerAnimation::update(UniversalTimeInterval deltaTimeInterval, bool isRunning)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Check if started
 	if (!mInternals->mIsStarted) {
 		mInternals->mCurrentTimeInterval += deltaTimeInterval;
 		if (mInternals->mCurrentTimeInterval >= getSceneItemAnimation().getStartTimeInterval().getValue(0.0)) {

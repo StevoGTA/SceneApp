@@ -44,8 +44,7 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 						void						shakeEnded();
 						void						shakeCancelled();
 
-						void						setProperty(const CString& propertyName,
-															const CDictionary::Value& value);
+						void						setProperty(const CString& propertyName, const SValue& value);
 						bool						handleCommand(CGPU& gpu, const CString& command,
 															const CDictionary& commandInfo, const S2DPointF32& point);
 
@@ -90,8 +89,7 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 		virtual			void						shakeCancelled(const CSceneItemCustom& sceneItemCustom) {}
 
 		virtual			void						setProperty(const CSceneItemCustom& sceneItemCustom,
-															const CString& propertyName,
-															const CDictionary::Value& value)
+															const CString& propertyName, const SValue& value)
 														{}
 		virtual			bool						handleCommand(CGPU& gpu, const CSceneItemCustom& sceneItemCustom,
 															const CString& command, const CDictionary& commandInfo,

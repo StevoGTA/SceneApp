@@ -9,7 +9,8 @@
 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
-\f1\b0 \cf0 \ulnone When specifying resource filenames, use the following substitution strings:\
+\f1\b0 \cf0 \ulnone (Needs Updating)\
+When specifying resource filenames, use the following substitution strings:\
 	<VIEWPORTSIZE>: will be replaced with the current viewport size\
 \
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
@@ -18,8 +19,11 @@
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
 \f1\b0 \cf0 \ulnone \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 (Needs Updating) \
 All Assets must end up in the SceneAppContent folder.  This folder will be copied into the app as-is.  It is the responsibility of each project to construct the SceneAppContent folder structure, but there are several tools available to assist:\
-	sceneProcessor: This command-line tool will take a source Scenes.plist file + assets and copy/process the Scenes.plist + assets to the SceneAppContent folder.  This is essential, if not required, to transform full-screen PNG files to their cropped versions with corresponding updates to the Scenes.plist file.\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+\cf0 	sceneProcessor: This command-line tool will take a source Scenes.plist file + assets and copy/process the Scenes.plist + assets to the SceneAppContent folder.  This is essential, if not required, to transform full-screen PNG files to their cropped versions with corresponding updates to the Scenes.plist file.\
 	<COMMAND LINE SGP>\
 	<COMMAND LINE SCENEAPP BUILDER?> -or- SCENEAPP BUILDER DROPLETS to do conversion\
 \
@@ -31,6 +35,7 @@ Scene Description PLIST\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
 \f1\b0 \cf0 \ulnone \
+(Needs Updating) \
 Named Scenes_<PLATFORM>_<VIEWPORTSIZE>.plist\
 	where <PLATFORM> is\
 		iOS\
@@ -41,6 +46,7 @@ Named Scenes_<PLATFORM>_<VIEWPORTSIZE>.plist\
 		1024x768\
 		etc.\
 \
+(Needs Updating) \
 In the case of multiple Scenes.plists, the appropriate Scenes.plist will be picked at runtime based on the runtime screen resolution.\
 \
 \
@@ -111,10 +117,6 @@ Point String: \{x,y\}\
 \
 Rect String: \{\{x,y\},\{w,h\}\}\
 \
-Trigger Number:\
-	0: Trigger based on time\
-\
-\
 \
 Root: Dictionary\
 	initialSceneIndex: Number\
@@ -135,8 +137,7 @@ Root: Dictionary\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 \cf0 		bounds: Rect String\
 		background1AudioInfo: AudioInfo\
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
-\cf0 		background2AudioInfo: AudioInfo\
+		background2AudioInfo: AudioInfo\
 \pard\tx480\pardeftab480\pardirnatural\partightenfactor0
 \cf0 			doubleTapAction: Dictionary\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
@@ -163,7 +164,6 @@ Root: Dictionary\
 				loopCount: Loop Number (optional, default is 1)\
 				startedActionInfo: Action Info\
 				startTime: Time Number (will start at load if not specified)\
-				trigger: Trigger Number (optional, default is timed)\
 \
 			itemInfo for button\
 				actionInfo: Action Info\
@@ -187,17 +187,22 @@ Root: Dictionary\
 				actionInfo: Action Info\
 				screenRect: Rect String\
 \
-			itemInfo for movie\
-				actionInfo: Action Info\
+			itemInfo for video\
 				controlMode: Number\
 					0: No controls\
 					1: All controls\
 				filename: String\
+				finishedActionInfo: Action Info\
 				hotspots: Array of Dictionary with the list of hotspots\
 				inBackgroundFilename: String\
 				screenRect: Rect String\
-				startTime: Time Number (will start at load if not specified)\
+				startTime: Time Number (0.0 to start immediately, or other number for delay, or do not include for no auto-play)\
 \
+				Commands:\
+					play\
+					stop\
+\
+(Not currently implemented)\
 			itemInfo for pdf\
 				filename: String\
 				box: Number\
@@ -210,6 +215,7 @@ Root: Dictionary\
 				horizontalThumbImageFilename: String\
 				verticalThumbImageFilename: String\
 \
+(Not currently implemented)\
 			itemInfo for text\
 				screenRect: Rect String\
 				fontName: String\
@@ -244,11 +250,9 @@ openURL\
 	useWebView: Anything - presence of key indicates to activate\
 (removed) playAudio (see AudioInfo)\
 (removed) stopAudio\
-playMovie\
-	filename: String\
-	controlMode: Number\
-		0: No controls\
-		1: All controls\
+(removed) playVideo (see video item)\
+pauseBackgroundAudio\
+resumeBackgroundAudio\
 sceneCut\
 	sceneIndex: Number\
 	dontPreload: Anything - presence of key indicates to activate\
@@ -272,13 +276,13 @@ sceneUncover\
 	sceneIndex: Number\
 	dontPreload: Anything - presence of key indicates to activate\
 setItemNameValue\
-	sceneName: String\
-	itemName: String\
+	sceneName: String (required only when referencing a different scene)\
+	itemName: String (required only when referencing a different item)\
 	propertyName: String\
 	propertyValue: String or Number\
 sendItemCommand\
-	sceneName: String\
-	itemName: String\
+	sceneName: String (required only when referencing a different scene)\
+	itemName: String (required only when referencing a different item)\
 	command: String\
 sendAppCommand\
 	command: String\

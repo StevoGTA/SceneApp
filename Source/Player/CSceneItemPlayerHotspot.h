@@ -16,7 +16,6 @@ class CSceneItemPlayerHotspot : public CSceneItemPlayer {
 	public:
 									// Lifecycle methods
 									CSceneItemPlayerHotspot(const CSceneItemHotspot& sceneItemHotspot,
-											const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 											const Procs& procs);
 
 									// CSceneItemPlayer methods

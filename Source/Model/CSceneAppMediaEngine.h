@@ -5,7 +5,6 @@
 #pragma once
 
 #include "CAudioInfo.h"
-#include "CByteParceller.h"
 #include "CMediaEngine.h"
 #include "CMediaPlayer.h"
 #include "CNotificationCenter.h"
@@ -28,27 +27,35 @@ class CSceneAppMediaEngine : public CMediaEngine {
 //
 	// Procs
 	public:
-		typedef	CByteParceller	(*CreateByteParcellerProc)(const CString& resourceFilename, void* userData);
+		typedef	I<CDataSource>	(*CreateDataSourceProc)(const CString& resourceFilename, void* userData);
 
 	// Structs
 	public:
 		struct Info {
 							// Lifecycle methods
-							Info(CreateByteParcellerProc createByteParcellerProc, void* userData) :
-								mCreateByteParcellerProc(createByteParcellerProc), mUserData(userData)
+							Info(CreateDataSourceProc createDataSourceProc, void* userData) :
+								mCreateDataSourceProc(createDataSourceProc), mUserData(userData)
 								{}
 							Info(const Info& other) :
-								mCreateByteParcellerProc(other.mCreateByteParcellerProc), mUserData(other.mUserData)
+								mCreateDataSourceProc(other.mCreateDataSourceProc), mUserData(other.mUserData)
 								{}
 
 							// Instance methods
-			CByteParceller	createByteParceller(const CString& resourceFilename) const
-								{ return mCreateByteParcellerProc(resourceFilename, mUserData); }
+			I<CDataSource>	createDataSource(const CString& resourceFilename) const
+								{ return mCreateDataSourceProc(resourceFilename, mUserData); }
 
 			// Properties
 			private:
-				CreateByteParcellerProc	mCreateByteParcellerProc;
+				CreateDataSourceProc	mCreateDataSourceProc;
 				void*					mUserData;
+		};
+
+		struct VideoInfo {
+			// Lifecycle methods
+			VideoInfo(const CString& filename) : mFilename(filename) {}
+
+			// Properties
+			CString	mFilename;
 		};
 
 	// Methods
@@ -58,7 +65,12 @@ class CSceneAppMediaEngine : public CMediaEngine {
 							~CSceneAppMediaEngine();
 
 							// Instance methods
-		OI<CMediaPlayer>	getMediaPlayer(const CAudioInfo& audioInfo);
+		OI<CMediaPlayer>	getMediaPlayer(const CAudioInfo& audioInfo,
+									const CMediaPlayer::Info& info = CMediaPlayer::Info());
+		OI<CMediaPlayer>	getMediaPlayer(const VideoInfo& videoInfo,
+									CVideoCodec::DecodeFrameInfo::Compatibility compatibility,
+									const CVideoDecoder::RenderInfo& renderInfo,
+									const CMediaPlayer::Info& info = CMediaPlayer::Info());
 
 							// Subclass methods
 		I<CAudioConverter>	createAudioConverter() const;

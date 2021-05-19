@@ -25,7 +25,8 @@ class CActionInternals : public TReferenceCountable<CActionInternals> {
 
 // Names
 CString	CAction::mNameOpenURL(OSSTR("openURL"));
-CString	CAction::mNamePlayMovie(OSSTR("playMovie"));
+CString	CAction::mPauseBackgroundAudio(OSSTR("pauseBackgroundAudio"));
+CString	CAction::mResumeBackgroundAudio(OSSTR("resumeBackgroundAudio"));
 CString	CAction::mNameSceneCover(OSSTR("sceneCover"));
 CString	CAction::mNameSceneCut(OSSTR("sceneCut"));
 CString	CAction::mNameScenePush(OSSTR("scenePush"));
@@ -36,8 +37,6 @@ CString	CAction::mNameSendAppCommand(OSSTR("sendAppCommand"));
 
 // Info keys and value types
 CString	CAction::mInfoCommandKey(OSSTR("command"));
-CString	CAction::mInfoControlModeKey(OSSTR("controlMode"));
-CString	CAction::mInfoFilenameKey(OSSTR("filename"));
 CString	CAction::mInfoItemNameKey(OSSTR("itemName"));
 CString	CAction::mInfoLoadSceneIndexFromKey(OSSTR("loadSceneIndexFrom"));
 CString	CAction::mInfoPropertyNameKey(OSSTR("propertyName"));
@@ -45,7 +44,7 @@ CString	CAction::mInfoPropertyValueKey(OSSTR("propertyValue"));
 CString	CAction::mInfoSceneIndexKey(OSSTR("sceneIndex"));
 CString	CAction::mInfoSceneNameKey(OSSTR("sceneName"));
 CString	CAction::mInfoURLKey(OSSTR("URL"));
-CString	CAction::mInfoUseWebView(OSSTR("useWebView"));
+CString	CAction::mInfoUseWebViewKey(OSSTR("useWebView"));
 
 // MARK: Lifecycle methods
 

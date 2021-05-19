@@ -12,7 +12,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local proc declarations
 
-static	CByteParceller	sSceneAppPlayerCreateByteParceller(const CString& resourceFilename, void* userData);
+static	I<CDataSource>	sSceneAppPlayerCreateDataSource(const CString& resourceFilename, void* userData);
 static	void			sSceneAppInstallPeriodic(void* userData);
 static	void			sSceneAppRemovePeriodic(void* userData);
 static	void			sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData);
@@ -114,9 +114,9 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 			weakSelf.sceneAppPlayerInternal->mouseUp(CSceneAppPlayer::MouseUpInfo(point));
 		};
 
-		((NSView<AKTGPUView>*) self.view).periodicProc = ^(UniversalTime outputTime){
+		((NSView<AKTGPUView>*) self.view).periodicProc = ^(UniversalTimeInterval outputTimeInterval){
 			// Inform SceneAppPlayer
-			weakSelf.sceneAppPlayerInternal->handlePeriodic(outputTime);
+			weakSelf.sceneAppPlayerInternal->handlePeriodic(outputTimeInterval);
 		};
 
 		// Setup Notifications
@@ -189,7 +189,7 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 
 	// Setup Scene App Player
 	CGPU&					gpu = ((NSView<AKTGPUView>*) self.view).gpu;
-	CSceneAppPlayer::Procs	procs(sSceneAppPlayerCreateByteParceller, sSceneAppInstallPeriodic,
+	CSceneAppPlayer::Procs	procs(sSceneAppPlayerCreateDataSource, sSceneAppInstallPeriodic,
 									sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL, sSceneAppPlayerHandleCommand,
 									(__bridge void*) self);
 	self.sceneAppPlayerInternal =
@@ -262,16 +262,16 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 // MARK: - Local proc definitions
 
 //----------------------------------------------------------------------------------------------------------------------
-CByteParceller sSceneAppPlayerCreateByteParceller(const CString& resourceFilename, void* userData)
+I<CDataSource> sSceneAppPlayerCreateDataSource(const CString& resourceFilename, void* userData)
 {
 	// Setup
 	SceneAppViewController*	sceneAppViewController = (__bridge SceneAppViewController*) userData;
 
-	return CByteParceller(
-			I<CDataSource>(new CMappedFileDataSource(
+	return I<CDataSource>(
+			new CMappedFileDataSource(
 					CFile(
 							sceneAppViewController.sceneAppContentRootFilesystemPath->appendingComponent(
-									resourceFilename)))));
+									resourceFilename))));
 }
 
 //----------------------------------------------------------------------------------------------------------------------

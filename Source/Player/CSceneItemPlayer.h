@@ -81,21 +81,20 @@ class CSceneItemPlayer {
 		virtual			void						shakeEnded();
 		virtual			void						shakeCancelled();
 
-		virtual			void						setProperty(const CString& property,
-															const CDictionary::Value& value);
+		virtual			void						setProperty(const CString& property, const SValue& value);
 		virtual			bool						handleCommand(CGPU& gpu, const CString& command,
 															const CDictionary& commandInfo, const S2DPointF32& point);
 
 													// Subclass methods
 						void						setPeerProperty(const CString& sceneName, const CString& name,
-															const CString& property, const CDictionary::Value& value)
-															const;
+															const CString& property, const SValue& value) const;
 						void						setPeerProperty(const CString& name, const CString& property,
-															const CDictionary::Value& value) const;
+															const SValue& value) const;
+						void						sendPeerCommand(const CString& name, const CString& command) const;
 
 	// Properties
 	public:
-		static	CString						mIsVisiblePropertyName;		// CNumber
+		static	CString						mIsVisiblePropertyName;		// bool or 1
 
 		static	CString						mCommandNameLoad;
 		static	CString						mCommandNameUnload;

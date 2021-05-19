@@ -13,21 +13,21 @@
 struct SSceneAppResourceManagementInfo {
 	// Procs
 	public:
-		typedef	CByteParceller	(*CreateByteParcellerProc)(const CString& resourceFilename, void* userData);
+		typedef	I<CDataSource>	(*CreateDataSourceProc)(const CString& resourceFilename, void* userData);
 
 	// Methods
 	public:
 					// Lifecycle methods
-					SSceneAppResourceManagementInfo(CreateByteParcellerProc createByteParcellerProc,
+					SSceneAppResourceManagementInfo(CreateDataSourceProc createDataSourceProc,
 							CGPUTextureManager& gpuTextureManager, CSceneAppMediaEngine& sceneAppMediaEngine,
 							void* userData) :
-						mCreateByteParcellerProc(createByteParcellerProc), mGPUTextureManager(gpuTextureManager),
+						mCreateDataSourceProc(createDataSourceProc), mGPUTextureManager(gpuTextureManager),
 								mSceneAppMediaEngine(sceneAppMediaEngine), mUserData(userData)
 						{}
 
 					// Instance methods
-	CByteParceller	createByteParceller(const CString& resourceFilename) const
-						{ return mCreateByteParcellerProc(resourceFilename, mUserData); }
+	I<CDataSource>	createDataSource(const CString& resourceFilename) const
+						{ return mCreateDataSourceProc(resourceFilename, mUserData); }
 
 	// Properties
 	public:
@@ -35,6 +35,6 @@ struct SSceneAppResourceManagementInfo {
 		CSceneAppMediaEngine&	mSceneAppMediaEngine;
 
 	private:
-		CreateByteParcellerProc	mCreateByteParcellerProc;
+		CreateDataSourceProc	mCreateDataSourceProc;
 		void*					mUserData;
 };

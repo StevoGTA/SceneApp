@@ -33,8 +33,9 @@ class CSceneItemCustom : public CSceneItem {
 				bool					contains(const CString& key) const;
 
 				bool					getBool(const CString& key) const;
-				CDictionary				getDictionary(const CString& key) const;
-				CString					getString(const CString& key) const;
+		const	TArray<CString>&		getArrayOfStrings(const CString& key) const;
+		const	CDictionary&			getDictionary(const CString& key) const;
+		const	CString&				getString(const CString& key) const;
 				Float32					getFloat32(const CString& key) const;
 				S2DPointF32				get2DPoint(const CString& key) const;
 				S2DRectF32				get2DRect(const CString& key) const;

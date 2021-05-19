@@ -9,7 +9,7 @@
 #include "CSceneItemButtonArray.h"
 #include "CSceneItemCustom.h"
 #include "CSceneItemHotspot.h"
-//#include "CSceneItemMovie.h"
+#include "CSceneItemVideo.h"
 //#include "CSceneItemText.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -88,9 +88,9 @@ CScene::CScene(const CDictionary& info)
 		else if (itemType == CSceneItemHotspot::mType)
 			// Hotspot
 			mInternals->mSceneItems += CSceneItemHotspot(itemInfo);
-//		else if (itemType == CSceneItemMovie::mType)
-//			// Movie
-//			mInternals->mSceneItems += CSceneItemMovie(itemInfo);
+		else if (itemType == CSceneItemVideo::mType)
+			// Video
+			mInternals->mSceneItems += CSceneItemVideo(itemInfo);
 //		else if (itemType == CSceneItemText::mType)
 //			// Text
 //			mInternals->mSceneItems += CSceneItemText(itemInfo);

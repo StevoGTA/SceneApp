@@ -159,7 +159,7 @@ void CSceneItemPlayerCustom::shakeCancelled()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::setProperty(const CString& propertyName, const CDictionary::Value& value)
+void CSceneItemPlayerCustom::setProperty(const CString& propertyName, const SValue& value)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	setProperty(getSceneItemCustom(), propertyName, value);

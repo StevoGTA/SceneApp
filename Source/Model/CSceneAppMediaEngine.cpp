@@ -4,7 +4,7 @@
 
 #include "CSceneAppMediaEngine.h"
 
-#include "CAudioTrackReader.h"
+#include "CAudioTrackDecoder.h"
 #include "CDictionary.h"
 #include "CFilesystemPath.h"
 #include "CMPEG4MediaSource.h"
@@ -21,9 +21,10 @@
 
 class CSceneAppMediaPlayer : public CMediaPlayer {
 	public:
-				CSceneAppMediaPlayer(CSRSWMessageQueues& messageQueues, const CString& resourceFilename,
+				CSceneAppMediaPlayer(CSRSWMessageQueues& messageQueues, const CMediaPlayer::Info& info,
+						const CString& resourceFilename,
 						TReferenceDictionary<CSceneAppMediaPlayer>& sceneAppMediaPlayerMap) :
-					CMediaPlayer(messageQueues), mResourceFilename(resourceFilename),
+					CMediaPlayer(messageQueues, info), mResourceFilename(resourceFilename),
 							mSceneAppMediaPlayerMap(sceneAppMediaPlayerMap), mReferenceCount(0)
 					{}
 
@@ -52,9 +53,9 @@ class CSceneAppMediaPlayer : public CMediaPlayer {
 
 class CSceneAppMediaPlayerReference : public CMediaPlayer {
 	public:
-						CSceneAppMediaPlayerReference(CSRSWMessageQueues& messageQueues,
+						CSceneAppMediaPlayerReference(CSRSWMessageQueues& messageQueues, const CMediaPlayer::Info& info,
 								CSceneAppMediaPlayer& sceneAppMediaPlayer) :
-							CMediaPlayer(messageQueues), mSceneAppMediaPlayer(sceneAppMediaPlayer)
+							CMediaPlayer(messageQueues, info), mSceneAppMediaPlayer(sceneAppMediaPlayer)
 							{ mSceneAppMediaPlayer.addReference(); }
 						~CSceneAppMediaPlayerReference()
 							{ mSceneAppMediaPlayer.removeReference(); }
@@ -62,8 +63,8 @@ class CSceneAppMediaPlayerReference : public CMediaPlayer {
 		void			setupComplete()
 							{ mSceneAppMediaPlayer.setupComplete(); }
 
-		I<CAudioPlayer>	newAudioPlayer(const CString& identifier)
-							{ return mSceneAppMediaPlayer.newAudioPlayer(identifier); }
+		I<CAudioPlayer>	newAudioPlayer(const CString& identifier, UInt32 trackIndex)
+							{ return mSceneAppMediaPlayer.newAudioPlayer(identifier, trackIndex); }
 		void			setAudioGain(Float32 audioGain)
 							{ mSceneAppMediaPlayer.setAudioGain(audioGain); }
 
@@ -121,14 +122,12 @@ CSceneAppMediaEngine::~CSceneAppMediaEngine()
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const CAudioInfo& audioInfo)
+OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const CAudioInfo& audioInfo, const CMediaPlayer::Info& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
 	const	CString&			resourceFilename = audioInfo.getResourceFilename();
-			CAudioInfo::Options	audioInfoOptions = audioInfo.getOptions();
-if (audioInfoOptions != CAudioInfo::kOptionsNone)
-	audioInfoOptions = audioInfoOptions;
+//			CAudioInfo::Options	audioInfoOptions = audioInfo.getOptions();
 
 	// Look for existing media player
 	const	OR<CSceneAppMediaPlayer>	sceneAppMediaPlayerReference =
@@ -136,18 +135,18 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 	if (sceneAppMediaPlayerReference.hasReference())
 		// Have reference
 		return OI<CMediaPlayer>(
-				new CSceneAppMediaPlayerReference(mInternals->mMessageQueues, *sceneAppMediaPlayerReference));
+				new CSceneAppMediaPlayerReference(mInternals->mMessageQueues, info, *sceneAppMediaPlayerReference));
 
 	// Create media source
-	CByteParceller		byteParceller = mInternals->mInfo.createByteParceller(resourceFilename);
+	I<CDataSource>		dataSource = mInternals->mInfo.createDataSource(resourceFilename);
 	OI<CMediaSource>	mediaSource;
 	CString				extension = CFilesystemPath(resourceFilename).getExtension();
 	if (extension == CString(OSSTR("m4a")))
 		// MPEG-4 Audio
-		mediaSource = OI<CMediaSource>(new CMPEG4MediaSource(byteParceller));
+		mediaSource = OI<CMediaSource>(new CMPEG4MediaSource(dataSource));
 	else if (extension == CString(OSSTR("wav")))
 		// WAVE
-		mediaSource = OI<CMediaSource>(new CWAVEMediaSource(byteParceller));
+		mediaSource = OI<CMediaSource>(new CWAVEMediaSource(dataSource));
 	else {
 		// Unimplemented
 		AssertFailUnimplemented();
@@ -164,27 +163,24 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 
 	// Setup Media Player
 	CSceneAppMediaPlayer*	sceneAppMediaPlayer =
-									new CSceneAppMediaPlayer(mInternals->mMessageQueues, resourceFilename,
+									new CSceneAppMediaPlayer(mInternals->mMessageQueues, info, resourceFilename,
 											mInternals->mSceneAppMediaPlayerMap);
 	for (CArray::ItemIndex i = 0; i < audioTracks.getCount(); i++) {
 		// Setup
-		I<CAudioTrackReader>	audioTrackReader(new CAudioTrackReader(audioTracks[i], byteParceller));
-		I<CAudioPlayer>			audioPlayer = sceneAppMediaPlayer->newAudioPlayer(resourceFilename);
+		I<CAudioTrackDecoder>	audioTrackDecoder(new CAudioTrackDecoder(audioTracks[i], dataSource));
+		I<CAudioPlayer>			audioPlayer = sceneAppMediaPlayer->newAudioPlayer(resourceFilename, i);
 
 		// Connect
 		ConnectResult	connectResult =
-								connect((I<CAudioProcessor>&) audioTrackReader,
+								connect((I<CAudioProcessor>&) audioTrackDecoder,
 										(I<CAudioProcessor>&) audioPlayer,
-										composeAudioProcessingFormat(*audioTrackReader, *audioPlayer));
+										composeAudioProcessingFormat(*audioTrackDecoder, *audioPlayer));
 		if (!connectResult.isSuccess()) {
 			// Cleanup
 			Delete(sceneAppMediaPlayer);
 
 			return OI<CMediaPlayer>();
 		}
-
-		// Add to Media Player
-		sceneAppMediaPlayer->add(audioPlayer, i);
 	}
 
 	// Finish setup
@@ -195,8 +191,72 @@ if (audioInfoOptions != CAudioInfo::kOptionsNone)
 	// Success
 	mInternals->mSceneAppMediaPlayerMap.set(resourceFilename, *sceneAppMediaPlayer);
 
-	return OI<CMediaPlayer>(
-			new CSceneAppMediaPlayerReference(mInternals->mMessageQueues, *sceneAppMediaPlayer));
+	return OI<CMediaPlayer>(new CSceneAppMediaPlayerReference(mInternals->mMessageQueues, info, *sceneAppMediaPlayer));
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const VideoInfo& videoInfo,
+		CVideoCodec::DecodeFrameInfo::Compatibility compatibility, const CVideoDecoder::RenderInfo& renderInfo,
+		const CMediaPlayer::Info& info)
+//----------------------------------------------------------------------------------------------------------------------
+{
+	// Setup
+	const	CString&	filename = videoInfo.mFilename;
+
+	// Create media source
+	I<CDataSource>		dataSource = mInternals->mInfo.createDataSource(filename);
+	OI<CMediaSource>	mediaSource;
+	CString				extension = CFilesystemPath(filename).getExtension();
+	if (extension == CString(OSSTR("m4v")))
+		// MPEG-4 Video
+		mediaSource = OI<CMediaSource>(new CMPEG4MediaSource(dataSource));
+	else {
+		// Unimplemented
+		AssertFailUnimplemented();
+
+		return OI<CMediaPlayer>();
+	}
+
+	// Load tracks
+	OI<SError>			error = mediaSource->loadTracks();
+	ReturnValueIfError(error, OI<CMediaPlayer>());
+
+	// Retrieve tracks
+	TArray<CAudioTrack>	audioTracks = mediaSource->getAudioTracks();
+	TArray<CVideoTrack>	videoTracks = mediaSource->getVideoTracks();
+
+	// Setup Media Player
+	CSceneAppMediaPlayer*	sceneAppMediaPlayer =
+									new CSceneAppMediaPlayer(mInternals->mMessageQueues, info, filename,
+											mInternals->mSceneAppMediaPlayerMap);
+	for (CArray::ItemIndex i = 0; i < audioTracks.getCount(); i++) {
+		// Setup
+		I<CAudioTrackDecoder>	audioTrackDecoder(new CAudioTrackDecoder(audioTracks[i], dataSource));
+		I<CAudioPlayer>			audioPlayer = sceneAppMediaPlayer->newAudioPlayer(filename, i);
+
+		// Connect
+		ConnectResult	connectResult =
+								connect((I<CAudioProcessor>&) audioTrackDecoder,
+										(I<CAudioProcessor>&) audioPlayer,
+										composeAudioProcessingFormat(*audioTrackDecoder, *audioPlayer));
+		if (!connectResult.isSuccess()) {
+			// Cleanup
+			Delete(sceneAppMediaPlayer);
+
+			return OI<CMediaPlayer>();
+		}
+	}
+	for (CArray::ItemIndex i = 0; i < videoTracks.getCount(); i++)
+		// Setup
+		sceneAppMediaPlayer->newVideoDecoder(videoTracks[i], dataSource, filename, i, compatibility, renderInfo);
+
+	// Finish setup
+	sceneAppMediaPlayer->setupComplete();
+
+	// Success
+	mInternals->mSceneAppMediaPlayerMap.set(filename, *sceneAppMediaPlayer);
+
+	return OI<CMediaPlayer>(new CSceneAppMediaPlayerReference(mInternals->mMessageQueues, info, *sceneAppMediaPlayer));
 }
 
 // MARK: Subclass methods

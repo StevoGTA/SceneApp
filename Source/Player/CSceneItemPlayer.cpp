@@ -191,7 +191,7 @@ void CSceneItemPlayer::shakeCancelled()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::setProperty(const CString& property, const CDictionary::Value& value)
+void CSceneItemPlayer::setProperty(const CString& property, const SValue& value)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check property name
@@ -238,7 +238,7 @@ bool CSceneItemPlayer::handleCommand(CGPU& gpu, const CString& command, const CD
 
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayer::setPeerProperty(const CString& sceneName, const CString& name, const CString& property,
-		const CDictionary::Value& value) const
+		const SValue& value) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
@@ -253,8 +253,7 @@ void CSceneItemPlayer::setPeerProperty(const CString& sceneName, const CString& 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayer::setPeerProperty(const CString& name, const CString& property, const CDictionary::Value& value)
-		const
+void CSceneItemPlayer::setPeerProperty(const CString& name, const CString& property, const SValue& value) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
@@ -265,4 +264,17 @@ void CSceneItemPlayer::setPeerProperty(const CString& name, const CString& prope
 
 	// Call proc
 	mInternals->mProcs.performActions(CActions(CAction(CAction::mNameSetItemNameValue, info)));
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void CSceneItemPlayer::sendPeerCommand(const CString& name, const CString& command) const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	// Setup
+	CDictionary	info;
+	info.set(CAction::mInfoItemNameKey, name);
+	info.set(CAction::mInfoCommandKey, command);
+
+	// Call proc
+	mInternals->mProcs.performActions(CActions(CAction(CAction::mNameSendItemCommand, info)));
 }

@@ -153,13 +153,13 @@ void CKeyframeAnimationPlayerKeyframe::load(CGPU& gpu,
 {
 	CGPUTextureReference	gpuTextureReference =
 									sceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
-											sceneAppResourceManagementInfo.createByteParceller(mImageFilename),
+											sceneAppResourceManagementInfo.createDataSource(mImageFilename),
 											CImage::getBitmap, mImageFilename);
 	gpuTextureReference.finishLoading();
 
-	S2DSizeU16	size = gpuTextureReference.getGPUTexture().getUsedSize();
+	S2DSizeU16	size = gpuTextureReference.getGPUTexture()->getUsedSize();
 	S2DRectF32	rect(0.0, 0.0, size.mWidth, size.mHeight);
-	mGPURenderObject2D = new CGPURenderObject2D(gpu, rect, rect, gpuTextureReference);
+	mGPURenderObject2D = new CGPURenderObject2D(gpu, CGPURenderObject2D::Item(rect, rect), gpuTextureReference);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -313,7 +313,7 @@ S2DRectF32 CKeyframeAnimationPlayer::getScreenRect()
 		// Get texture size
 		const	S2DSizeU16&	gpuTextureSize =
 									mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->getGPUTextureReferences().
-											getFirst().getGPUTexture().getUsedSize();
+											getFirst().getGPUTexture()->getUsedSize();
 
 		S2DRectF32	rect;
 		rect.mOrigin.mX =

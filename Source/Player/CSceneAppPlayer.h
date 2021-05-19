@@ -144,7 +144,7 @@ class CSceneAppPlayer {
 
 		struct Procs {
 			// Procs
-			typedef	CByteParceller	(*CreateByteParcellerProc)(const CString& resourceFilename, void* userData);
+			typedef	I<CDataSource>	(*CreateDataSourceProc)(const CString& resourceFilename, void* userData);
 			typedef	void			(*InstallPeriodicProc)(void* userData);
 			typedef	void			(*RemovePeriodicProc)(void* userData);
 			typedef	void			(*OpenURLProc)(const CURL& url, bool useWebView, void* userData);
@@ -152,18 +152,18 @@ class CSceneAppPlayer {
 											void* userData);
 
 							// Lifecycle methods
-							Procs(CreateByteParcellerProc createByteParcellerProc,
+							Procs(CreateDataSourceProc createDataSourceProc,
 									InstallPeriodicProc installPeriodicProc, RemovePeriodicProc removePeriodicProc,
 									OpenURLProc openURLProc, HandleCommandProc handleCommandProc, void* userData) :
-								mCreateByteParcellerProc(createByteParcellerProc),
+								mCreateDataSourceProc(createDataSourceProc),
 										mInstallPeriodicProc(installPeriodicProc),
 										mRemovePeriodicProc(removePeriodicProc), mOpenURLProc(openURLProc),
 										mHandleCommandProc(handleCommandProc), mUserData(userData)
 								{}
 
 							// Instance methods
-			CByteParceller	createByteParceller(const CString& resourceFilename) const
-								{ return mCreateByteParcellerProc(resourceFilename, mUserData); }
+			I<CDataSource>	createDataSource(const CString& resourceFilename) const
+								{ return mCreateDataSourceProc(resourceFilename, mUserData); }
 			void			installPeriodic() const
 								{ mInstallPeriodicProc(mUserData); }
 			void			removePeriodic() const
@@ -174,10 +174,8 @@ class CSceneAppPlayer {
 								{ if (mHandleCommandProc != nil) mHandleCommandProc(command, commandInfo, mUserData); }
 
 			// Properties
-			public:
-				CreateByteParcellerProc	mCreateByteParcellerProc;
-
 			private:
+				CreateDataSourceProc	mCreateDataSourceProc;
 				InstallPeriodicProc		mInstallPeriodicProc;
 				RemovePeriodicProc		mRemovePeriodicProc;
 				OpenURLProc				mOpenURLProc;
@@ -199,7 +197,7 @@ class CSceneAppPlayer {
 
 						void								start(bool loadAllTextures = false);
 						void								stop(bool unloadAllTextures = false);
-						void								handlePeriodic(UniversalTime outputTime);
+						void								handlePeriodic(UniversalTimeInterval outputTime);
 
 						void								mouseDown(const MouseDownInfo& mouseDownInfo);
 						void								mouseDragged(const MouseDraggedInfo& mouseDraggedInfo);

@@ -12,6 +12,7 @@
 #include "CSceneItemPlayerButton.h"
 #include "CSceneItemPlayerButtonArray.h"
 #include "CSceneItemPlayerHotspot.h"
+#include "CSceneItemPlayerVideo.h"
 #include "CScenePackage.h"
 #include "CScenePlayer.h"
 #include "CSceneTransitionPlayerCoverUncover.h"
@@ -34,7 +35,7 @@ struct STouchHandlerInfo {
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - Local proc declarations
 
-static	CByteParceller	sCreateByteParceller(const CString& resourceFilename, void* userData);
+static	I<CDataSource>	sCreateDataSource(const CString& resourceFilename, void* userData);
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -95,20 +96,20 @@ class CSceneAppPlayerInternals {
 		TNArray<STouchHandlerInfo>							mSceneTransitionTouchHandlerInfos;
 
 		UniversalTime										mStopTime;
-		UniversalTime										mLastPeriodicOutputTime;
+		UniversalTimeInterval								mLastPeriodicOutputTimeInterval;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneAppPlayerInternals::CSceneAppPlayerInternals(CSceneAppPlayer& sceneAppPlayer, CGPU& gpu,
 		const CSceneAppPlayer::Procs& procs) :
 	mOptions(CSceneAppPlayer::kOptionsDefault), mGPU(gpu), mGPUTextureManager(gpu),
-			mSceneAppMediaEngine(mMessageQueues, CSceneAppMediaEngine::Info(sCreateByteParceller, this)),
+			mSceneAppMediaEngine(mMessageQueues, CSceneAppMediaEngine::Info(sCreateDataSource, this)),
 			mSceneAppPlayer(sceneAppPlayer), mSceneAppPlayerProcs(procs),
-			mSceneAppResourceManagementInfo(sCreateByteParceller, mGPUTextureManager, mSceneAppMediaEngine, this),
+			mSceneAppResourceManagementInfo(sCreateDataSource, mGPUTextureManager, mSceneAppMediaEngine, this),
 			mScenePlayerProcsInfo(scenePlayerGetViewportSizeProc, scenePlayerCreateSceneItemPlayerProc,
 					scenePlayerActionsPerformProc, this),
 			mSceneTransitionPlayerProcs(scenePlayerGetViewportSizeProc, this),
-			mStopTime(0.0), mLastPeriodicOutputTime(0.0)
+			mStopTime(0.0), mLastPeriodicOutputTimeInterval(0.0)
 //----------------------------------------------------------------------------------------------------------------------
 {
 }
@@ -461,7 +462,10 @@ CSceneItemPlayer* CSceneAppPlayerInternals::scenePlayerCreateSceneItemPlayerProc
 				procs);
 	else if (type == CSceneItemHotspot::mType)
 		// Hotspot
-		return new CSceneItemPlayerHotspot((const CSceneItemHotspot&) sceneItem,sceneAppResourceManagementInfo, procs);
+		return new CSceneItemPlayerHotspot((const CSceneItemHotspot&) sceneItem, procs);
+	else if (type == CSceneItemVideo::mType)
+		// Video
+		return new CSceneItemPlayerVideo((const CSceneItemVideo&) sceneItem, sceneAppResourceManagementInfo, procs);
 	else
 		// Custom
 		return internals.mSceneAppPlayer.createSceneItemPlayer((CSceneItemCustom&) sceneItem,
@@ -487,16 +491,23 @@ void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& act
 		if (actionName == CAction::mNameOpenURL)
 			// Open URL
 			internals.mSceneAppPlayerProcs.openURL(CURL(actionInfo.getString(CAction::mInfoURLKey)),
-					actionInfo.contains(CAction::mInfoUseWebView));
-		else if (actionName == CAction::mNamePlayMovie) {
-			// Play movie
-//			CString	movieFilename = actionInfo.getString(CAction::mInfoFilenameKey);
-//			CURLX	movieURL = eGetURLForResourceFilename(movieFilename);
-//			internals.mSceneAppMoviePlayer = new CSceneAppMoviePlayer(movieURL);
-//			internals.mSceneAppMoviePlayer->setControlMode(
-//					(ESceneAppMoviePlayerControlMode) actionInfo.getUInt32(mInfoControlModeKey,
-//							kSceneAppMoviePlayerControlModeDefault));
-//			internals.mSceneAppMoviePlayer->play();
+					actionInfo.contains(CAction::mInfoUseWebViewKey));
+		else if (actionName == CAction::mPauseBackgroundAudio) {
+			// Pause background audio
+			if (internals.mCurrentScenePlayerBackground1MediaPlayer.hasInstance())
+				// Pause
+				internals.mCurrentScenePlayerBackground1MediaPlayer->pause();
+			if (internals.mCurrentScenePlayerBackground2MediaPlayer.hasInstance())
+				// Pause
+				internals.mCurrentScenePlayerBackground2MediaPlayer->pause();
+		} else if (actionName == CAction::mResumeBackgroundAudio) {
+			// Resume background audio
+			if (internals.mCurrentScenePlayerBackground1MediaPlayer.hasInstance())
+				// Resume
+				internals.mCurrentScenePlayerBackground1MediaPlayer->play();
+			if (internals.mCurrentScenePlayerBackground2MediaPlayer.hasInstance())
+				// Resume
+				internals.mCurrentScenePlayerBackground2MediaPlayer->play();
 		} else if (actionName == CAction::mNameSceneCover) {
 			// Cover to scene
 			CScene::Index	sceneIndex = internals.mSceneAppPlayer.getSceneIndex(action).getValue();
@@ -602,7 +613,7 @@ void CSceneAppPlayer::loadScenes(const CScenePackage::Info& scenePackageInfo)
 
 	CDictionary	info =
 						*CBinaryPropertyList::dictionaryFrom(
-								mInternals->mSceneAppPlayerProcs.createByteParceller(scenePackageInfo.mFilename))
+								mInternals->mSceneAppPlayerProcs.createDataSource(scenePackageInfo.mFilename))
 								.mDictionary;
 	mInternals->mOptions = (Options) info.getUInt64(CString(OSSTR("options")), kOptionsDefault);
 	mInternals->mScenePackage = CScenePackage(scenePackageInfo.mSize, info);
@@ -628,9 +639,9 @@ void CSceneAppPlayer::start(bool loadAllTextures)
 	mInternals->mCurrentScenePlayer->start();
 
 	// Update last periodic output time
-	if ((mInternals->mLastPeriodicOutputTime != 0.0) && (mInternals->mStopTime != 0.0))
+	if ((mInternals->mLastPeriodicOutputTimeInterval != 0.0) && (mInternals->mStopTime != 0.0))
 		// Advance last periodic time to ignore time between stop and start
-		mInternals->mLastPeriodicOutputTime += SUniversalTime::getCurrent() - mInternals->mStopTime;
+		mInternals->mLastPeriodicOutputTimeInterval += SUniversalTime::getCurrent() - mInternals->mStopTime;
 
 	// Install periodic
 	mInternals->mSceneAppPlayerProcs.installPeriodic();
@@ -662,18 +673,18 @@ void CSceneAppPlayer::stop(bool unloadAllTextures)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneAppPlayer::handlePeriodic(UniversalTime outputTime)
+void CSceneAppPlayer::handlePeriodic(UniversalTimeInterval outputTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Update time info
 	UniversalTimeInterval	deltaTimeInterval;
-	if (mInternals->mLastPeriodicOutputTime == 0.0)
+	if (mInternals->mLastPeriodicOutputTimeInterval == 0.0)
 		// First iteration
 		deltaTimeInterval = 0.0;
 	else
 		// Next iteration
-		deltaTimeInterval = outputTime - mInternals->mLastPeriodicOutputTime;
-	mInternals->mLastPeriodicOutputTime = outputTime;
+		deltaTimeInterval = outputTimeInterval - mInternals->mLastPeriodicOutputTimeInterval;
+	mInternals->mLastPeriodicOutputTimeInterval = outputTimeInterval;
 
 	// Handle input
 	mInternals->handleTouchesBegan();
@@ -924,10 +935,10 @@ CScenePlayer& CSceneAppPlayer::getCurrentScenePlayer() const
 // MARK: - Local proc definitions
 
 //----------------------------------------------------------------------------------------------------------------------
-CByteParceller sCreateByteParceller(const CString& resourceFilename, void* userData)
+I<CDataSource> sCreateDataSource(const CString& resourceFilename, void* userData)
 {
 	// Setup
 	CSceneAppPlayerInternals*	sceneAppPlayerInternals = (CSceneAppPlayerInternals*) userData;
 
-	return sceneAppPlayerInternals->mSceneAppPlayerProcs.createByteParceller(resourceFilename);
+	return sceneAppPlayerInternals->mSceneAppPlayerProcs.createDataSource(resourceFilename);
 }

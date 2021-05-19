@@ -101,14 +101,21 @@ bool CSceneItemCustom::getBool(const CString& key) const
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CDictionary CSceneItemCustom::getDictionary(const CString& key) const
+const TArray<CString>& CSceneItemCustom::getArrayOfStrings(const CString& key) const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	return mInternals->mInfo.getArrayOfStrings(key);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+const CDictionary& CSceneItemCustom::getDictionary(const CString& key) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mInfo.getDictionary(key);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CString CSceneItemCustom::getString(const CString& key) const
+const CString& CSceneItemCustom::getString(const CString& key) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mInfo.getString(key);

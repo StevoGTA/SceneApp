@@ -4,10 +4,9 @@
 
 #pragma once
 
+#include "C2DGeometry.h"
 #include "CAction.h"
 #include "CSceneItem.h"
-
-#include "C2DGeometry.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemHotspot

@@ -109,7 +109,7 @@ void CSceneItemPlayerButtonArray::load(CGPU& gpu)
 				new CGPURenderObject2D(gpu, items,
 						TNArray<CGPUTextureReference>(
 								mInternals->mSceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
-										mInternals->mSceneAppResourceManagementInfo.createByteParceller(
+										mInternals->mSceneAppResourceManagementInfo.createDataSource(
 												getSceneItemButtonArray().getImageResourceFilename()),
 										CImage::getBitmap, getSceneItemButtonArray().getImageResourceFilename())));
 	}
