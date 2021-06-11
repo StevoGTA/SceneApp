@@ -33,18 +33,14 @@ struct STouchHandlerInfo {
 };
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc declarations
-
-static	I<CDataSource>	sCreateDataSource(const CString& resourceFilename, void* userData);
-
-//----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneAppPlayerInternals
 
 class CSceneAppPlayerInternals {
 	public:
 									CSceneAppPlayerInternals(CSceneAppPlayer& sceneAppPlayer, CGPU& gpu,
-												const CSceneAppPlayer::Procs& procs);
+												const CSceneAppPlayer::Procs& procs,
+												const SSceneAppResourceLoading& sceneAppResourceLoading);
 
 				void				handleTouchesBegan();
 				void				handleTouchesMoved();
@@ -75,7 +71,7 @@ class CSceneAppPlayerInternals {
 		CSceneAppPlayer&									mSceneAppPlayer;
 
 		CSceneAppPlayer::Procs								mSceneAppPlayerProcs;
-		SSceneAppResourceManagementInfo						mSceneAppResourceManagementInfo;
+		SSceneAppResourceLoading							mSceneAppResourceLoading;
 		CScenePlayer::Procs									mScenePlayerProcsInfo;
 		CSceneTransitionPlayer::Procs						mSceneTransitionPlayerProcs;
 
@@ -101,11 +97,11 @@ class CSceneAppPlayerInternals {
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneAppPlayerInternals::CSceneAppPlayerInternals(CSceneAppPlayer& sceneAppPlayer, CGPU& gpu,
-		const CSceneAppPlayer::Procs& procs) :
+		const CSceneAppPlayer::Procs& procs, const SSceneAppResourceLoading& sceneAppResourceLoading) :
 	mOptions(CSceneAppPlayer::kOptionsDefault), mGPU(gpu), mGPUTextureManager(gpu),
-			mSceneAppMediaEngine(mMessageQueues, CSceneAppMediaEngine::Info(sCreateDataSource, this)),
+			mSceneAppMediaEngine(mMessageQueues, sceneAppResourceLoading),
 			mSceneAppPlayer(sceneAppPlayer), mSceneAppPlayerProcs(procs),
-			mSceneAppResourceManagementInfo(sCreateDataSource, mGPUTextureManager, mSceneAppMediaEngine, this),
+			mSceneAppResourceLoading(sceneAppResourceLoading),
 			mScenePlayerProcsInfo(scenePlayerGetViewportSizeProc, scenePlayerCreateSceneItemPlayerProc,
 					scenePlayerActionsPerformProc, this),
 			mSceneTransitionPlayerProcs(scenePlayerGetViewportSizeProc, this),
@@ -573,10 +569,10 @@ void CSceneAppPlayerInternals::scenePlayerActionsPerformProc(const CActions& act
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneAppPlayer::CSceneAppPlayer(CGPU& gpu, const Procs& procs)
+CSceneAppPlayer::CSceneAppPlayer(CGPU& gpu, const Procs& procs, const SSceneAppResourceLoading& sceneAppResourceLoading)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneAppPlayerInternals(*this, gpu, procs);
+	mInternals = new CSceneAppPlayerInternals(*this, gpu, procs, sceneAppResourceLoading);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -613,8 +609,9 @@ void CSceneAppPlayer::loadScenes(const CScenePackage::Info& scenePackageInfo)
 
 	CDictionary	info =
 						*CBinaryPropertyList::dictionaryFrom(
-								mInternals->mSceneAppPlayerProcs.createDataSource(scenePackageInfo.mFilename))
-								.mDictionary;
+								mInternals->mSceneAppResourceLoading.createSeekableDataSource(
+										scenePackageInfo.mFilename))
+								.getValue();
 	mInternals->mOptions = (Options) info.getUInt64(CString(OSSTR("options")), kOptionsDefault);
 	mInternals->mScenePackage = CScenePackage(scenePackageInfo.mSize, info);
 
@@ -625,7 +622,9 @@ void CSceneAppPlayer::loadScenes(const CScenePackage::Info& scenePackageInfo)
 		// Create scene player
 		mInternals->mScenePlayers +=
 				CScenePlayer(mInternals->mScenePackage.getSceneAtIndex(i),
-						mInternals->mSceneAppResourceManagementInfo, mInternals->mScenePlayerProcsInfo);
+						SSceneAppResourceManagementInfo(mInternals->mGPUTextureManager,
+								mInternals->mSceneAppMediaEngine, mInternals->mSceneAppResourceLoading),
+						mInternals->mScenePlayerProcsInfo);
 
 	// Set initial scene
 	mInternals->setCurrentSceneIndex(mInternals->mScenePackage.getInitialSceneIndex());
@@ -910,10 +909,24 @@ void CSceneAppPlayer::setCurrent(CSceneTransitionPlayer* sceneTransitionPlayer, 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const SSceneAppResourceManagementInfo& CSceneAppPlayer::getSceneAppResourceManagementInfo() const
+const SSceneAppResourceLoading& CSceneAppPlayer::getSceneAppResourceLoading() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return mInternals->mSceneAppResourceManagementInfo;
+	return mInternals->mSceneAppResourceLoading;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+CGPUTextureManager& CSceneAppPlayer::getGPUTextureManager() const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	return mInternals->mGPUTextureManager;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+CSceneAppMediaEngine& CSceneAppPlayer::getSceneAppMediaEngine() const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	return mInternals->mSceneAppMediaEngine;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -928,17 +941,4 @@ CScenePlayer& CSceneAppPlayer::getCurrentScenePlayer() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return *mInternals->mCurrentScenePlayer;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc definitions
-
-//----------------------------------------------------------------------------------------------------------------------
-I<CDataSource> sCreateDataSource(const CString& resourceFilename, void* userData)
-{
-	// Setup
-	CSceneAppPlayerInternals*	sceneAppPlayerInternals = (CSceneAppPlayerInternals*) userData;
-
-	return sceneAppPlayerInternals->mSceneAppPlayerProcs.createDataSource(resourceFilename);
 }

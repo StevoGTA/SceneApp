@@ -14,6 +14,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SceneAppViewController : NSViewController
 
+// MARK: Types
+typedef CSceneAppPlayer*	_Nonnull	(^CreateSceneAppPlayerProc)(CGPU& gpu, const CSceneAppPlayer::Procs& procs,
+												const SSceneAppResourceLoading& sceneAppResourceLoading);
+
 // MARK: Properties
 @property (nonatomic, readonly)			CSceneAppPlayer&	sceneAppPlayer;
 
@@ -31,9 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
 		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder;
 - (void) loadScenesFrom:(const CScenePackage::Info&) scenePackageInfo
 		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
-		sceneAppPlayerCreationProc:
-				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const CSceneAppPlayer::Procs& procs))
-						sceneAppPlayerCreationProc;
+		sceneAppPlayerCreationProc:(nullable CreateSceneAppPlayerProc) sceneAppPlayerCreationProc;
 
 @end
 

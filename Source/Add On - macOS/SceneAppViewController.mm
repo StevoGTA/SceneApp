@@ -12,11 +12,13 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local proc declarations
 
-static	I<CDataSource>	sSceneAppPlayerCreateDataSource(const CString& resourceFilename, void* userData);
-static	void			sSceneAppInstallPeriodic(void* userData);
-static	void			sSceneAppRemovePeriodic(void* userData);
-static	void			sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData);
-static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
+static	I<CDataSource>			sSceneAppPlayerCreateDataSource(const CString& resourceFilename, void* userData);
+static	I<CSeekableDataSource>	sSceneAppPlayerCreateSeekableDataSource(const CString& resourceFilename,
+										void* userData);
+static	void					sSceneAppInstallPeriodic(void* userData);
+static	void					sSceneAppRemovePeriodic(void* userData);
+static	void					sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData);
+static	void					sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
 										void* userData);
 //static	CImageX	sSceneAppPlayerGetCurrentViewportImage(void* userData);
 
@@ -175,9 +177,7 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 //----------------------------------------------------------------------------------------------------------------------
 - (void) loadScenesFrom:(const CScenePackage::Info&) scenePackageInfo
 		sceneAppContentFolder:(const CFolder&) sceneAppContentFolder
-		sceneAppPlayerCreationProc:
-				(nullable CSceneAppPlayer* (^)(CGPU& gpu, const CSceneAppPlayer::Procs& procs))
-						sceneAppPlayerCreationProc
+		sceneAppPlayerCreationProc:(nullable CreateSceneAppPlayerProc) sceneAppPlayerCreationProc
 {
 	// Cleanup
 	Delete(self.sceneAppContentRootFilesystemPath);
@@ -188,13 +188,15 @@ static	void			sSceneAppPlayerHandleCommand(const CString& command, const CDictio
 	self.sceneAppContentRootFilesystemPath = new CFilesystemPath(sceneAppContentFolder.getFilesystemPath());
 
 	// Setup Scene App Player
-	CGPU&					gpu = ((NSView<AKTGPUView>*) self.view).gpu;
-	CSceneAppPlayer::Procs	procs(sSceneAppPlayerCreateDataSource, sSceneAppInstallPeriodic,
-									sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL, sSceneAppPlayerHandleCommand,
-									(__bridge void*) self);
+	CGPU&						gpu = ((NSView<AKTGPUView>*) self.view).gpu;
+	CSceneAppPlayer::Procs		procs(sSceneAppInstallPeriodic, sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL,
+										sSceneAppPlayerHandleCommand, (__bridge void*) self);
+	SSceneAppResourceLoading	sceneAppResourceLoading(sSceneAppPlayerCreateDataSource,
+										sSceneAppPlayerCreateSeekableDataSource, (__bridge void*) self);
 	self.sceneAppPlayerInternal =
 			(sceneAppPlayerCreationProc != nil) ?
-					sceneAppPlayerCreationProc(gpu, procs) : new CSceneAppPlayer(gpu, procs);
+					sceneAppPlayerCreationProc(gpu, procs, sceneAppResourceLoading) :
+					new CSceneAppPlayer(gpu, procs, sceneAppResourceLoading);
 
 	// Load scenes
 	self.sceneAppPlayerInternal->loadScenes(scenePackageInfo);
@@ -268,6 +270,19 @@ I<CDataSource> sSceneAppPlayerCreateDataSource(const CString& resourceFilename, 
 	SceneAppViewController*	sceneAppViewController = (__bridge SceneAppViewController*) userData;
 
 	return I<CDataSource>(
+			new CMappedFileDataSource(
+					CFile(
+							sceneAppViewController.sceneAppContentRootFilesystemPath->appendingComponent(
+									resourceFilename))));
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+I<CSeekableDataSource> sSceneAppPlayerCreateSeekableDataSource(const CString& resourceFilename, void* userData)
+{
+	// Setup
+	SceneAppViewController*	sceneAppViewController = (__bridge SceneAppViewController*) userData;
+
+	return I<CSeekableDataSource>(
 			new CMappedFileDataSource(
 					CFile(
 							sceneAppViewController.sceneAppContentRootFilesystemPath->appendingComponent(

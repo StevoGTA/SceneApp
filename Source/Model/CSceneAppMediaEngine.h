@@ -8,6 +8,7 @@
 #include "CMediaEngine.h"
 #include "CMediaPlayer.h"
 #include "CNotificationCenter.h"
+#include "SSceneAppResourceLoading.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneAppMediaEngine
@@ -25,31 +26,9 @@ class CSceneAppMediaEngine : public CMediaEngine {
 //			kAudioOptionsLoadIntoMemory				= 1 << 2,
 //		};
 //
-	// Procs
-	public:
-		typedef	I<CDataSource>	(*CreateDataSourceProc)(const CString& resourceFilename, void* userData);
 
 	// Structs
 	public:
-		struct Info {
-							// Lifecycle methods
-							Info(CreateDataSourceProc createDataSourceProc, void* userData) :
-								mCreateDataSourceProc(createDataSourceProc), mUserData(userData)
-								{}
-							Info(const Info& other) :
-								mCreateDataSourceProc(other.mCreateDataSourceProc), mUserData(other.mUserData)
-								{}
-
-							// Instance methods
-			I<CDataSource>	createDataSource(const CString& resourceFilename) const
-								{ return mCreateDataSourceProc(resourceFilename, mUserData); }
-
-			// Properties
-			private:
-				CreateDataSourceProc	mCreateDataSourceProc;
-				void*					mUserData;
-		};
-
 		struct VideoInfo {
 			// Lifecycle methods
 			VideoInfo(const CString& filename) : mFilename(filename) {}
@@ -61,7 +40,8 @@ class CSceneAppMediaEngine : public CMediaEngine {
 	// Methods
 	public:
 							// Lifecycle methods
-							CSceneAppMediaEngine(CSRSWMessageQueues& messageQueues, const Info& info);
+							CSceneAppMediaEngine(CSRSWMessageQueues& messageQueues,
+									const SSceneAppResourceLoading& sceneAppResourceLoading);
 							~CSceneAppMediaEngine();
 
 							// Instance methods

@@ -6,8 +6,8 @@
 
 #include "CAction.h"
 #include "CGPURenderObject.h"
-#include "CSceneApp.h"
 #include "CSceneItem.h"
+#include "SSceneAppResourceManagementInfo.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemPlayer

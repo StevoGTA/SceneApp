@@ -14,15 +14,16 @@ class CSceneItemPlayerVideoInternals {
 						CSceneItemPlayerVideoInternals(CSceneItemPlayerVideo& sceneItemPlayerVideo,
 								const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
 							mSceneItemPlayerVideo(sceneItemPlayerVideo),
-									mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo), mIsStarted(false),
-									mCurrentTimeInterval(0.0)
+									mGPUTextureManager(sceneAppResourceManagementInfo.mGPUTextureManager),
+									mSceneAppMediaEngine(sceneAppResourceManagementInfo.mSceneAppMediaEngine),
+									mIsStarted(false), mCurrentTimeInterval(0.0)
 							{}
 
 				void	load(const CString& resourceFilename)
 							{
 								// Setup media player
 								mMediaPlayer =
-										mSceneAppResourceManagementInfo.mSceneAppMediaEngine.getMediaPlayer(
+										mSceneAppMediaEngine.getMediaPlayer(
 												CSceneAppMediaEngine::VideoInfo(resourceFilename),
 												mGPU->getVideoCodecDecodeFrameInfoCompatibility(),
 												CVideoDecoder::RenderInfo(
@@ -42,8 +43,7 @@ class CSceneItemPlayerVideoInternals {
 								for (CArray::ItemIndex i = 0; i < textures.getCount(); i++)
 									// Add texture reference
 									gpuTextureReferences +=
-											internals.mSceneAppResourceManagementInfo.mGPUTextureManager
-													.gpuTextureReference(textures[i]);
+											internals.mGPUTextureManager.gpuTextureReference(textures[i]);
 
 								// Create Render Object 2D
 								const	S2DSizeU16&	frameSize = videoFrame.getFrameSize();
@@ -90,16 +90,17 @@ class CSceneItemPlayerVideoInternals {
 									internals.mSceneItemPlayerVideo.perform(*actions);
 							}
 
-				CSceneItemPlayerVideo&				mSceneItemPlayerVideo;
-		const	SSceneAppResourceManagementInfo&	mSceneAppResourceManagementInfo;
+		CSceneItemPlayerVideo&	mSceneItemPlayerVideo;
+		CGPUTextureManager&		mGPUTextureManager;
+		CSceneAppMediaEngine&	mSceneAppMediaEngine;
 
-				OI<CMediaPlayer>					mMediaPlayer;
-				OR<CGPU>							mGPU;
-				OI<CGPURenderObject2D>				mRenderObject2D;
+		OI<CMediaPlayer>		mMediaPlayer;
+		OR<CGPU>				mGPU;
+		OI<CGPURenderObject2D>	mRenderObject2D;
 
-				bool								mIsStarted;
-//				bool								mIsFinished;
-				UniversalTimeInterval				mCurrentTimeInterval;
+		bool					mIsStarted;
+//		bool					mIsFinished;
+		UniversalTimeInterval	mCurrentTimeInterval;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

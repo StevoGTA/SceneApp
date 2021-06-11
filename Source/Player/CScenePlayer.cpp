@@ -60,16 +60,17 @@ class CScenePlayerInternals : public TReferenceCountable<CScenePlayerInternals> 
 												internals->mScenePlayerProcsInfo.performActions(actions, point);
 											}
 
+		const	CScene&									mScene;
+				SSceneAppResourceManagementInfo			mSceneAppResourceManagementInfo;
+		const	CScenePlayer::Procs&					mScenePlayerProcsInfo;
+				CScenePlayer&							mScenePlayer;
+
 				bool									mIsLoaded;
 				bool									mIsRunning;
 				TReferenceDictionary<CSceneItemPlayer>	mTouchHandlingInfo;
-		const	CScene&									mScene;
-				CScenePlayer&							mScenePlayer;
 				S2DPointF32								mInitialTouchPoint;
 				S2DOffsetF32							mCurrentOffset;
-		const	SSceneAppResourceManagementInfo&		mSceneAppResourceManagementInfo;
 				CSceneItemPlayer::Procs					mSceneItemPlayerProcsInfo;
-		const	CScenePlayer::Procs&					mScenePlayerProcsInfo;
 				TIArray<CSceneItemPlayer>				mSceneItemPlayers;
 };
 

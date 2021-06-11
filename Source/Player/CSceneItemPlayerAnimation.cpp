@@ -35,7 +35,8 @@ class CSceneItemPlayerAnimationInternals {
 		CSceneItemPlayerAnimationInternals(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
 				const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
 			mSceneItemPlayerAnimation(sceneItemPlayerAnimation),
-					mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo), mKeyframeAnimationPlayer(nil),
+					mSceneAppMediaEngine(sceneAppResourceManagementInfo.mSceneAppMediaEngine),
+					mKeyframeAnimationPlayer(nil),
 					mIsStarted(false), mCurrentTimeInterval(0.0), mSceneItemPlayerAnimationProcs(nil),
 //					mCelAnimationPlayerProcsInfo(sCelAnimationPlayerGetFinishedActionProc, nil,
 //							sCelAnimationPlayerFinishedProc, nil, this),
@@ -49,7 +50,7 @@ class CSceneItemPlayerAnimationInternals {
 			}
 
 				CSceneItemPlayerAnimation&			mSceneItemPlayerAnimation;
-		const	SSceneAppResourceManagementInfo&	mSceneAppResourceManagementInfo;
+				CSceneAppMediaEngine&				mSceneAppMediaEngine;
 
 //				CCelAnimationPlayer*				mCelAnimationPlayer;
 				CKeyframeAnimationPlayer*			mKeyframeAnimationPlayer;
@@ -129,8 +130,7 @@ void CSceneItemPlayerAnimation::load(CGPU& gpu)
 	const	OI<CAudioInfo>&	audioInfo = sceneItemAnimation.getAudioInfo();
 	if (audioInfo.hasInstance())
 		// Setup media player
-		mInternals->mMediaPlayer =
-				mInternals->mSceneAppResourceManagementInfo.mSceneAppMediaEngine.getMediaPlayer(*audioInfo);
+		mInternals->mMediaPlayer = mInternals->mSceneAppMediaEngine.getMediaPlayer(*audioInfo);
 
 	// Do super
 	CSceneItemPlayer::load(gpu);

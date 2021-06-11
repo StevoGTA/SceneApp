@@ -11,6 +11,7 @@
 #include "CSceneItemPlayer.h"
 #include "CSceneTransitionPlayer.h"
 #include "CURL.h"
+#include "SSceneAppResourceLoading.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneAppPlayer
@@ -24,14 +25,14 @@ class CSceneAppPlayer {
 			//------------------------------------------------------------------------------------------------------------------
 			// Options are loaded from the scenes file, but can be set interactively as well
 
-			//------------------------------------------------------------------------------------------------------------------
+			//----------------------------------------------------------------------------------------------------------
 			// Default
 			kOptionsDefault					= 0,
 
-			//------------------------------------------------------------------------------------------------------------------
+			//----------------------------------------------------------------------------------------------------------
 			// Touch handling
-			// Use Multiple Individual Touches for cases where you want to be able to track touches on multiple scene items
-			//	simultaneously
+			// Use Multiple Individual Touches for cases where you want to be able to track touches on multiple scene
+			//	items simultaneously
 			// Use Last Single Touch Only for cases where you...
 			//	a) only want a single touch => set the view to only accept single touches
 			//	b) want to track the last single touch => set the view to accept multiple touches
@@ -39,7 +40,7 @@ class CSceneAppPlayer {
 			kOptionsLastSingleTouchOnly			= 1 << 0,
 			kOptionsTouchHandlingMask			= 1 << 0,
 
-		//	//------------------------------------------------------------------------------------------------------------------
+		//	//----------------------------------------------------------------------------------------------------------
 		//	// MARK: Graphics
 		//	kOptionsMapRGB888ToRGBA8888			= 0,
 		//	kOptionsMapRGB888ToRGB565			= 1 << 8,
@@ -144,99 +145,96 @@ class CSceneAppPlayer {
 
 		struct Procs {
 			// Procs
-			typedef	I<CDataSource>	(*CreateDataSourceProc)(const CString& resourceFilename, void* userData);
-			typedef	void			(*InstallPeriodicProc)(void* userData);
-			typedef	void			(*RemovePeriodicProc)(void* userData);
-			typedef	void			(*OpenURLProc)(const CURL& url, bool useWebView, void* userData);
-			typedef	void			(*HandleCommandProc)(const CString& command, const CDictionary& commandInfo,
-											void* userData);
+			typedef	void	(*InstallPeriodicProc)(void* userData);
+			typedef	void	(*RemovePeriodicProc)(void* userData);
+			typedef	void	(*OpenURLProc)(const CURL& url, bool useWebView, void* userData);
+			typedef	void	(*HandleCommandProc)(const CString& command, const CDictionary& commandInfo,
+									void* userData);
 
-							// Lifecycle methods
-							Procs(CreateDataSourceProc createDataSourceProc,
-									InstallPeriodicProc installPeriodicProc, RemovePeriodicProc removePeriodicProc,
-									OpenURLProc openURLProc, HandleCommandProc handleCommandProc, void* userData) :
-								mCreateDataSourceProc(createDataSourceProc),
-										mInstallPeriodicProc(installPeriodicProc),
-										mRemovePeriodicProc(removePeriodicProc), mOpenURLProc(openURLProc),
-										mHandleCommandProc(handleCommandProc), mUserData(userData)
-								{}
+					// Lifecycle methods
+					Procs(InstallPeriodicProc installPeriodicProc,
+							RemovePeriodicProc removePeriodicProc,
+							OpenURLProc openURLProc, HandleCommandProc handleCommandProc,
+							void* userData) :
+						mInstallPeriodicProc(installPeriodicProc), mRemovePeriodicProc(removePeriodicProc),
+								mOpenURLProc(openURLProc), mHandleCommandProc(handleCommandProc), mUserData(userData)
+						{}
 
-							// Instance methods
-			I<CDataSource>	createDataSource(const CString& resourceFilename) const
-								{ return mCreateDataSourceProc(resourceFilename, mUserData); }
-			void			installPeriodic() const
-								{ mInstallPeriodicProc(mUserData); }
-			void			removePeriodic() const
-								{ mRemovePeriodicProc(mUserData); }
-			void			openURL(const CURL& url, bool useWebView) const
-								{ mOpenURLProc(url, useWebView, mUserData); }
-			void			handleCommand(const CString& command, const CDictionary& commandInfo) const
-								{ if (mHandleCommandProc != nil) mHandleCommandProc(command, commandInfo, mUserData); }
+					// Instance methods
+			void	installPeriodic() const
+						{ mInstallPeriodicProc(mUserData); }
+			void	removePeriodic() const
+						{ mRemovePeriodicProc(mUserData); }
+			void	openURL(const CURL& url, bool useWebView) const
+						{ mOpenURLProc(url, useWebView, mUserData); }
+			void	handleCommand(const CString& command, const CDictionary& commandInfo) const
+						{ mHandleCommandProc(command, commandInfo, mUserData); }
 
 			// Properties
 			private:
-				CreateDataSourceProc	mCreateDataSourceProc;
-				InstallPeriodicProc		mInstallPeriodicProc;
-				RemovePeriodicProc		mRemovePeriodicProc;
-				OpenURLProc				mOpenURLProc;
-				HandleCommandProc		mHandleCommandProc;
-				void*					mUserData;
+				InstallPeriodicProc	mInstallPeriodicProc;
+				RemovePeriodicProc	mRemovePeriodicProc;
+				OpenURLProc			mOpenURLProc;
+				HandleCommandProc	mHandleCommandProc;
+				void*				mUserData;
 		};
 
 	// Methods
 	public:
-															// Lifecycle methods
-															CSceneAppPlayer(CGPU& gpu, const Procs& procs);
-		virtual												~CSceneAppPlayer();
+														// Lifecycle methods
+														CSceneAppPlayer(CGPU& gpu, const Procs& procs,
+																const SSceneAppResourceLoading&
+																		sceneAppResourceLoading);
+		virtual											~CSceneAppPlayer();
 
-															// Instance methods
-						Options								getOptions() const;
-						void								setOptions(Options options);
+														// Instance methods
+						Options							getOptions() const;
+						void							setOptions(Options options);
 
-						void								loadScenes(const CScenePackage::Info& scenePackageInfo);
+						void							loadScenes(const CScenePackage::Info& scenePackageInfo);
 
-						void								start(bool loadAllTextures = false);
-						void								stop(bool unloadAllTextures = false);
-						void								handlePeriodic(UniversalTimeInterval outputTime);
+						void							start(bool loadAllTextures = false);
+						void							stop(bool unloadAllTextures = false);
+						void							handlePeriodic(UniversalTimeInterval outputTime);
 
-						void								mouseDown(const MouseDownInfo& mouseDownInfo);
-						void								mouseDragged(const MouseDraggedInfo& mouseDraggedInfo);
-						void								mouseUp(const MouseUpInfo& mouseUpInfo);
-						void								mouseCancelled(
-																	const MouseCancelledInfo& mouseCancelledInfo);
+						void							mouseDown(const MouseDownInfo& mouseDownInfo);
+						void							mouseDragged(const MouseDraggedInfo& mouseDraggedInfo);
+						void							mouseUp(const MouseUpInfo& mouseUpInfo);
+						void							mouseCancelled(const MouseCancelledInfo& mouseCancelledInfo);
 
-						void								touchesBegan(
-																	const TArray<TouchBeganInfo>& touchBeganInfosArray);
-						void								touchesMoved(
-																	const TArray<TouchMovedInfo>& touchMovedInfosArray);
-						void								touchesEnded(
-																	const TArray<TouchEndedInfo>& touchEndedInfosArray);
-						void								touchesCancelled(
-																	const TArray<TouchCancelledInfo>&
-																			touchCancelledInfosArray);
+						void							touchesBegan(
+																const TArray<TouchBeganInfo>& touchBeganInfosArray);
+						void							touchesMoved(
+																const TArray<TouchMovedInfo>& touchMovedInfosArray);
+						void							touchesEnded(
+																const TArray<TouchEndedInfo>& touchEndedInfosArray);
+						void							touchesCancelled(
+																const TArray<TouchCancelledInfo>&
+																		touchCancelledInfosArray);
 
-						void								shakeBegan();
-						void								shakeEnded();
-						void								shakeCancelled();
+						void							shakeBegan();
+						void							shakeEnded();
+						void							shakeCancelled();
 
-															// Subclass methods
-		virtual			CSceneItemPlayer*					createSceneItemPlayer(
-																	const CSceneItemCustom& sceneItemCustom,
-																	const SSceneAppResourceManagementInfo&
-																			sceneAppResourceManagementInfo,
-																	const CSceneItemPlayer::Procs& procs) const;
-		virtual			void								performAction(const CAction& action,
-																	const S2DPointF32& point = S2DPointF32());
-		virtual			OV<CScene::Index>					getSceneIndex(const CAction& action) const;
+														// Subclass methods
+		virtual			CSceneItemPlayer*				createSceneItemPlayer(const CSceneItemCustom& sceneItemCustom,
+																const SSceneAppResourceManagementInfo&
+																		sceneAppResourceManagementInfo,
+																const CSceneItemPlayer::Procs& procs) const;
+		virtual			void							performAction(const CAction& action,
+																const S2DPointF32& point = S2DPointF32());
+		virtual			OV<CScene::Index>				getSceneIndex(const CAction& action) const;
 
-						CScenePlayer&						loadAndStartScenePlayer(CScene::Index sceneIndex) const;
-						void								setCurrent(CSceneTransitionPlayer* sceneTransitionPlayer,
-																	CScene::Index sceneIndex);
+						CScenePlayer&					loadAndStartScenePlayer(CScene::Index sceneIndex) const;
+						void							setCurrent(CSceneTransitionPlayer* sceneTransitionPlayer,
+																CScene::Index sceneIndex);
 
 	protected:
-				const	SSceneAppResourceManagementInfo&	getSceneAppResourceManagementInfo() const;
-				const	CSceneTransitionPlayer::Procs&		getSceneTransitionPlayerProcs() const;
-						CScenePlayer&						getCurrentScenePlayer() const;
+				const	SSceneAppResourceLoading&		getSceneAppResourceLoading() const;
+						CGPUTextureManager&				getGPUTextureManager() const;
+						CSceneAppMediaEngine&			getSceneAppMediaEngine() const;
+				const	CSceneTransitionPlayer::Procs&	getSceneTransitionPlayerProcs() const;
+						CScenePlayer&					getCurrentScenePlayer() const;
 
 	// Properties
 	private:

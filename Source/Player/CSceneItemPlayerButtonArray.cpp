@@ -13,21 +13,22 @@
 class CSceneItemPlayerButtonArrayInternals {
 	public:
 		CSceneItemPlayerButtonArrayInternals(const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
-			mGPURenderObject2D(nil), mActiveButtonDown(false),
-					mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo)
+			mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
+					mGPURenderObject2D(nil),
+					mActiveButtonDown(false)
 			{}
 		~CSceneItemPlayerButtonArrayInternals()
 			{
 				Delete(mGPURenderObject2D);
 			}
 
-				CGPURenderObject2D*					mGPURenderObject2D;
+		SSceneAppResourceManagementInfo	mSceneAppResourceManagementInfo;
 
-				OR<CSceneItemButtonArrayButton>		mActiveButton;
-				bool								mActiveButtonDown;
-				S2DRectF32							mActiveButtonScreenRect;
+		CGPURenderObject2D*				mGPURenderObject2D;
 
-		const	SSceneAppResourceManagementInfo&	mSceneAppResourceManagementInfo;
+		OR<CSceneItemButtonArrayButton>	mActiveButton;
+		bool							mActiveButtonDown;
+		S2DRectF32						mActiveButtonScreenRect;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

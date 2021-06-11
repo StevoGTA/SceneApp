@@ -24,7 +24,7 @@ class CSceneItemPlayerButtonInternals {
 				CSceneItemPlayerButtonInternals(CSceneItemPlayerButton& sceneItemPlayerButton,
 						const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
 					mSceneItemPlayerButton(sceneItemPlayerButton),
-							mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo), mIsEnabled(true),
+							mSceneAppMediaEngine(sceneAppResourceManagementInfo.mSceneAppMediaEngine), mIsEnabled(true),
 							mUpKeyframeAnimationPlayer(nil), mDownKeyframeAnimationPlayer(nil),
 							mDisabledKeyframeAnimationPlayer(nil), mCurrentKeyframeAnimationPlayer(nil),
 							mKeyframeAnimationPlayerProcsInfo(sKeyframeAnimationPlayerShouldLoopProc, nil, nil,
@@ -59,18 +59,18 @@ class CSceneItemPlayerButtonInternals {
 						}
 					}
 
-				CSceneItemPlayerButton&				mSceneItemPlayerButton;
-		const	SSceneAppResourceManagementInfo&	mSceneAppResourceManagementInfo;
+				CSceneItemPlayerButton&			mSceneItemPlayerButton;
+				CSceneAppMediaEngine&			mSceneAppMediaEngine;
 
-				bool								mIsEnabled;
-				OI<CMediaPlayer>					mMediaPlayer;
+				bool							mIsEnabled;
+				OI<CMediaPlayer>				mMediaPlayer;
 
-				CKeyframeAnimationPlayer*			mUpKeyframeAnimationPlayer;
-				CKeyframeAnimationPlayer*			mDownKeyframeAnimationPlayer;
-				CKeyframeAnimationPlayer*			mDisabledKeyframeAnimationPlayer;
-				CKeyframeAnimationPlayer*			mCurrentKeyframeAnimationPlayer;
+				CKeyframeAnimationPlayer*		mUpKeyframeAnimationPlayer;
+				CKeyframeAnimationPlayer*		mDownKeyframeAnimationPlayer;
+				CKeyframeAnimationPlayer*		mDisabledKeyframeAnimationPlayer;
+				CKeyframeAnimationPlayer*		mCurrentKeyframeAnimationPlayer;
 
-				CKeyframeAnimationPlayer::Procs		mKeyframeAnimationPlayerProcsInfo;
+				CKeyframeAnimationPlayer::Procs	mKeyframeAnimationPlayerProcsInfo;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -143,8 +143,7 @@ void CSceneItemPlayerButton::load(CGPU& gpu)
 	const	OI<CAudioInfo>&	audioInfo = sceneItemButton.getAudioInfo();
 	if (audioInfo.hasInstance())
 		// Setup CMediaPlayer
-		mInternals->mMediaPlayer =
-				mInternals->mSceneAppResourceManagementInfo.mSceneAppMediaEngine.getMediaPlayer(*audioInfo);
+		mInternals->mMediaPlayer = mInternals->mSceneAppMediaEngine.getMediaPlayer(*audioInfo);
 
 	// Load animations
 	if (mInternals->mUpKeyframeAnimationPlayer != nil)

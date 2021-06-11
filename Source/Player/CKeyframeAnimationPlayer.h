@@ -6,7 +6,7 @@
 
 #include "CGPURenderObject.h"
 #include "CKeyframeAnimationInfo.h"
-#include "CSceneApp.h"
+#include "SSceneAppResourceManagementInfo.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CKeyframeAnimationPlayer

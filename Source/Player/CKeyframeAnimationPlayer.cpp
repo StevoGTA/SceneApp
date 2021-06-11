@@ -238,12 +238,14 @@ class CKeyframeAnimationPlayerInternals {
 			{}
 
 		const	CKeyframeAnimationInfo&						mKeyframeAnimationInfo;
+				SSceneAppResourceManagementInfo				mSceneAppResourceManagementInfo;
+		const	CKeyframeAnimationPlayer::Procs&			mKeyframeAnimationPlayerProcsInfo;
+				OV<UniversalTimeInterval>					mStartTimeInterval;
 
 				bool										mIsStarted;
 				bool										mIsFinished;
 				UniversalTimeInterval						mCurrentTimeInterval;
 				UniversalTimeInterval						mCurrentFrameTimeInterval;
-				OV<UniversalTimeInterval>					mStartTimeInterval;
 				UInt32										mCurrentLoopCount;
 
 				OR<CKeyframeAnimationPlayerKeyframe>		mPreviousPlayerKeyframe;
@@ -251,9 +253,6 @@ class CKeyframeAnimationPlayerInternals {
 				TIArray<CKeyframeAnimationPlayerKeyframe>	mKeyframeAnimationPlayerKeyframes;
 
 				OR<bool>									mHasBeenDeleted;
-
-		const	SSceneAppResourceManagementInfo&			mSceneAppResourceManagementInfo;
-		const	CKeyframeAnimationPlayer::Procs&			mKeyframeAnimationPlayerProcsInfo;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
