@@ -56,11 +56,7 @@ static	void					sSceneAppPlayerHandleCommand(const CString& command, const CDict
 + (TArray<CScenePackage::Info>) scenePackageInfosIn:(const CFolder&) folder
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Get files in folder
-	TNArray<CFile>	files;
-	CFilesystem::getFiles(folder, files);
-
-	return CScenePackage::getScenePackageInfos(files);
+	return CScenePackage::getScenePackageInfos(*CFilesystem::getFiles(folder).getValue());
 }
 
 // MARK: Lifecycle methods

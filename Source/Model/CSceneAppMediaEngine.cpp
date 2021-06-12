@@ -7,8 +7,7 @@
 #include "CAudioDecoder.h"
 #include "CDictionary.h"
 #include "CFilesystemPath.h"
-#include "CMPEG4MediaSource.h"
-#include "CWAVEMediaSource.h"
+#include "CMediaSourceRegistry.h"
 
 #if TARGET_OS_IOS || TARGET_OS_MACOS || TARGET_OS_TVOS
 	#include "CCoreAudioAudioConverter.h"
@@ -139,30 +138,14 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const CAudioInfo& audioInf
 		return OI<CMediaPlayer>(
 				new CSceneAppMediaPlayerReference(mInternals->mMessageQueues, info, *sceneAppMediaPlayerReference));
 
-	// Create media source
-	I<CSeekableDataSource>	seekableDataSource =
-									mInternals->mSSceneAppResourceLoading.createSeekableDataSource(resourceFilename);
-	OI<CMediaSource>		mediaSource;
-	CString					extension = CFilesystemPath(resourceFilename).getExtension();
-	if (extension == CString(OSSTR("m4a")))
-		// MPEG-4 Audio
-		mediaSource = OI<CMediaSource>(new CMPEG4MediaSource(seekableDataSource));
-	else if (extension == CString(OSSTR("wav")))
-		// WAVE
-		mediaSource = OI<CMediaSource>(new CWAVEMediaSource(seekableDataSource));
-	else {
-		// Unimplemented
-		AssertFailUnimplemented();
-
-		return OI<CMediaPlayer>();
-	}
-
-	// Load tracks
-	OI<SError>			error = mediaSource->loadTracks();
-	ReturnValueIfError(error, OI<CMediaPlayer>());
-
-	// Retrieve audio tracks
-	TArray<CAudioTrack>	audioTracks = mediaSource->getAudioTracks();
+	// Query tracks
+			CString					extension = CFilesystemPath(resourceFilename).getExtension();
+			I<CSeekableDataSource>	seekableDataSource =
+											mInternals->mSSceneAppResourceLoading.createSeekableDataSource(
+													resourceFilename);
+			TIResult<SMediaTracks>	mediaTracks =
+											CMediaSourceRegistry::mShared.queryTracks(extension, seekableDataSource);
+	const	TArray<CAudioTrack>&	audioTracks = mediaTracks.getValue()->getAudioTracks();
 
 	// Setup Media Player
 	CSceneAppMediaPlayer*	sceneAppMediaPlayer =
@@ -208,28 +191,14 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const VideoInfo& videoInfo
 	// Setup
 	const	CString&	filename = videoInfo.mFilename;
 
-	// Create media source
-	I<CSeekableDataSource>	seekableDataSource =
-									mInternals->mSSceneAppResourceLoading.createSeekableDataSource(filename);
-	OI<CMediaSource>		mediaSource;
-	CString					extension = CFilesystemPath(filename).getExtension();
-	if (extension == CString(OSSTR("m4v")))
-		// MPEG-4 Video
-		mediaSource = OI<CMediaSource>(new CMPEG4MediaSource(seekableDataSource));
-	else {
-		// Unimplemented
-		AssertFailUnimplemented();
-
-		return OI<CMediaPlayer>();
-	}
-
-	// Load tracks
-	OI<SError>			error = mediaSource->loadTracks();
-	ReturnValueIfError(error, OI<CMediaPlayer>());
-
-	// Retrieve tracks
-	TArray<CAudioTrack>	audioTracks = mediaSource->getAudioTracks();
-	TArray<CVideoTrack>	videoTracks = mediaSource->getVideoTracks();
+	// Query tracks
+			CString					extension = CFilesystemPath(filename).getExtension();
+			I<CSeekableDataSource>	seekableDataSource =
+											mInternals->mSSceneAppResourceLoading.createSeekableDataSource(filename);
+			TIResult<SMediaTracks>	mediaTracks =
+											CMediaSourceRegistry::mShared.queryTracks(extension, seekableDataSource);
+	const	TArray<CAudioTrack>&	audioTracks = mediaTracks.getValue()->getAudioTracks();
+	const	TArray<CVideoTrack>&	videoTracks = mediaTracks.getValue()->getVideoTracks();
 
 	// Setup Media Player
 	CSceneAppMediaPlayer*	sceneAppMediaPlayer =
