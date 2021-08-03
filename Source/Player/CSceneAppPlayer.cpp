@@ -608,7 +608,7 @@ void CSceneAppPlayer::loadScenes(const CScenePackage::Info& scenePackageInfo)
 #endif
 
 	CDictionary	info =
-						*CBinaryPropertyList::dictionaryFrom(
+						CBinaryPropertyList::dictionaryFrom(
 								mInternals->mSceneAppResourceLoading.createSeekableDataSource(
 										scenePackageInfo.mFilename))
 								.getValue();

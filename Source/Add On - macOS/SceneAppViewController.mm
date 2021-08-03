@@ -50,7 +50,7 @@ static	void					sSceneAppPlayerHandleCommand(const CString& command, const CDict
 + (TArray<CScenePackage::Info>) scenePackageInfosIn:(const CFolder&) folder
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return CScenePackage::getScenePackageInfos(*CFilesystem::getFiles(folder).getValue());
+	return CScenePackage::getScenePackageInfos(CFilesystem::getFiles(folder).getValue());
 }
 
 // MARK: Lifecycle methods

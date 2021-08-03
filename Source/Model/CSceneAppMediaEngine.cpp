@@ -138,14 +138,18 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const CAudioInfo& audioInf
 		return OI<CMediaPlayer>(
 				new CSceneAppMediaPlayerReference(mInternals->mMessageQueues, info, *sceneAppMediaPlayerReference));
 
-	// Query tracks
-			CString					extension = CFilesystemPath(resourceFilename).getExtension();
-			I<CSeekableDataSource>	seekableDataSource =
-											mInternals->mSSceneAppResourceLoading.createSeekableDataSource(
-													resourceFilename);
-			TIResult<SMediaTracks>	mediaTracks =
-											CMediaSourceRegistry::mShared.queryTracks(extension, seekableDataSource);
-	const	TArray<CAudioTrack>&	audioTracks = mediaTracks.getValue()->getAudioTracks();
+	// Query audio tracks
+			I<CSeekableDataSource>							seekableDataSource =
+																	mInternals->mSSceneAppResourceLoading
+																			.createSeekableDataSource(resourceFilename);
+			CString											extension =
+																	CFilesystemPath(resourceFilename).getExtension();
+			TIResult<CMediaSourceRegistry::IdentifyInfo>	identifyInfo =
+																	CMediaSourceRegistry::mShared.identify(
+																			seekableDataSource, extension);
+	const	TArray<CAudioTrack>&							audioTracks =
+																	identifyInfo.getValue().getMediaTracks()
+																			.getAudioTracks();
 
 	// Setup Media Player
 	CSceneAppMediaPlayer*	sceneAppMediaPlayer =
@@ -192,13 +196,19 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const VideoInfo& videoInfo
 	const	CString&	filename = videoInfo.mFilename;
 
 	// Query tracks
-			CString					extension = CFilesystemPath(filename).getExtension();
-			I<CSeekableDataSource>	seekableDataSource =
-											mInternals->mSSceneAppResourceLoading.createSeekableDataSource(filename);
-			TIResult<SMediaTracks>	mediaTracks =
-											CMediaSourceRegistry::mShared.queryTracks(extension, seekableDataSource);
-	const	TArray<CAudioTrack>&	audioTracks = mediaTracks.getValue()->getAudioTracks();
-	const	TArray<CVideoTrack>&	videoTracks = mediaTracks.getValue()->getVideoTracks();
+			I<CSeekableDataSource>							seekableDataSource =
+																	mInternals->mSSceneAppResourceLoading
+																			.createSeekableDataSource(filename);
+			CString											extension = CFilesystemPath(filename).getExtension();
+			TIResult<CMediaSourceRegistry::IdentifyInfo>	identifyInfo =
+																	CMediaSourceRegistry::mShared.identify(
+																			seekableDataSource, extension);
+	const	TArray<CAudioTrack>&							audioTracks =
+																	identifyInfo.getValue().getMediaTracks()
+																			.getAudioTracks();
+	const	TArray<CVideoTrack>&							videoTracks =
+																	identifyInfo.getValue().getMediaTracks()
+																			.getVideoTracks();
 
 	// Setup Media Player
 	CSceneAppMediaPlayer*	sceneAppMediaPlayer =
