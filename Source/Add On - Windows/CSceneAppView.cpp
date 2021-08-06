@@ -145,7 +145,9 @@ static	DisplayOrientations			sDirectXGPUGetOrientation(CSceneAppViewInternals^ i
 static	bool						sDirectXGPURequiresDeviceValidation(CSceneAppViewInternals^ internals);
 static	void						sDirectXGPUHandledDeviceValidation(CSceneAppViewInternals^ internals);
 
-static	CByteParceller				sSceneAppPlayerCreateByteParceller(const CString& resourceFilename,
+static	I<CDataSource>				sSceneAppPlayerCreateDataSource(const CString& resourceFilename,
+											CSceneAppViewInternals^ internals);
+static	I<CSeekableDataSource>		sSceneAppPlayerCreateSeekableDataSource(const CString& resourceFilename,
 											CSceneAppViewInternals^ internals);
 static	void						sSceneAppPlayerInstallPeriodic(CSceneAppViewInternals^ internals);
 static	void						sSceneAppPlayerRemovePeriodic(CSceneAppViewInternals^ internals);
@@ -478,18 +480,21 @@ void CSceneAppView::loadScenes(const CScenePackage::Info& scenePackageInfo, cons
 	mInternals->mScenePackageSize = scenePackageInfo.mSize;
 
 	// Setup Scene App Player
-	CSceneAppPlayer::Procs	sceneAppPlayerProcsInfo(
-									(CSceneAppPlayer::Procs::CreateByteParcellerProc)
-											sSceneAppPlayerCreateByteParceller,
-									(CSceneAppPlayer::Procs::InstallPeriodicProc) sSceneAppPlayerInstallPeriodic,
-									(CSceneAppPlayer::Procs::RemovePeriodicProc) sSceneAppPlayerRemovePeriodic,
-									(CSceneAppPlayer::Procs::OpenURLProc) sSceneAppPlayerOpenURL,
-									(CSceneAppPlayer::Procs::HandleCommandProc) sSceneAppPlayerHandleCommand,
+	CSceneAppPlayer::Procs		procs(
+										(CSceneAppPlayer::Procs::InstallPeriodicProc) sSceneAppPlayerInstallPeriodic,
+										(CSceneAppPlayer::Procs::RemovePeriodicProc) sSceneAppPlayerRemovePeriodic,
+										(CSceneAppPlayer::Procs::OpenURLProc) sSceneAppPlayerOpenURL,
+										(CSceneAppPlayer::Procs::HandleCommandProc) sSceneAppPlayerHandleCommand,
+										(void*) mInternals);
+	SSceneAppResourceLoading	sceneAppResourceLoading(
+										(SSceneAppResourceLoading::CreateDataSourceProc) sSceneAppPlayerCreateDataSource,
+										(SSceneAppResourceLoading::CreateSeekableDataSourceProc)
+												sSceneAppPlayerCreateSeekableDataSource,
 									(void*) mInternals);
 	mInternals->mSceneAppPlayer =
 			(sceneAppPlayerCreationProc != nil) ?
-					sceneAppPlayerCreationProc(mInternals->mGPU, sceneAppPlayerProcsInfo) :
-					new CSceneAppPlayer(mInternals->mGPU, sceneAppPlayerProcsInfo);
+					sceneAppPlayerCreationProc(mInternals->mGPU, procs, sceneAppResourceLoading) :
+					new CSceneAppPlayer(mInternals->mGPU, procs, sceneAppResourceLoading);
 
 	// Load scenes
 	mInternals->mSceneAppPlayer->loadScenes(scenePackageInfo);
@@ -501,11 +506,7 @@ void CSceneAppView::loadScenes(const CScenePackage::Info& scenePackageInfo, cons
 TArray<CScenePackage::Info> CSceneAppView::getScenePackageInfos(const CFolder& folder)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Get files in folder
-	TNArray<CFile>	files;
-	CFilesystem::getFiles(folder, files);
-
-	return CScenePackage::getScenePackageInfos(files);
+	return CScenePackage::getScenePackageInfos(CFilesystem::getFiles(folder).getValue());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -569,11 +570,22 @@ void sDirectXGPUHandledDeviceValidation(CSceneAppViewInternals^ internals)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CByteParceller sSceneAppPlayerCreateByteParceller(const CString& resourceFilename,
+I<CDataSource> sSceneAppPlayerCreateDataSource(const CString& resourceFilename, CSceneAppViewInternals^ internals)
+//----------------------------------------------------------------------------------------------------------------------
+{
+	return I<CDataSource>(
+			new CMappedFileDataSource(
+					CFile(
+							internals->mSceneAppContentRootFilesystemPath->appendingComponent(
+									resourceFilename.replacingSubStrings(CString(OSSTR("/")), CString(OSSTR("\\")))))));
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+I<CSeekableDataSource> sSceneAppPlayerCreateSeekableDataSource(const CString& resourceFilename,
 		CSceneAppViewInternals^ internals)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return CByteParceller(
+	return I<CSeekableDataSource>(
 			new CMappedFileDataSource(
 					CFile(
 							internals->mSceneAppContentRootFilesystemPath->appendingComponent(

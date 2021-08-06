@@ -14,8 +14,8 @@ using namespace Platform;
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneAppView
 
-typedef	CSceneAppPlayer*	(*CSceneAppViewSceneAppPlayerCreationProc)(CGPU& gpu,
-									const CSceneAppPlayer::Procs& sceneAppPlayerProcsInfo);
+typedef	CSceneAppPlayer*	(*CSceneAppViewSceneAppPlayerCreationProc)(CGPU& gpu, const CSceneAppPlayer::Procs& procs,
+									const SSceneAppResourceLoading& sceneAppResourceLoading);
 
 ref class CSceneAppViewInternals;
 ref class CSceneAppView sealed : public IFrameworkView {
