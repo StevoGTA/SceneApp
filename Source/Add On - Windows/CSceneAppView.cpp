@@ -576,8 +576,8 @@ I<CDataSource> sSceneAppPlayerCreateDataSource(const CString& resourceFilename, 
 	return I<CDataSource>(
 			new CMappedFileDataSource(
 					CFile(
-							internals->mSceneAppContentRootFilesystemPath->appendingComponent(
-									resourceFilename.replacingSubStrings(CString(OSSTR("/")), CString(OSSTR("\\")))))));
+							internals->mSceneAppContentRootFilesystemPath->appendingComponent(resourceFilename,
+									CFilesystemPath::kStylePOSIX))));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -588,8 +588,8 @@ I<CSeekableDataSource> sSceneAppPlayerCreateSeekableDataSource(const CString& re
 	return I<CSeekableDataSource>(
 			new CMappedFileDataSource(
 					CFile(
-							internals->mSceneAppContentRootFilesystemPath->appendingComponent(
-									resourceFilename.replacingSubStrings(CString(OSSTR("/")), CString(OSSTR("\\")))))));
+							internals->mSceneAppContentRootFilesystemPath->appendingComponent(resourceFilename,
+									CFilesystemPath::kStylePOSIX))));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
