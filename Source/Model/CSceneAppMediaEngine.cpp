@@ -8,6 +8,7 @@
 #include "CDictionary.h"
 #include "CFilesystemPath.h"
 #include "CMediaSourceRegistry.h"
+#include "CVideoDecoder.h"
 
 #if TARGET_OS_IOS || TARGET_OS_MACOS || TARGET_OS_TVOS
 	#include "CCoreAudioAudioConverter.h"
@@ -52,33 +53,36 @@ class CSceneAppMediaPlayer : public CMediaPlayer {
 
 class CSceneAppMediaPlayerReference : public CMediaPlayer {
 	public:
-						CSceneAppMediaPlayerReference(CSRSWMessageQueues& messageQueues, const CMediaPlayer::Info& info,
-								CSceneAppMediaPlayer& sceneAppMediaPlayer) :
-							CMediaPlayer(messageQueues, info), mSceneAppMediaPlayer(sceneAppMediaPlayer)
-							{ mSceneAppMediaPlayer.addReference(); }
-						~CSceneAppMediaPlayerReference()
-							{ mSceneAppMediaPlayer.removeReference(); }
+							CSceneAppMediaPlayerReference(CSRSWMessageQueues& messageQueues,
+									const CMediaPlayer::Info& info, CSceneAppMediaPlayer& sceneAppMediaPlayer) :
+								CMediaPlayer(messageQueues, info), mSceneAppMediaPlayer(sceneAppMediaPlayer)
+								{ mSceneAppMediaPlayer.addReference(); }
+							~CSceneAppMediaPlayerReference()
+								{ mSceneAppMediaPlayer.removeReference(); }
 
-		void			setupComplete()
-							{ mSceneAppMediaPlayer.setupComplete(); }
+		void				setupComplete()
+								{ mSceneAppMediaPlayer.setupComplete(); }
 
-		I<CAudioPlayer>	newAudioPlayer(const CString& identifier, UInt32 trackIndex)
-							{ return mSceneAppMediaPlayer.newAudioPlayer(identifier, trackIndex); }
-		void			setAudioGain(Float32 audioGain)
-							{ mSceneAppMediaPlayer.setAudioGain(audioGain); }
+		I<CAudioPlayer>		newAudioPlayer(const CString& identifier, UInt32 trackIndex)
+								{ return mSceneAppMediaPlayer.newAudioPlayer(identifier, trackIndex); }
+		void				setAudioGain(Float32 audioGain)
+								{ mSceneAppMediaPlayer.setAudioGain(audioGain); }
 
-		void			setLoopCount(OV<UInt32> loopCount = OV<UInt32>())
-							{ mSceneAppMediaPlayer.setLoopCount(loopCount); }
+		I<CVideoFrameStore>	newVideoFrameStore(const CString& identifier, UInt32 trackIndex)
+								{ return mSceneAppMediaPlayer.newVideoFrameStore(identifier, trackIndex); }
 
-		void			play()
-							{ mSceneAppMediaPlayer.play(); }
-		void			pause()
-							{ mSceneAppMediaPlayer.pause(); }
-		bool			isPlaying() const
-							{ return mSceneAppMediaPlayer.isPlaying(); }
+		void				setLoopCount(OV<UInt32> loopCount = OV<UInt32>())
+								{ mSceneAppMediaPlayer.setLoopCount(loopCount); }
 
-		OI<SError>		reset()
-							{ return mSceneAppMediaPlayer.reset(); }
+		void				play()
+								{ mSceneAppMediaPlayer.play(); }
+		void				pause()
+								{ mSceneAppMediaPlayer.pause(); }
+		bool				isPlaying() const
+								{ return mSceneAppMediaPlayer.isPlaying(); }
+
+		OI<SError>			reset()
+								{ return mSceneAppMediaPlayer.reset(); }
 
 		CSceneAppMediaPlayer&	mSceneAppMediaPlayer;
 };
@@ -188,8 +192,7 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const CAudioInfo& audioInf
 
 //----------------------------------------------------------------------------------------------------------------------
 OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const VideoInfo& videoInfo,
-		CVideoCodec::DecodeFrameInfo::Compatibility compatibility, const CVideoDecoder::RenderInfo& renderInfo,
-		const CMediaPlayer::Info& info)
+		CVideoFrame::Compatibility compatibility, const CMediaPlayer::Info& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
@@ -235,9 +238,20 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const VideoInfo& videoInfo
 	}
 	for (CArray::ItemIndex i = 0; i < videoTracks.getCount(); i++) {
 		// Setup
-		const	CVideoTrack&	videoTrack = videoTracks[i];
-		sceneAppMediaPlayer->newVideoDecoder(videoTrack.getVideoStorageFormat(), videoTrack.getDecodeInfo(),
-				seekableDataSource, filename, i, compatibility, renderInfo);
+		const	CVideoTrack&		videoTrack = videoTracks[i];
+				I<CVideoDecoder>	videoDecoder(
+											new CVideoDecoder(videoTrack.getVideoStorageFormat(),
+													videoTrack.getDecodeInfo(), seekableDataSource, compatibility));
+				I<CVideoFrameStore>	videoFrameStore = sceneAppMediaPlayer->newVideoFrameStore(filename, i);
+
+		// Connect
+		OI<SError>	error = videoFrameStore->connectInput((const I<CVideoProcessor>&) videoDecoder);
+		if (error.hasInstance()) {
+			// Cleanup
+			Delete(sceneAppMediaPlayer);
+
+			return OI<CMediaPlayer>();
+		}
 	}
 
 	// Finish setup

@@ -47,9 +47,7 @@ class CSceneAppMediaEngine : public CMediaEngine {
 							// Instance methods
 		OI<CMediaPlayer>	getMediaPlayer(const CAudioInfo& audioInfo,
 									const CMediaPlayer::Info& info = CMediaPlayer::Info());
-		OI<CMediaPlayer>	getMediaPlayer(const VideoInfo& videoInfo,
-									CVideoCodec::DecodeFrameInfo::Compatibility compatibility,
-									const CVideoDecoder::RenderInfo& renderInfo,
+		OI<CMediaPlayer>	getMediaPlayer(const VideoInfo& videoInfo, CVideoFrame::Compatibility compatibility,
 									const CMediaPlayer::Info& info = CMediaPlayer::Info());
 
 							// Subclass methods

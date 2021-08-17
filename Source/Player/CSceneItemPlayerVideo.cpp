@@ -25,13 +25,11 @@ class CSceneItemPlayerVideoInternals {
 								mMediaPlayer =
 										mSceneAppMediaEngine.getMediaPlayer(
 												CSceneAppMediaEngine::VideoInfo(resourceFilename),
-												mGPU->getVideoCodecDecodeFrameInfoCompatibility(),
-												CVideoDecoder::RenderInfo(
-														CSceneItemPlayerVideoInternals::currentVideoFrameUpdated, this),
-												CMediaPlayer::Info(CSceneItemPlayerVideoInternals::finished, this));
+												mGPU->getVideoFrameCompatibility(),
+												CMediaPlayer::Info(nil, nil, videoFrameUpdated, nil, finished, this));
 							}
 
-		static	void	currentVideoFrameUpdated(UInt32 trackIndex, const CVideoFrame& videoFrame, void* userData)
+		static	void	videoFrameUpdated(const CVideoFrame& videoFrame, void* userData)
 							{
 								// Setup
 								CSceneItemPlayerVideoInternals&	internals =
@@ -45,7 +43,7 @@ class CSceneItemPlayerVideoInternals {
 									gpuTextureReferences +=
 											internals.mGPUTextureManager.gpuTextureReference(textures[i]);
 
-								// Create Render Object 2D
+								// Setup
 								const	S2DSizeU16&	frameSize = videoFrame.getFrameSize();
 
 								CGPUFragmentShader::Proc	fragmentShaderProc;
@@ -64,6 +62,7 @@ class CSceneItemPlayerVideoInternals {
 										break;
 								}
 
+								// Create Render Object 2D
 								internals.mRenderObject2D =
 										OI<CGPURenderObject2D>(
 												CGPURenderObject2D(*internals.mGPU,
@@ -99,7 +98,6 @@ class CSceneItemPlayerVideoInternals {
 		OI<CGPURenderObject2D>	mRenderObject2D;
 
 		bool					mIsStarted;
-//		bool					mIsFinished;
 		UniversalTimeInterval	mCurrentTimeInterval;
 };
 
@@ -259,6 +257,9 @@ void CSceneItemPlayerVideo::setProperty(const CString& property, const SValue& v
 	if (property == mFilenameProperty)
 		// Filename
 		mInternals->load(value.getString());
+	else
+		// Do super
+		CSceneItemPlayer::setProperty(property, value);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
