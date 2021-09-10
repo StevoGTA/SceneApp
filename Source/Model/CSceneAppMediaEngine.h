@@ -7,7 +7,6 @@
 #include "CAudioInfo.h"
 #include "CMediaEngine.h"
 #include "CMediaPlayer.h"
-#include "CNotificationCenter.h"
 #include "SSceneAppResourceLoading.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -50,7 +49,8 @@ class CSceneAppMediaEngine : public CMediaEngine {
 		OI<CMediaPlayer>	getMediaPlayer(const VideoInfo& videoInfo, CVideoFrame::Compatibility compatibility,
 									const CMediaPlayer::Info& info = CMediaPlayer::Info());
 
-							// Subclass methods
+	protected:
+							// CMediaEngine methods
 		I<CAudioConverter>	createAudioConverter() const;
 
 	// Properties
