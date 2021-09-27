@@ -44,8 +44,6 @@ class CSceneItemPlayerVideoInternals {
 											internals.mGPUTextureManager.gpuTextureReference(textures[i]);
 
 								// Setup
-								const	S2DSizeU16&	frameSize = videoFrame.getFrameSize();
-
 								CGPUFragmentShader::Proc	fragmentShaderProc;
 								switch (videoFrame.getDataFormat()) {
 									case CVideoFrame::kDataFormatRGB:
@@ -60,18 +58,26 @@ class CSceneItemPlayerVideoInternals {
 														videoFrame.getYCbCrConversionMatrix(),
 														videoFrame.getColorTransferFunction());
 										break;
+#if TARGET_OS_WINDOWS
+									default:
+										// To cover the Windows compiler which complains about non-covered cases
+										fragmentShaderProc = nil;
+#endif
 								}
 
 								// Create Render Object 2D
+								const	S2DRectU16&	viewRect = videoFrame.getViewRect();
 								internals.mRenderObject2D =
 										OI<CGPURenderObject2D>(
 												CGPURenderObject2D(*internals.mGPU,
 														CGPURenderObject2D::Item(
 																internals.mSceneItemPlayerVideo.getSceneItemVideo()
 																		.getScreenRect(),
-																S2DRectF32(S2DPointF32(),
-																		S2DSizeF32(frameSize.mWidth,
-																				frameSize.mHeight))),
+																S2DRectF32(
+																		S2DPointF32(viewRect.mOrigin.mX,
+																				viewRect.mOrigin.mY),
+																		S2DSizeF32(viewRect.mSize.mWidth,
+																				viewRect.mSize.mHeight))),
 														gpuTextureReferences, fragmentShaderProc));
 							}
 		static	void	finished(void* userData)
