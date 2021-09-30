@@ -88,11 +88,11 @@ CSceneItemAnimation::~CSceneItemAnimation()
 // MARK: CSceneItem methods
 
 //----------------------------------------------------------------------------------------------------------------------
-TArray<CDictionary> CSceneItemAnimation::getProperties() const
+TMArray<CDictionary> CSceneItemAnimation::getProperties() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	TArray<CDictionary>	properties = CSceneItem::getProperties();
+	TMArray<CDictionary>	properties = CSceneItem::getProperties();
 
 	// Add properties
 	CDictionary	startedActionPropertyInfo;

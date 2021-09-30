@@ -28,43 +28,44 @@ class CSceneItemAnimation : public CSceneItem {
 
 	// Methods
 	public:
-											// Lifecycle methods
-											CSceneItemAnimation();
-											CSceneItemAnimation(const CDictionary& info);
-											CSceneItemAnimation(const CSceneItemAnimation& other);
-											~CSceneItemAnimation();
+												// Lifecycle methods
+												CSceneItemAnimation();
+												CSceneItemAnimation(const CDictionary& info);
+												CSceneItemAnimation(const CSceneItemAnimation& other);
+												~CSceneItemAnimation();
 
-											// CSceneItem methods
-				CSceneItem*					copy() const
-												{ return new CSceneItemAnimation(*this); }
+												// CSceneItem methods
+				CSceneItem*						copy() const
+													{ return new CSceneItemAnimation(*this); }
 
-		const	CString&					getType() const
-												{ return mType; }
-				TArray<CDictionary>			getProperties() const;
-				CDictionary					getInfo() const;
+		const	CString&						getType() const
+													{ return mType; }
+				TMArray<CDictionary>			getProperties() const;
+				CDictionary						getInfo() const;
 
-											// Instance methods
-		const	OI<CActions>&				getStartedActions() const;
-				void						setStartedActions(const OI<CActions>& actions);
+												// Instance methods
+		const	OI<CActions>&					getStartedActions() const;
+				void							setStartedActions(const OI<CActions>& actions);
 
-		const	OI<CActions>&				getFinishedActions() const;
-				void						setFinishedActions(const OI<CActions>& actions);
+		const	OI<CActions>&					getFinishedActions() const;
+				void							setFinishedActions(const OI<CActions>& actions);
 
-		const	OI<CAudioInfo>&				getAudioInfo() const;
-				void						setAudioInfo(const OI<CAudioInfo>& audioInfo);
+		const	OI<CAudioInfo>&					getAudioInfo() const;
+				void							setAudioInfo(const OI<CAudioInfo>& audioInfo);
 
-//		const	OI<CCelAnimationInfo>&		getCelAnimationInfo() const;
-//				void						setCelAnimationInfo(const OI<CCelAnimationInfo>& celAnimationInfo);
+//		const	OI<CCelAnimationInfo>&			getCelAnimationInfo() const;
+//				void							setCelAnimationInfo(const OI<CCelAnimationInfo>& celAnimationInfo);
 
-		const	OI<CKeyframeAnimationInfo>&	getKeyframeAnimationInfo() const;
-				void						setKeyframeAnimationInfo(
-													const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo);
+		const	OI<CKeyframeAnimationInfo>&		getKeyframeAnimationInfo() const;
+				void							setKeyframeAnimationInfo(
+														const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo);
 
-				UInt32						getLoopCount() const;
-				void						setLoopCount(UInt32 loopCount);
+				UInt32							getLoopCount() const;
+				void							setLoopCount(UInt32 loopCount);
 
-		const	OV<UniversalTimeInterval>&	getStartTimeInterval() const;
-				void						setStartTimeInterval(const OV<UniversalTimeInterval>& startTimeInterval);
+		const	OV<UniversalTimeInterval>&		getStartTimeInterval() const;
+				void							setStartTimeInterval(
+														const OV<UniversalTimeInterval>& startTimeInterval);
 
 	// Properties
 	public:

@@ -50,28 +50,28 @@ class CSceneItem {
 
 	// Methods
 	public:
-											// Lifecycle methods
-											CSceneItem();
-											CSceneItem(const CDictionary& info);
-											CSceneItem(const CSceneItem& other);
-		virtual								~CSceneItem();
+												// Lifecycle methods
+												CSceneItem();
+												CSceneItem(const CDictionary& info);
+												CSceneItem(const CSceneItem& other);
+		virtual									~CSceneItem();
 						
-											// Instance methods
-		virtual			CSceneItem*			copy() const = 0;
+												// Instance methods
+		virtual			CSceneItem*				copy() const = 0;
 
-						bool				getIsVisible() const;
-						void				setIsVisible(bool isVisible);
+						bool					getIsVisible() const;
+						void					setIsVisible(bool isVisible);
 
-				const	CString&			getName() const;
-						void				setName(const CString& name);
+				const	CString&				getName() const;
+						void					setName(const CString& name);
 
-						Options				getOptions() const;
-						void				setOptions(Options options);
+						Options					getOptions() const;
+						void					setOptions(Options options);
 
-		virtual	const	CString&			getType() const = 0;
-		virtual			CString				getDescription();
-		virtual			TArray<CDictionary>	getProperties() const;
-		virtual			CDictionary			getInfo() const;
+		virtual	const	CString&				getType() const = 0;
+		virtual			CString					getDescription();
+		virtual			TMArray<CDictionary>	getProperties() const;
+		virtual			CDictionary				getInfo() const;
 
 	// Properties
 	public:

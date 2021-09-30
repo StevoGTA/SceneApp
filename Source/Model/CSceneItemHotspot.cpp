@@ -64,11 +64,11 @@ CSceneItemHotspot::~CSceneItemHotspot()
 // MARK: CSceneItem methods
 
 //----------------------------------------------------------------------------------------------------------------------
-TArray<CDictionary> CSceneItemHotspot::getProperties() const
+TMArray<CDictionary> CSceneItemHotspot::getProperties() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	TArray<CDictionary>	properties = CSceneItem::getProperties();
+	TMArray<CDictionary>	properties = CSceneItem::getProperties();
 
 	// Add properties
 	CDictionary	actionPropertyInfo;

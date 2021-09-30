@@ -253,11 +253,11 @@ CSceneItemButtonArray::~CSceneItemButtonArray()
 // MARK: CSceneItem methods
 
 //----------------------------------------------------------------------------------------------------------------------
-TArray<CDictionary> CSceneItemButtonArray::getProperties() const
+TMArray<CDictionary> CSceneItemButtonArray::getProperties() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	TArray<CDictionary>	properties = CSceneItem::getProperties();
+	TMArray<CDictionary>	properties = CSceneItem::getProperties();
 
 	// Add properties
 	CDictionary	startTimePropertyInfo;

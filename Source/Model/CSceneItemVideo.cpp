@@ -75,11 +75,11 @@ CSceneItemVideo::~CSceneItemVideo()
 // MARK: CSceneItem methods
 
 //----------------------------------------------------------------------------------------------------------------------
-TArray<CDictionary> CSceneItemVideo::getProperties() const
+TMArray<CDictionary> CSceneItemVideo::getProperties() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	TArray<CDictionary>	properties = CSceneItem::getProperties();
+	TMArray<CDictionary>	properties = CSceneItem::getProperties();
 
 	// Add properties
 //	CDictionary	controlModePropertyInfo;

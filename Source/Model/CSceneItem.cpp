@@ -132,7 +132,7 @@ CString CSceneItem::getDescription()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-TArray<CDictionary> CSceneItem::getProperties() const
+TMArray<CDictionary> CSceneItem::getProperties() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup

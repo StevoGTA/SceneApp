@@ -41,7 +41,7 @@ class CSceneItemVideo : public CSceneItem {
 
 		const	CString&						getType() const
 													{ return mType; }
-				TArray<CDictionary>				getProperties() const;
+				TMArray<CDictionary>			getProperties() const;
 				CDictionary						getInfo() const;
 
 												// Instance methods

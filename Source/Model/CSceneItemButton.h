@@ -28,7 +28,7 @@ class CSceneItemButton : public CSceneItem {
 
 		const	CString&					getType() const
 												{ return mType; }
-				TArray<CDictionary>			getProperties() const;
+				TMArray<CDictionary>		getProperties() const;
 				CDictionary					getInfo() const;
 
 											// Instance methods
@@ -51,7 +51,8 @@ class CSceneItemButton : public CSceneItem {
 													const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo);
 
 		const	OV<UniversalTimeInterval>&	getStartTimeInterval() const;
-				void						setStartTimeInterval(const OV<UniversalTimeInterval>& startTimeInterval);
+				void						setStartTimeInterval(
+													const OV<UniversalTimeInterval>& startTimeInterval);
 
 				Float32						getHitRadius() const;
 				void						setHitRadius(Float32 hitRadius);
