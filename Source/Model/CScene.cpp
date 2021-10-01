@@ -26,14 +26,14 @@ class CSceneInternals : public TCopyOnWriteReferenceCountable<CSceneInternals> {
 							mBoundsRect(other.mBoundsRect), mSceneItems(other.mSceneItems)
 					{}
 
-		OI<CActions>		mDoubleTapActions;
-		OI<CAudioInfo>		mBackground1AudioInfo;
-		OI<CAudioInfo>		mBackground2AudioInfo;
-		CScene::Options		mOptions;
-		CString				mName;
-		CString				mStoreSceneIndexAsString;
-		S2DRectF32			mBoundsRect;
-		TCArray<CSceneItem>	mSceneItems;
+		OI<CActions>			mDoubleTapActions;
+		OI<CAudioInfo>			mBackground1AudioInfo;
+		OI<CAudioInfo>			mBackground2AudioInfo;
+		CScene::Options			mOptions;
+		CString					mName;
+		CString					mStoreSceneIndexAsString;
+		S2DRectF32				mBoundsRect;
+		TNArray<I<CSceneItem> >	mSceneItems;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -78,25 +78,25 @@ CScene::CScene(const CDictionary& info)
 		// What we get?
 		if (itemType == CSceneItemAnimation::mType)
 			// Animation
-			mInternals->mSceneItems += CSceneItemAnimation(itemInfo);
+			mInternals->mSceneItems += I<CSceneItem>(new CSceneItemAnimation(itemInfo));
 		else if (itemType == CSceneItemButton::mType)
 			// Button
-			mInternals->mSceneItems += CSceneItemButton(itemInfo);
+			mInternals->mSceneItems += I<CSceneItem>(new CSceneItemButton(itemInfo));
 		else if (itemType == CSceneItemButtonArray::mType)
 			// Button Array
-			mInternals->mSceneItems += CSceneItemButtonArray(itemInfo);
+			mInternals->mSceneItems += I<CSceneItem>(new CSceneItemButtonArray(itemInfo));
 		else if (itemType == CSceneItemHotspot::mType)
 			// Hotspot
-			mInternals->mSceneItems += CSceneItemHotspot(itemInfo);
+			mInternals->mSceneItems += I<CSceneItem>(new CSceneItemHotspot(itemInfo));
 		else if (itemType == CSceneItemVideo::mType)
 			// Video
-			mInternals->mSceneItems += CSceneItemVideo(itemInfo);
+			mInternals->mSceneItems += I<CSceneItem>(new CSceneItemVideo(itemInfo));
 //		else if (itemType == CSceneItemText::mType)
 //			// Text
-//			mInternals->mSceneItems += CSceneItemText(itemInfo);
+//			mInternals->mSceneItems += I<CSceneItem>(new CSceneItemText(itemInfo));
 		else
 			// Custom
-			mInternals->mSceneItems += CSceneItemCustom(itemType, itemInfo);
+			mInternals->mSceneItems += I<CSceneItem>(new CSceneItemCustom(itemType, itemInfo));
 	}
 }
 
@@ -156,9 +156,12 @@ CDictionary CScene::getInfo() const
 
 	TNArray<CDictionary>	itemInfos;
 	for (CArray::ItemIndex i = 0; i < mInternals->mSceneItems.getCount(); i++) {
+		// Collect info
 		CDictionary	sceneItemInfo;
-		sceneItemInfo.set(CString(OSSTR("itemType")), mInternals->mSceneItems[i].getType());
-		sceneItemInfo.set(CSceneItem::mItemInfoKey, mInternals->mSceneItems[i].getInfo());
+		sceneItemInfo.set(CString(OSSTR("itemType")), mInternals->mSceneItems[i]->getType());
+		sceneItemInfo.set(CSceneItem::mItemInfoKey, mInternals->mSceneItems[i]->getInfo());
+
+		// Add
 		itemInfos += sceneItemInfo;
 	}
 	info.set(CString(OSSTR("items")), itemInfos);
@@ -285,7 +288,7 @@ void CScene::setDoubleTapActions(const OI<CActions>& doubleTapActions)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const TArray<CSceneItem>& CScene::getSceneItems() const
+const TArray<I<CSceneItem> >& CScene::getSceneItems() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mSceneItems;

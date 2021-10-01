@@ -35,11 +35,11 @@ class CScenePlayerInternals : public TReferenceCountable<CScenePlayerInternals> 
 				OR<CSceneItemPlayer>	getSceneItemPlayerForSceneItemWithName(const CString& itemName)
 											{
 												// Iterate all scene item players
-												for (TIteratorD<CSceneItemPlayer> iterator =
+												for (TIteratorD<I<CSceneItemPlayer> > iterator =
 														mSceneItemPlayers.getIterator();
 														iterator.hasValue(); iterator.advance()) {
 													// Get info
-													CSceneItemPlayer&	sceneItemPlayer = iterator.getValue();
+													CSceneItemPlayer&	sceneItemPlayer = *iterator.getValue();
 
 													// Check if scene item matches
 													if (sceneItemPlayer.getSceneItem().getName() == itemName)
@@ -71,7 +71,7 @@ class CScenePlayerInternals : public TReferenceCountable<CScenePlayerInternals> 
 				S2DPointF32								mInitialTouchPoint;
 				S2DOffsetF32							mCurrentOffset;
 				CSceneItemPlayer::Procs					mSceneItemPlayerProcsInfo;
-				TIArray<CSceneItemPlayer>				mSceneItemPlayers;
+				TNArray<I<CSceneItemPlayer> >			mSceneItemPlayers;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -117,10 +117,10 @@ CActions CScenePlayer::getAllActions() const
 {
 	// Iterate all scene item players
 	CActions	allActions;
-	for (TIteratorD<CSceneItemPlayer> iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
+	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Add actions
-		allActions += iterator.getValue().getAllActions();
+		allActions += iterator.getValue()->getAllActions();
 
 	return allActions;
 }
@@ -134,10 +134,10 @@ void CScenePlayer::load(CGPU& gpu)
 		return;
 
 	// Iterate all scene items
-	const	TArray<CSceneItem>&	sceneItems = mInternals->mScene.getSceneItems();
+	const	TArray<I<CSceneItem> >&	sceneItems = mInternals->mScene.getSceneItems();
 	for (UInt32 i = 0; i < sceneItems.getCount(); i++) {
 		// Get scene
-		CSceneItem&	sceneItem = sceneItems[i];
+		CSceneItem&	sceneItem = *sceneItems[i];
 
 		// Create scene item player
 		CSceneItemPlayer*	sceneItemPlayer =
@@ -153,7 +153,7 @@ void CScenePlayer::load(CGPU& gpu)
 			continue;
 #endif
 		}
-		mInternals->mSceneItemPlayers += sceneItemPlayer;
+		mInternals->mSceneItemPlayers += I<CSceneItemPlayer>(sceneItemPlayer);
 
 		// Check if need to load
 		if (!(sceneItem.getOptions() & CSceneItem::kOptionsDontLoadWithScene))
@@ -162,10 +162,10 @@ void CScenePlayer::load(CGPU& gpu)
 	}
 
 	// Iterate all created scene item players
-	for (TIteratorD<CSceneItemPlayer> iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
+	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Inform scene item player that all peers have loaded
-		iterator.getValue().allPeersHaveLoaded();
+		iterator.getValue()->allPeersHaveLoaded();
 
 	// Update
 	mInternals->mIsLoaded = true;
@@ -207,10 +207,10 @@ void CScenePlayer::reset()
 		mInternals->mIsRunning = false;
 
 		// Iterate all scene item players
-		for (TIteratorD<CSceneItemPlayer> iterator = mInternals->mSceneItemPlayers.getIterator();
+		for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator();
 				iterator.hasValue(); iterator.advance())
 			// Reset
-			iterator.getValue().reset();
+			iterator.getValue()->reset();
 	}
 	
 	mInternals->mCurrentOffset = S2DOffsetF32();
@@ -221,10 +221,10 @@ void CScenePlayer::update(UniversalTimeInterval deltaTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Iterate all scene item players
-	for (TIteratorD<CSceneItemPlayer> iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
+	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance()) {
 		// Get scene item player
-		CSceneItemPlayer&	sceneItemPlayer = iterator.getValue();
+		CSceneItemPlayer&	sceneItemPlayer = *iterator.getValue();
 
 		// Check if need to update
 		if ((mInternals->mIsRunning || !sceneItemPlayer.getStartTimeInterval().hasValue()) &&
@@ -242,10 +242,10 @@ void CScenePlayer::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderI
 	CGPURenderObject::RenderInfo	offsetRenderInfo = renderInfo.offset(mInternals->mCurrentOffset);
 
 	// Iterate all scene item players
-	for (TIteratorD<CSceneItemPlayer> iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
+	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance()) {
 		// Get scene item player
-		CSceneItemPlayer&	sceneItemPlayer = iterator.getValue();
+		CSceneItemPlayer&	sceneItemPlayer = *iterator.getValue();
 
 		// Check if is visible
 		if (sceneItemPlayer.getIsVisible()) {
@@ -302,7 +302,7 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32
 		CSceneItemPlayer*	targetSceneItemPlayer = nil;
 		for (CArray::ItemIndex i = mInternals->mSceneItemPlayers.getCount(); i > 0; i--) {
 			// Get next scene item player
-			CSceneItemPlayer&	sceneItemPlayer = mInternals->mSceneItemPlayers[i - 1];
+			CSceneItemPlayer&	sceneItemPlayer = *mInternals->mSceneItemPlayers[i - 1];
 
 			// Check if visible
 			if (!sceneItemPlayer.getIsVisible())
@@ -433,10 +433,10 @@ void CScenePlayer::shakeBegan()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Iterate all scene item players
-	for (TIteratorD<CSceneItemPlayer> iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
+	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Pass to scene item player
-		iterator.getValue().shakeBegan();
+		iterator.getValue()->shakeBegan();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -444,10 +444,10 @@ void CScenePlayer::shakeEnded()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Iterate all scene item players
-	for (TIteratorD<CSceneItemPlayer> iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
+	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Pass to scene item player
-		iterator.getValue().shakeEnded();
+		iterator.getValue()->shakeEnded();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -455,8 +455,8 @@ void CScenePlayer::shakeCancelled()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Iterate all scene item players
-	for (TIteratorD<CSceneItemPlayer> iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
+	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Pass to scene item player
-		iterator.getValue().shakeCancelled();
+		iterator.getValue()->shakeCancelled();
 }
