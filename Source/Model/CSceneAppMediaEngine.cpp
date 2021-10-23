@@ -10,9 +10,9 @@
 #include "CMediaSourceRegistry.h"
 #include "CVideoDecoder.h"
 
-#if TARGET_OS_IOS || TARGET_OS_MACOS || TARGET_OS_TVOS
+#if defined(TARGET_OS_IOS) || defined(TARGET_OS_MACOS) || defined(TARGET_OS_TVOS)
 	#include "CCoreAudioAudioConverter.h"
-#elif TARGET_OS_WINDOWS
+#elif defined(TARGET_OS_WINDOWS)
 	#include "CSecretRabbitCodeAudioConverter.h"
 #endif
 
@@ -260,10 +260,10 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const VideoInfo& videoInfo
 I<CAudioConverter> CSceneAppMediaEngine::createAudioConverter() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-#if TARGET_OS_IOS || TARGET_OS_MACOS || TARGET_OS_TVOS
+#if defined(TARGET_OS_IOS) || defined(TARGET_OS_MACOS) || defined(TARGET_OS_TVOS)
 	// Apple
 	return I<CAudioConverter>(new CCoreAudioAudioConverter());
-#elif TARGET_OS_WINDOWS
+#elif defined(TARGET_OS_WINDOWS)
 	// Windows
 	return I<CAudioConverter>(new CSecretRabbitCodeAudioConverter());
 #endif

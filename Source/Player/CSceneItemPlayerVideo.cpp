@@ -58,7 +58,7 @@ class CSceneItemPlayerVideoInternals {
 														videoFrame.getYCbCrConversionMatrix(),
 														videoFrame.getColorTransferFunction());
 										break;
-#if TARGET_OS_WINDOWS
+#if defined(TARGET_OS_WINDOWS)
 									default:
 										// To cover the Windows compiler which complains about non-covered cases
 										fragmentShaderProc = nil;
