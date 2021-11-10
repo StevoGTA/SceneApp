@@ -66,18 +66,17 @@ class CSceneItemPlayerVideoInternals {
 								}
 
 								// Create Render Object 2D
+								const	S2DRectF32&	screenRect =
+															internals.mSceneItemPlayerVideo.getSceneItemVideo()
+																	.getScreenRect();
 								const	S2DRectU16&	viewRect = videoFrame.getViewRect();
+										S2DRectF32	textureRect(S2DPointF32(viewRect.mOrigin.mX, viewRect.mOrigin.mY),
+															S2DSizeF32(viewRect.mSize.mWidth, viewRect.mSize.mHeight));
 								internals.mRenderObject2D =
 										OI<CGPURenderObject2D>(
 												CGPURenderObject2D(*internals.mGPU,
-														CGPURenderObject2D::Item(
-																internals.mSceneItemPlayerVideo.getSceneItemVideo()
-																		.getScreenRect(),
-																S2DRectF32(
-																		S2DPointF32(viewRect.mOrigin.mX,
-																				viewRect.mOrigin.mY),
-																		S2DSizeF32(viewRect.mSize.mWidth,
-																				viewRect.mSize.mHeight))),
+														CGPURenderObject2D::Item(textureRect.aspectFitIn(screenRect),
+																textureRect),
 														gpuTextureReferences, fragmentShaderProc));
 							}
 		static	void	finished(void* userData)
