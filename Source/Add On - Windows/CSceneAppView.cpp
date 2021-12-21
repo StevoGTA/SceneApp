@@ -620,5 +620,4 @@ void sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& com
 		CSceneAppViewInternals^ internals)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	AssertFailUnimplemented();
 }
