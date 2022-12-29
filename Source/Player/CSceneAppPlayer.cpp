@@ -609,7 +609,7 @@ void CSceneAppPlayer::loadScenes(const CScenePackage::Info& scenePackageInfo)
 
 	CDictionary	info =
 						CBinaryPropertyList::dictionaryFrom(
-								mInternals->mSceneAppResourceLoading.createSeekableDataSource(
+								mInternals->mSceneAppResourceLoading.createRandomAccessDataSource(
 										scenePackageInfo.mFilename))
 								.getValue();
 	mInternals->mOptions = (Options) info.getUInt64(CString(OSSTR("options")), kOptionsDefault);

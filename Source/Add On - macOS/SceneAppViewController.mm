@@ -12,14 +12,14 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local proc declarations
 
-static	I<CDataSource>			sSceneAppPlayerCreateDataSource(const CString& resourceFilename, void* userData);
-static	I<CSeekableDataSource>	sSceneAppPlayerCreateSeekableDataSource(const CString& resourceFilename,
-										void* userData);
-static	void					sSceneAppInstallPeriodic(void* userData);
-static	void					sSceneAppRemovePeriodic(void* userData);
-static	void					sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData);
-static	void					sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
-										void* userData);
+static	I<CDataSource>				sSceneAppPlayerCreateDataSource(const CString& resourceFilename, void* userData);
+static	I<CRandomAccessDataSource>	sSceneAppPlayerCreateRandomAccessDataSource(const CString& resourceFilename,
+											void* userData);
+static	void						sSceneAppInstallPeriodic(void* userData);
+static	void						sSceneAppRemovePeriodic(void* userData);
+static	void						sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData);
+static	void						sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
+											void* userData);
 //static	CImageX	sSceneAppPlayerGetCurrentViewportImage(void* userData);
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -188,7 +188,7 @@ static	void					sSceneAppPlayerHandleCommand(const CString& command, const CDict
 	CSceneAppPlayer::Procs		procs(sSceneAppInstallPeriodic, sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL,
 										sSceneAppPlayerHandleCommand, (__bridge void*) self);
 	SSceneAppResourceLoading	sceneAppResourceLoading(sSceneAppPlayerCreateDataSource,
-										sSceneAppPlayerCreateSeekableDataSource, (__bridge void*) self);
+										sSceneAppPlayerCreateRandomAccessDataSource, (__bridge void*) self);
 	self.sceneAppPlayerInternal =
 			(sceneAppPlayerCreationProc != nil) ?
 					sceneAppPlayerCreationProc(gpu, procs, sceneAppResourceLoading) :
@@ -273,12 +273,12 @@ I<CDataSource> sSceneAppPlayerCreateDataSource(const CString& resourceFilename, 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-I<CSeekableDataSource> sSceneAppPlayerCreateSeekableDataSource(const CString& resourceFilename, void* userData)
+I<CRandomAccessDataSource> sSceneAppPlayerCreateRandomAccessDataSource(const CString& resourceFilename, void* userData)
 {
 	// Setup
 	SceneAppViewController*	sceneAppViewController = (__bridge SceneAppViewController*) userData;
 
-	return I<CSeekableDataSource>(
+	return I<CRandomAccessDataSource>(
 			new CMappedFileDataSource(
 					CFile(
 							sceneAppViewController.sceneAppContentRootFilesystemPath->appendingComponent(
