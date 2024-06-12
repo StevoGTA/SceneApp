@@ -5,11 +5,11 @@
 #include "CSceneTransitionPlayer.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneTransitionPlayerInternals
+// MARK: CSceneTransitionPlayer::Internals
 
-class CSceneTransitionPlayerInternals {
+class CSceneTransitionPlayer::Internals {
 	public:
-		CSceneTransitionPlayerInternals(CScenePlayer& fromScenePlayer, CScenePlayer& toScenePlayer) :
+		Internals(CScenePlayer& fromScenePlayer, CScenePlayer& toScenePlayer) :
 				mFromScenePlayer(fromScenePlayer), mToScenePlayer(toScenePlayer),
 				mState(CSceneTransitionPlayer::kStateActive)
 			{}
@@ -37,7 +37,7 @@ CString	CSceneTransitionPlayer::mInfoDirectionRightValue(OSSTR("right"));
 CSceneTransitionPlayer::CSceneTransitionPlayer(CScenePlayer& fromScenePlayer, CScenePlayer& toScenePlayer)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneTransitionPlayerInternals(fromScenePlayer, toScenePlayer);
+	mInternals = new Internals(fromScenePlayer, toScenePlayer);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

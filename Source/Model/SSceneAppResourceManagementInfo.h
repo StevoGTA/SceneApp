@@ -14,24 +14,26 @@
 struct SSceneAppResourceManagementInfo {
 	// Methods
 	public:
-								// Lifecycle methods
-								SSceneAppResourceManagementInfo(CGPUTextureManager& gpuTextureManager,
-										CSceneAppMediaEngine& sceneAppMediaEngine,
-										const SSceneAppResourceLoading& sceneAppResourceLoading) :
-									mGPUTextureManager(gpuTextureManager), mSceneAppMediaEngine(sceneAppMediaEngine),
-											mSceneAppResourceLoading(sceneAppResourceLoading)
-									{}
-								SSceneAppResourceManagementInfo(const SSceneAppResourceManagementInfo& other) :
-									mGPUTextureManager(other.mGPUTextureManager),
-											mSceneAppMediaEngine(other.mSceneAppMediaEngine),
-											mSceneAppResourceLoading(other.mSceneAppResourceLoading)
-									{}
+									// Lifecycle methods
+									SSceneAppResourceManagementInfo(CGPUTextureManager& gpuTextureManager,
+											CSceneAppMediaEngine& sceneAppMediaEngine,
+											const SSceneAppResourceLoading& sceneAppResourceLoading) :
+										mGPUTextureManager(gpuTextureManager),
+												mSceneAppMediaEngine(sceneAppMediaEngine),
+												mSceneAppResourceLoading(sceneAppResourceLoading)
+										{}
+									SSceneAppResourceManagementInfo(const SSceneAppResourceManagementInfo& other) :
+										mGPUTextureManager(other.mGPUTextureManager),
+												mSceneAppMediaEngine(other.mSceneAppMediaEngine),
+												mSceneAppResourceLoading(other.mSceneAppResourceLoading)
+										{}
 
-								// Instance methods
-	I<CDataSource>				createDataSource(const CString& resourceFilename) const
-									{ return mSceneAppResourceLoading.createDataSource(resourceFilename); }
-	I<CRandomAccessDataSource>	createRandomAccessDataSource(const CString& resourceFilename) const
-									{ return mSceneAppResourceLoading.createRandomAccessDataSource(resourceFilename); }
+									// Instance methods
+		I<CDataSource>				createDataSource(const CString& resourceFilename) const
+										{ return mSceneAppResourceLoading.createDataSource(resourceFilename); }
+		I<CRandomAccessDataSource>	createRandomAccessDataSource(const CString& resourceFilename) const
+										{ return mSceneAppResourceLoading.createRandomAccessDataSource(
+												resourceFilename); }
 
 	// Properties
 	public:

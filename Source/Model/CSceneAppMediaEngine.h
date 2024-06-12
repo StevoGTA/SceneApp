@@ -12,12 +12,10 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneAppMediaEngine
 
-class CSceneAppMediaEngineInternals;
 class CSceneAppMediaEngine : public CMediaEngine {
-	// Enums
+	// AudioOptions
 	public:
-//		// EAudioOptions
-//		enum EAudioOptions {
+//		enum AudioOptions {
 //			kAudioOptionsNone						= 0,
 //
 //			kAudioOptionsCreateUniquePlayer			= 1 << 0,
@@ -26,15 +24,26 @@ class CSceneAppMediaEngine : public CMediaEngine {
 //		};
 //
 
-	// Structs
+	// VideoInfo
 	public:
 		struct VideoInfo {
-			// Lifecycle methods
-			VideoInfo(const CString& filename) : mFilename(filename) {}
+			// Methods
+			public:
+									// Lifecycle methods
+									VideoInfo(const CString& filename) : mFilename(filename) {}
+
+									// Instance methods
+				const	CString&	getFilename() const
+										{ return mFilename; }
 
 			// Properties
-			CString	mFilename;
+			private:
+				CString	mFilename;
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -46,7 +55,7 @@ class CSceneAppMediaEngine : public CMediaEngine {
 							// Instance methods
 		OI<CMediaPlayer>	getMediaPlayer(const CAudioInfo& audioInfo,
 									const CMediaPlayer::Info& info = CMediaPlayer::Info());
-		OI<CMediaPlayer>	getMediaPlayer(const VideoInfo& videoInfo, CVideoFrame::Compatibility compatibility,
+		OI<CMediaPlayer>	getMediaPlayer(const VideoInfo& videoInfo,
 									const CMediaPlayer::Info& info = CMediaPlayer::Info());
 
 	protected:
@@ -55,5 +64,5 @@ class CSceneAppMediaEngine : public CMediaEngine {
 
 	// Properties
 	private:
-		CSceneAppMediaEngineInternals*	mInternals;
+		Internals*	mInternals;
 };

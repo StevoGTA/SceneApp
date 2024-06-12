@@ -10,9 +10,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItem
 
-class CSceneItemInternals;
 class CSceneItem {
-	// Enums
+	// Options
 	public:
 		enum Options {
 			kOptionsNone				= 0,
@@ -27,11 +26,13 @@ class CSceneItem {
 			kOptionsHideIfNoAudioInput	= 1 << 2,
 		};
 
+	// PropertyType
+	public:
 		// Query the properties method which will return a TArray<CDictionary>.  In each CDictionary are the following:
 		//		Key: mPropertyNameKey		Value: CString of object property name
 		//		Key: mPropertyTitleKey		Value: CString of display title
 		//		Key: mPropertyTypeKey		Value: OSType of property type (see below)
-		enum {
+		enum PropertyType {
 			kPropertyTypeName				= MAKE_OSTYPE('N', 'a', 'm', 'e'),
 			kPropertyTypeFilename			= MAKE_OSTYPE('F', 'N', 'a', 'm'),
 			kPropertyTypeText				= MAKE_OSTYPE('T', 'e', 'x', 't'),
@@ -47,6 +48,10 @@ class CSceneItem {
 			kPropertyTypeFontName			= MAKE_OSTYPE('F', 'n', 't', 'N'),
 			kPropertyTypeFontSize			= MAKE_OSTYPE('F', 'n', 't', 'S'),
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -75,12 +80,12 @@ class CSceneItem {
 
 	// Properties
 	public:
-		static	CString					mItemInfoKey;
+		static	CString		mItemInfoKey;
 
-		static	CString					mPropertyNameKey;
-		static	CString					mPropertyTitleKey;
-		static	CString					mPropertyTypeKey;
+		static	CString		mPropertyNameKey;
+		static	CString		mPropertyTitleKey;
+		static	CString		mPropertyTypeKey;
 
 	private:
-				CSceneItemInternals*	mInternals;
+				Internals*	mInternals;
 };

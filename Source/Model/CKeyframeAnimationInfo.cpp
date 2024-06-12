@@ -4,15 +4,16 @@
 
 #include "CKeyframeAnimationInfo.h"
 
+#include "CReferenceCountable.h"
 #include "CSceneItem.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: CKeyframeAnimationInfoInternals
+// MARK: CKeyframeAnimationInfo::Internals
 
-class CKeyframeAnimationInfoInternals : public TCopyOnWriteReferenceCountable<CKeyframeAnimationInfoInternals> {
+class CKeyframeAnimationInfo::Internals : public TCopyOnWriteReferenceCountable<Internals> {
 	public:
-		CKeyframeAnimationInfoInternals() : TCopyOnWriteReferenceCountable() {}
-		CKeyframeAnimationInfoInternals(const CKeyframeAnimationInfoInternals& other) :
+		Internals() : TCopyOnWriteReferenceCountable() {}
+		Internals(const Internals& other) :
 			TCopyOnWriteReferenceCountable(),
 					mAnimationKeyframesArray(other.mAnimationKeyframesArray)
 			{}
@@ -30,14 +31,14 @@ class CKeyframeAnimationInfoInternals : public TCopyOnWriteReferenceCountable<CK
 CKeyframeAnimationInfo::CKeyframeAnimationInfo()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CKeyframeAnimationInfoInternals();
+	mInternals = new Internals();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CKeyframeAnimationInfo::CKeyframeAnimationInfo(const CDictionary& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CKeyframeAnimationInfoInternals();
+	mInternals = new Internals();
 
 	TArray<CDictionary>	keyframeInfos = info.getArrayOfDictionaries(CString(OSSTR("keyframes")));
 	for (CArray::ItemIndex i = 0; i < keyframeInfos.getCount(); i++)
@@ -103,7 +104,7 @@ void CKeyframeAnimationInfo::addAnimationKeyframe(const CAnimationKeyframe& anim
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mAnimationKeyframesArray += animationKeyframe;

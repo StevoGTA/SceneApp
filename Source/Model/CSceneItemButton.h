@@ -12,8 +12,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemButton
 
-class CSceneItemButtonInternals;
 class CSceneItemButton : public CSceneItem {
+	// Classes
+	private:
+		class Internals;
+
 	// Methods
 	public:
 											// Lifecycle methods
@@ -59,8 +62,8 @@ class CSceneItemButton : public CSceneItem {
 
 	// Properties
 	public:
-		static	CString						mType;
+		static	CString		mType;
 
 	private:
-				CSceneItemButtonInternals*	mInternals;
+				Internals*	mInternals;
 };

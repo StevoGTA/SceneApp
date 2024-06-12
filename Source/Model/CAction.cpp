@@ -4,12 +4,14 @@
 
 #include "CAction.h"
 
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: CActionInternals
+#include "CReferenceCountable.h"
 
-class CActionInternals : public TReferenceCountable<CActionInternals> {
+//----------------------------------------------------------------------------------------------------------------------
+// MARK: CAction::Internals
+
+class CAction::Internals : public TReferenceCountable<Internals> {
 	public:
-		CActionInternals(const CString& name, const CDictionary& info, CAction::Options options) :
+		Internals(const CString& name, const CDictionary& info, CAction::Options options) :
 			TReferenceCountable(), mName(name), mInfo(info), mOptions(options) {}
 
 		CString				mName;
@@ -52,20 +54,21 @@ CString	CAction::mInfoUseWebViewKey(OSSTR("useWebView"));
 CAction::CAction(const CString& name, const CDictionary& info, Options options)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CActionInternals(name, info, options);
+	mInternals = new Internals(name, info, options);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CAction::CAction(const CDictionary& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Setup
+	CDictionary	actionInfo = info.getDictionary(CString(OSSTR("actionInfo")));
+
 	Options	options = kOptionsNone;
-	if (info.contains(CString(OSSTR("dontPreload"))))
+	if (actionInfo.contains(CString(OSSTR("dontPreload"))))
 		options = (Options) (options | kOptionsDontPreload);
 
-	mInternals =
-			new CActionInternals(info.getString(CString(OSSTR("actionName"))),
-					info.getDictionary(CString(OSSTR("actionInfo"))), options);
+	mInternals = new Internals(info.getString(CString(OSSTR("actionName"))), actionInfo, options);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -187,7 +190,7 @@ CDictionary CActions::getInfo() const
 	// Collect action infos
 	TNArray<CDictionary>	actionInfos;
 	for (TIteratorD<CAction> iterator = getIterator(); iterator.hasValue(); iterator.advance())
-		actionInfos += iterator.getValue().getInfo();
+		actionInfos += iterator->getInfo();
 	info.set(CString(OSSTR("actions")), actionInfos);
 
 	return info;

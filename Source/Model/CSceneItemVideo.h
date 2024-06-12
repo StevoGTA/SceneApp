@@ -12,9 +12,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemVideo
 
-class CSceneItemVideoInternals;
 class CSceneItemVideo : public CSceneItem {
-	// Enums
+	// ControlMode
 	public:
 		enum ControlMode {
 			kControlModeHidden		= 0,
@@ -23,9 +22,15 @@ class CSceneItemVideo : public CSceneItem {
 			kControlModeDefault = kControlModeHidden,
 		};
 
+	// PropertyType
+	public:
 		enum PropertyType {
 //			kPropertyTypeControlMode	= MAKE_OSTYPE('C', 'l', 'M', 'd'),
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -68,8 +73,8 @@ class CSceneItemVideo : public CSceneItem {
 
 	// Properties
 	public:
-		static	CString						mType;
+		static	CString		mType;
 
 	private:
-				CSceneItemVideoInternals*	mInternals;
+				Internals*	mInternals;
 };

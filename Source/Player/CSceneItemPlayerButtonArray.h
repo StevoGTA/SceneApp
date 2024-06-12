@@ -10,8 +10,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemPlayerButtonArray
 
-class CSceneItemPlayerButtonArrayInternals;
 class CSceneItemPlayerButtonArray : public CSceneItemPlayer {
+	// Classes
+	private:
+		class Internals;
+
 	// Methods
 	public:
 										// Lifecycle methods
@@ -44,5 +47,5 @@ class CSceneItemPlayerButtonArray : public CSceneItemPlayer {
 
 	// Properties
 	private:
-		CSceneItemPlayerButtonArrayInternals*	mInternals;
+		Internals*	mInternals;
 };

@@ -10,7 +10,6 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemPlayerHotspot
 
-class CSceneItemPlayerHotspotInternals;
 class CSceneItemPlayerHotspot : public CSceneItemPlayer {
 	// Methods
 	public:

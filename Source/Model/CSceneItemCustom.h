@@ -12,8 +12,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemCustom
 
-class CSceneItemCustomInternals;
 class CSceneItemCustom : public CSceneItem {
+	// Classes
+	private:
+		class Internals;
+
 	// Methods
 	public:
 										// Lifecycle methods
@@ -50,5 +53,5 @@ class CSceneItemCustom : public CSceneItem {
 
 	// Properties
 	private:
-		CSceneItemCustomInternals*	mInternals;
+		Internals*	mInternals;
 };

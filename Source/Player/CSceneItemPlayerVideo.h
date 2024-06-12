@@ -10,8 +10,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemPlayerVideo
 
-class CSceneItemPlayerVideoInternals;
 class CSceneItemPlayerVideo : public CSceneItemPlayer {
+	// Classes
+	private:
+		class Internals;
+
 	// Methods
 	public:
 											// Lifecycle methods
@@ -45,11 +48,11 @@ class CSceneItemPlayerVideo : public CSceneItemPlayer {
 
 	// Properties
 	public:
-		static	CString							mFilenameProperty;		// String
+		static	CString		mFilenameProperty;		// String
 
-		static	CString							mCommandNamePlay;
-		static	CString							mCommandNameStop;
+		static	CString		mCommandNamePlay;
+		static	CString		mCommandNameStop;
 
 	private:
-				CSceneItemPlayerVideoInternals*	mInternals;
+				Internals*	mInternals;
 };

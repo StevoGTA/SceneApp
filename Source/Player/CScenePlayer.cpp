@@ -5,6 +5,7 @@
 #include "CScenePlayer.h"
 
 #include "CLogServices.h"
+#include "CReferenceCountable.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local data
@@ -17,17 +18,19 @@ static	const	Float32	kVSwipeDragMinY = 12.0f;
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - CScenePlayerInternals
+// MARK: - CScenePlayer::Internals
 
-class CScenePlayerInternals : public TReferenceCountable<CScenePlayerInternals> {
+class CScenePlayer::Internals : public TReferenceCountable<Internals> {
 	public:
-										CScenePlayerInternals(const CScene& scene,
+										Internals(const CScene& scene,
 												const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 												const CScenePlayer::Procs& procs, CScenePlayer& scenePlayer) :
 											TReferenceCountable(), mIsLoaded(false), mIsRunning(false), mScene(scene),
 													mScenePlayer(scenePlayer),
 													mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
-													mSceneItemPlayerProcsInfo(sceneItemPlayerActionsPerformProc,
+													mSceneItemPlayerProcsInfo(
+															(CScenePlayer::Procs::PerformActionsProc)
+																	sceneItemPlayerActionsPerformProc,
 															this),
 													mScenePlayerProcsInfo(procs)
 											{}
@@ -39,7 +42,7 @@ class CScenePlayerInternals : public TReferenceCountable<CScenePlayerInternals> 
 														mSceneItemPlayers.getIterator();
 														iterator.hasValue(); iterator.advance()) {
 													// Get info
-													CSceneItemPlayer&	sceneItemPlayer = *iterator.getValue();
+													CSceneItemPlayer&	sceneItemPlayer = **iterator;
 
 													// Check if scene item matches
 													if (sceneItemPlayer.getSceneItem().getName() == itemName)
@@ -51,14 +54,8 @@ class CScenePlayerInternals : public TReferenceCountable<CScenePlayerInternals> 
 											}
 
 		static	void					sceneItemPlayerActionsPerformProc(const CActions& actions,
-												const S2DPointF32& point, void* userData)
-											{
-												// Setup
-												CScenePlayerInternals*	internals = (CScenePlayerInternals*) userData;
-
-												// Call proc
-												internals->mScenePlayerProcsInfo.performActions(actions, point);
-											}
+												const S2DPointF32& point, Internals* internals)
+											{ internals->mScenePlayerProcsInfo.performActions(actions, point); }
 
 		const	CScene&									mScene;
 				SSceneAppResourceManagementInfo			mSceneAppResourceManagementInfo;
@@ -85,7 +82,7 @@ CScenePlayer::CScenePlayer(const CScene& scene, const SSceneAppResourceManagemen
 		const Procs& procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CScenePlayerInternals(scene, sceneAppResourceManagementInfo, procs, *this);
+	mInternals = new Internals(scene, sceneAppResourceManagementInfo, procs, *this);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -120,7 +117,7 @@ CActions CScenePlayer::getAllActions() const
 	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Add actions
-		allActions += iterator.getValue()->getAllActions();
+		allActions += (*iterator)->getAllActions();
 
 	return allActions;
 }
@@ -165,7 +162,7 @@ void CScenePlayer::load(CGPU& gpu)
 	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Inform scene item player that all peers have loaded
-		iterator.getValue()->allPeersHaveLoaded();
+		(*iterator)->allPeersHaveLoaded();
 
 	// Update
 	mInternals->mIsLoaded = true;
@@ -210,7 +207,7 @@ void CScenePlayer::reset()
 		for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator();
 				iterator.hasValue(); iterator.advance())
 			// Reset
-			iterator.getValue()->reset();
+			(*iterator)->reset();
 	}
 	
 	mInternals->mCurrentOffset = S2DOffsetF32();
@@ -224,7 +221,7 @@ void CScenePlayer::update(UniversalTimeInterval deltaTimeInterval)
 	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance()) {
 		// Get scene item player
-		CSceneItemPlayer&	sceneItemPlayer = *iterator.getValue();
+		CSceneItemPlayer&	sceneItemPlayer = **iterator;
 
 		// Check if need to update
 		if ((mInternals->mIsRunning || !sceneItemPlayer.getStartTimeInterval().hasValue()) &&
@@ -245,7 +242,7 @@ void CScenePlayer::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderI
 	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance()) {
 		// Get scene item player
-		CSceneItemPlayer&	sceneItemPlayer = *iterator.getValue();
+		CSceneItemPlayer&	sceneItemPlayer = **iterator;
 
 		// Check if is visible
 		if (sceneItemPlayer.getIsVisible()) {
@@ -436,7 +433,7 @@ void CScenePlayer::shakeBegan()
 	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Pass to scene item player
-		iterator.getValue()->shakeBegan();
+		(*iterator)->shakeBegan();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -447,7 +444,7 @@ void CScenePlayer::shakeEnded()
 	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Pass to scene item player
-		iterator.getValue()->shakeEnded();
+		(*iterator)->shakeEnded();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -458,5 +455,5 @@ void CScenePlayer::shakeCancelled()
 	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
 			iterator.advance())
 		// Pass to scene item player
-		iterator.getValue()->shakeCancelled();
+		(*iterator)->shakeCancelled();
 }

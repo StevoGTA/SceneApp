@@ -4,6 +4,7 @@
 
 #include "CScene.h"
 
+#include "CReferenceCountable.h"
 #include "CSceneItemAnimation.h"
 #include "CSceneItemButton.h"
 #include "CSceneItemButtonArray.h"
@@ -13,12 +14,12 @@
 //#include "CSceneItemText.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneInternals
+// MARK: CScene::Internals
 
-class CSceneInternals : public TCopyOnWriteReferenceCountable<CSceneInternals> {
+class CScene::Internals : public TCopyOnWriteReferenceCountable<Internals> {
 	public:
-		CSceneInternals() : TCopyOnWriteReferenceCountable(), mOptions(CScene::kOptionsNone) {}
-		CSceneInternals(const CSceneInternals& other) :
+		Internals() : TCopyOnWriteReferenceCountable(), mOptions(CScene::kOptionsNone) {}
+		Internals(const Internals& other) :
 			TCopyOnWriteReferenceCountable(),
 					mDoubleTapActions(other.mDoubleTapActions), mBackground1AudioInfo(other.mBackground1AudioInfo),
 							mBackground2AudioInfo(other.mBackground2AudioInfo), mOptions(other.mOptions),
@@ -46,14 +47,14 @@ class CSceneInternals : public TCopyOnWriteReferenceCountable<CSceneInternals> {
 CScene::CScene()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneInternals();
+	mInternals = new Internals();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CScene::CScene(const CDictionary& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneInternals();
+	mInternals = new Internals();
 
 	mInternals->mName = info.getString(CString(OSSTR("name")));
 	mInternals->mOptions = (Options) info.getUInt8(CString(OSSTR("options")));
@@ -181,7 +182,7 @@ void CScene::setName(const CString& name)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mName = name;
@@ -199,7 +200,7 @@ void CScene::setOptions(Options options)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mOptions = options;
@@ -217,7 +218,7 @@ void CScene::setStoreSceneIndexAsString(const CString& string)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mStoreSceneIndexAsString = string;
@@ -235,7 +236,7 @@ void CScene::setBoundsRect(const S2DRectF32& rect)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mBoundsRect = rect;
@@ -281,7 +282,7 @@ void CScene::setDoubleTapActions(const OI<CActions>& doubleTapActions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mDoubleTapActions = doubleTapActions;

@@ -18,20 +18,20 @@ struct SSceneAppResourceLoading {
 
 	// Methods
 	public:
-								// Lifecycle methods
-								SSceneAppResourceLoading(CreateDataSourceProc createDataSourceProc,
-										CreateRandomAccessDataSourceProc createRandomAccessDataSourceProc,
-										void* userData) :
-									mCreateDataSourceProc(createDataSourceProc),
-											mCreateRandomAccessDataSourceProc(createRandomAccessDataSourceProc),
-											mUserData(userData)
-									{}
+									// Lifecycle methods
+									SSceneAppResourceLoading(CreateDataSourceProc createDataSourceProc,
+											CreateRandomAccessDataSourceProc createRandomAccessDataSourceProc,
+											void* userData) :
+										mCreateDataSourceProc(createDataSourceProc),
+												mCreateRandomAccessDataSourceProc(createRandomAccessDataSourceProc),
+												mUserData(userData)
+										{}
 
-								// Instance methods
-	I<CDataSource>				createDataSource(const CString& resourceFilename) const
-									{ return mCreateDataSourceProc(resourceFilename, mUserData); }
-	I<CRandomAccessDataSource>	createRandomAccessDataSource(const CString& resourceFilename) const
-									{ return mCreateRandomAccessDataSourceProc(resourceFilename, mUserData); }
+									// Instance methods
+		I<CDataSource>				createDataSource(const CString& resourceFilename) const
+										{ return mCreateDataSourceProc(resourceFilename, mUserData); }
+		I<CRandomAccessDataSource>	createRandomAccessDataSource(const CString& resourceFilename) const
+										{ return mCreateRandomAccessDataSourceProc(resourceFilename, mUserData); }
 
 	// Properties
 	private:

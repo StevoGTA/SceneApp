@@ -11,38 +11,40 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CKeyframeAnimationPlayer
 
-class CKeyframeAnimationPlayerInternals;
 class CKeyframeAnimationPlayer {
-	// Structs
+	// Procs
 	public:
 		struct Procs {
 			// Procs
-			typedef	bool	(*ShouldLoopProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
-									UInt32 currentLoopCount, void* userData);
-			typedef	void	(*DidLoopProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer, void* userData);
-			typedef	void	(*DidFinishProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer, void* userData);
-			typedef	void	(*PerformActionsProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
-									const CActions& actions, void* userData);
+			public:
+				typedef	bool	(*ShouldLoopProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+										UInt32 currentLoopCount, void* userData);
+				typedef	void	(*DidLoopProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer, void* userData);
+				typedef	void	(*DidFinishProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer, void* userData);
+				typedef	void	(*PerformActionsProc)(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+										const CActions& actions, void* userData);
 
-					// Lifecycle methods
-					Procs(ShouldLoopProc shouldLoopProc, DidLoopProc didLoopProc, DidFinishProc didFinishProc,
-							PerformActionsProc performActionsProc, void* userData) :
-						mShouldLoopProc(shouldLoopProc), mDidLoopProc(didLoopProc), mDidFinishProc(didFinishProc),
-								mPerformActionsProc(performActionsProc), mUserData(userData)
-						{}
+			// Methods
+			public:
+						// Lifecycle methods
+						Procs(ShouldLoopProc shouldLoopProc, DidLoopProc didLoopProc, DidFinishProc didFinishProc,
+								PerformActionsProc performActionsProc, void* userData) :
+							mShouldLoopProc(shouldLoopProc), mDidLoopProc(didLoopProc), mDidFinishProc(didFinishProc),
+									mPerformActionsProc(performActionsProc), mUserData(userData)
+							{}
 
-					// Instance methods
-			bool	canPerformShouldLoop() const
-						{ return mShouldLoopProc != nil; }
-			bool	shouldLoop(CKeyframeAnimationPlayer& keyframeAnimationPlayer, UInt32 currentLoopCount) const
-						{ return mShouldLoopProc(keyframeAnimationPlayer, currentLoopCount, mUserData); }
-			void	didLoop(CKeyframeAnimationPlayer& keyframeAnimationPlayer) const
-						{ if (mDidLoopProc != nil) mDidLoopProc(keyframeAnimationPlayer, mUserData); }
-			void	didFinish(CKeyframeAnimationPlayer& keyframeAnimationPlayer) const
-						{ if (mDidFinishProc != nil) mDidFinishProc(keyframeAnimationPlayer, mUserData); }
-			void	performActions(CKeyframeAnimationPlayer& keyframeAnimationPlayer, const CActions& actions) const
-						{ if (mPerformActionsProc != nil)
-								mPerformActionsProc(keyframeAnimationPlayer, actions, mUserData); }
+						// Instance methods
+				bool	canPerformShouldLoop() const
+							{ return mShouldLoopProc != nil; }
+				bool	shouldLoop(CKeyframeAnimationPlayer& keyframeAnimationPlayer, UInt32 currentLoopCount) const
+							{ return mShouldLoopProc(keyframeAnimationPlayer, currentLoopCount, mUserData); }
+				void	didLoop(CKeyframeAnimationPlayer& keyframeAnimationPlayer) const
+							{ if (mDidLoopProc != nil) mDidLoopProc(keyframeAnimationPlayer, mUserData); }
+				void	didFinish(CKeyframeAnimationPlayer& keyframeAnimationPlayer) const
+							{ if (mDidFinishProc != nil) mDidFinishProc(keyframeAnimationPlayer, mUserData); }
+				void	performActions(CKeyframeAnimationPlayer& keyframeAnimationPlayer, const CActions& actions) const
+							{ if (mPerformActionsProc != nil)
+									mPerformActionsProc(keyframeAnimationPlayer, actions, mUserData); }
 
 			// Properties
 			private:
@@ -52,6 +54,10 @@ class CKeyframeAnimationPlayer {
 				PerformActionsProc	mPerformActionsProc;
 				void*				mUserData;
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -77,5 +83,5 @@ class CKeyframeAnimationPlayer {
 
 	// Properties
 	private:
-		CKeyframeAnimationPlayerInternals*	mInternals;
+		Internals*	mInternals;
 };

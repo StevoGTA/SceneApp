@@ -12,8 +12,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemButtonArrayButton
 
-class CSceneItemButtonArrayButtonInternals;
 class CSceneItemButtonArrayButton {
+	// Classes
+	private:
+		class Internals;
+
 	// Methods
 	public:
 													// Lifecycle methods
@@ -49,19 +52,22 @@ class CSceneItemButtonArrayButton {
 
 	// Properties
 	private:
-		CSceneItemButtonArrayButtonInternals*	mInternals;
+		Internals*	mInternals;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: - CSceneItemButtonArray
 
-class CSceneItemButtonArrayInternals;
 class CSceneItemButtonArray : public CSceneItem {
-	// Enums
+	// PropertyType
 	public:
 		enum PropertyType {
 			kPropertyTypeButtonArray	= MAKE_OSTYPE('S', 'B', 'B', 'A'),
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -93,8 +99,8 @@ class CSceneItemButtonArray : public CSceneItem {
 
 	// Properties
 	public:
-		static	CString							mType;
+		static	CString		mType;
 
 	private:
-				CSceneItemButtonArrayInternals*	mInternals;
+				Internals*	mInternals;
 };

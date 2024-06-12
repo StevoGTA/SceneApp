@@ -4,15 +4,15 @@
 
 #include "CSceneItemVideo.h"
 
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneItemVideoInternals
+#include "CReferenceCountable.h"
 
-class CSceneItemVideoInternals : public TCopyOnWriteReferenceCountable<CSceneItemVideoInternals> {
+//----------------------------------------------------------------------------------------------------------------------
+// MARK: CSceneItemVideo::Internals
+
+class CSceneItemVideo::Internals : public TCopyOnWriteReferenceCountable<Internals> {
 	public:
-		CSceneItemVideoInternals() :
-			mControlMode(CSceneItemVideo::kControlModeDefault)
-			{}
-		CSceneItemVideoInternals(const CSceneItemVideoInternals& other) :
+		Internals() : mControlMode(CSceneItemVideo::kControlModeDefault) {}
+		Internals(const Internals& other) :
 			mControlMode(other.mControlMode), mResourceFilename(other.mResourceFilename),
 					mFinishedActions(other.mFinishedActions), mScreenRect(other.mScreenRect),
 					mStartTimeInterval(other.mStartTimeInterval)
@@ -39,14 +39,14 @@ CString	CSceneItemVideo::mType(OSSTR("video"));
 CSceneItemVideo::CSceneItemVideo() : CSceneItem()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemVideoInternals();
+	mInternals = new Internals();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemVideo::CSceneItemVideo(const CDictionary& info) : CSceneItem(info)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemVideoInternals();
+	mInternals = new Internals();
 
 	mInternals->mControlMode = (ControlMode) info.getUInt32(CString(OSSTR("controlMode")), mInternals->mControlMode);
 	if (info.contains(CString(OSSTR("filename"))))
@@ -159,7 +159,7 @@ void CSceneItemVideo::setControlMode(ControlMode controlMode)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mControlMode = controlMode;
@@ -177,7 +177,7 @@ void CSceneItemVideo::setResourceFilename(const OI<CString>& resourceFilename)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mResourceFilename = resourceFilename;
@@ -195,7 +195,7 @@ void CSceneItemVideo::setFinishedActions(const OI<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mFinishedActions = actions;
@@ -213,7 +213,7 @@ void CSceneItemVideo::setScreenRect(const S2DRectF32& rect)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mScreenRect = rect;
@@ -231,7 +231,7 @@ void CSceneItemVideo::setStartTimeInterval(OV<UniversalTimeInterval> startTimeIn
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mStartTimeInterval = startTimeInterval;

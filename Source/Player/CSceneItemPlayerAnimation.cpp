@@ -9,45 +9,103 @@
 #include "CSceneAppMediaEngine.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: Local proc declarations
+// MARK: CSceneItemPlayerAnimation::Internals
 
-//static	ECelAnimationPlayerFinishedAction	sCelAnimationPlayerGetFinishedActionProc(
-//													CCelAnimationPlayer& celAnimationPlayer, UInt32 currentLoopCount,
-//													void* userData);
-//static	void								sCelAnimationPlayerFinishedProc(CCelAnimationPlayer& celAnimationPlayer,
-//													void* userData);
-
-static	bool								sKeyframeAnimationPlayerShouldLoopProc(
-													CKeyframeAnimationPlayer& keyframeAnimationPlayer,
-													UInt32 currentLoopCount, void* userData);
-static	void								sKeyframeAnimationPlayerFinishedProc(
-													CKeyframeAnimationPlayer& keyframeAnimationPlayer, void* userData);
-static	void								sKeyframeAnimationPlayerActionsHandlerProc(
-													CKeyframeAnimationPlayer& keyframeAnimationPlayer,
-													const CActions& actions, void* userData);
-
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemPlayerAnimationInternals
-
-class CSceneItemPlayerAnimationInternals {
+class CSceneItemPlayerAnimation::Internals {
 	public:
-		CSceneItemPlayerAnimationInternals(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
+		Internals(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
 				const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
 			mSceneItemPlayerAnimation(sceneItemPlayerAnimation),
 					mSceneAppMediaEngine(sceneAppResourceManagementInfo.mSceneAppMediaEngine),
 					mKeyframeAnimationPlayer(nil),
 					mIsStarted(false), mCurrentTimeInterval(0.0), mSceneItemPlayerAnimationProcs(nil),
-//					mCelAnimationPlayerProcsInfo(sCelAnimationPlayerGetFinishedActionProc, nil,
-//							sCelAnimationPlayerFinishedProc, nil, this),
-					mKeyframeAnimationPlayerProcsInfo(sKeyframeAnimationPlayerShouldLoopProc, nil,
-							sKeyframeAnimationPlayerFinishedProc, sKeyframeAnimationPlayerActionsHandlerProc, this)
+//					mCelAnimationPlayerProcsInfo(celAnimationPlayerGetFinishedAction, nil,
+//							celAnimationPlayerFinished, nil, this),
+					mKeyframeAnimationPlayerProcsInfo(
+							(CKeyframeAnimationPlayer::Procs::ShouldLoopProc) keyframeAnimationPlayerShouldLoop,
+							nil,
+							(CKeyframeAnimationPlayer::Procs::DidFinishProc) keyframeAnimationPlayerDidFinish,
+							(CKeyframeAnimationPlayer::Procs::PerformActionsProc) keyframeAnimationPlayerPerformActions,
+							this)
 			{}
-		~CSceneItemPlayerAnimationInternals()
+		~Internals()
 			{
 //				Delete(mCelAnimationPlayer);
 				Delete(mKeyframeAnimationPlayer);
 			}
+
+//		static	ECelAnimationPlayerFinishedAction	celAnimationPlayerGetFinishedAction(
+//															CCelAnimationPlayer& celAnimationPlayer,
+//															UInt32 currentLoopCount, Internals* internals)
+//														{
+//															if ((internals->mSceneItemPlayerAnimationProcs != nil) &&
+//																	(internals->mSceneItemPlayerAnimationProcs->mShouldLoopProc != nil))
+//																// Ask
+//																return internals->mSceneItemPlayerAnimationProcs->mShouldLoopProc(internals->mSceneItemPlayerAnimation,
+//																		currentLoopCount,
+//																		internals->mSceneItemPlayerAnimationProcs->mUserData) ?
+//																				kCelAnimationPlayerFinishedActionLoop : kCelAnimationPlayerFinishedActionFinish;
+//															else {
+//																// Figure
+//																const	CSceneItemAnimation&	sceneItemAnimation =
+//																										internals->mSceneItemPlayerAnimation.getSceneItemAnimation();
+//																if (sceneItemAnimation.getLoopCount() == kSceneItemAnimationLoopForever)
+//																	// Loop forever
+//																	return kCelAnimationPlayerFinishedActionLoop;
+//																else if (sceneItemAnimation.getLoopCount() == kSceneItemAnimationLoopHoldLastFrame)
+//																	// Hold last frame
+//																	return kCelAnimationPlayerFinishedActionHoldLastFrame;
+//																else
+//																	// Process regular loop count
+//																	return (currentLoopCount < sceneItemAnimation.getLoopCount()) ?
+//																			kCelAnimationPlayerFinishedActionLoop : kCelAnimationPlayerFinishedActionFinish;
+//															}
+//														}
+//		static	void								celAnimationPlayerFinished(
+//															CCelAnimationPlayer& celAnimationPlayer,
+//															Internals* internals)
+//														{
+//														}
+
+		static	bool								keyframeAnimationPlayerShouldLoop(
+															CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+															UInt32 currentLoopCount, Internals* internals)
+														{
+															if ((internals->mSceneItemPlayerAnimationProcs != nil) &&
+																	internals->mSceneItemPlayerAnimationProcs->
+																			canPerformShouldLoop())
+																// Ask
+																return internals->mSceneItemPlayerAnimationProcs->
+																		shouldLoop(internals->mSceneItemPlayerAnimation,
+																				currentLoopCount);
+															else {
+																// Figure
+																const	CSceneItemAnimation&	sceneItemAnimation =
+																										internals->
+																												mSceneItemPlayerAnimation
+																														.getSceneItemAnimation();
+																return (sceneItemAnimation.getLoopCount() ==
+																				CSceneItemAnimation::kLoopForever) ||
+																		(currentLoopCount <
+																				sceneItemAnimation.getLoopCount());
+															}
+														}
+		static	void								keyframeAnimationPlayerDidFinish(
+															CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+															Internals* internals)
+														{
+															const	OI<CActions>&	actions =
+																							internals->
+																									mSceneItemPlayerAnimation
+																											.getSceneItemAnimation()
+																											.getFinishedActions();
+															if (actions.hasInstance())
+																internals->mSceneItemPlayerAnimation.perform(*actions);
+														}
+		static	void								keyframeAnimationPlayerPerformActions(
+															CKeyframeAnimationPlayer& keyframeAnimationPlayer,
+															const CActions& actions, Internals* internals)
+														{ internals->mSceneItemPlayerAnimation.perform(actions); }
 
 				CSceneItemPlayerAnimation&			mSceneItemPlayerAnimation;
 				CSceneAppMediaEngine&				mSceneAppMediaEngine;
@@ -77,7 +135,7 @@ CSceneItemPlayerAnimation::CSceneItemPlayerAnimation(const CSceneItemAnimation& 
 		CSceneItemPlayer(sceneItemAnimation, sceneItemPlayerProcs)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemPlayerAnimationInternals(*this, sceneAppResourceManagementInfo);
+	mInternals = new Internals(*this, sceneAppResourceManagementInfo);
 
 //	if (sceneItemAnimation.getCelAnimationInfoOrNil() != nil)
 //		mInternals->mCelAnimationPlayer =
@@ -302,93 +360,4 @@ void CSceneItemPlayerAnimation::setSceneItemPlayerAnimationProcs(const Procs& pr
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals->mSceneItemPlayerAnimationProcs = &procs;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc definitions
-
-////----------------------------------------------------------------------------------------------------------------------
-//ECelAnimationPlayerFinishedAction sCelAnimationPlayerGetFinishedActionProc(CCelAnimationPlayer& celAnimationPlayer,
-//		UInt32 currentLoopCount, void* userData)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	CSceneItemPlayerAnimationInternals*	internals = (CSceneItemPlayerAnimationInternals*) userData;
-//
-//	if ((internals->mSceneItemPlayerAnimationProcs != nil) &&
-//			(internals->mSceneItemPlayerAnimationProcs->mShouldLoopProc != nil))
-//		// Ask
-//		return internals->mSceneItemPlayerAnimationProcs->mShouldLoopProc(internals->mSceneItemPlayerAnimation,
-//				currentLoopCount,
-//				internals->mSceneItemPlayerAnimationProcs->mUserData) ?
-//						kCelAnimationPlayerFinishedActionLoop : kCelAnimationPlayerFinishedActionFinish;
-//	else {
-//		// Figure
-//		const	CSceneItemAnimation&	sceneItemAnimation =
-//												internals->mSceneItemPlayerAnimation.getSceneItemAnimation();
-//		if (sceneItemAnimation.getLoopCount() == kSceneItemAnimationLoopForever)
-//			// Loop forever
-//			return kCelAnimationPlayerFinishedActionLoop;
-//		else if (sceneItemAnimation.getLoopCount() == kSceneItemAnimationLoopHoldLastFrame)
-//			// Hold last frame
-//			return kCelAnimationPlayerFinishedActionHoldLastFrame;
-//		else
-//			// Process regular loop count
-//			return (currentLoopCount < sceneItemAnimation.getLoopCount()) ?
-//					kCelAnimationPlayerFinishedActionLoop : kCelAnimationPlayerFinishedActionFinish;
-//	}
-//}
-
-////----------------------------------------------------------------------------------------------------------------------
-//void sCelAnimationPlayerFinishedProc(CCelAnimationPlayer& celAnimationPlayer, void* userData)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	CSceneItemPlayerAnimationInternals*	internals = (CSceneItemPlayerAnimationInternals*) userData;
-//
-//	CActions*	actions =
-//							internals->mSceneItemPlayerAnimation.getSceneItemAnimation().getFinishedActionsOrNil();
-//	if (actions != nil)
-//		internals->mSceneItemPlayerAnimation.perform(*actions);
-//}
-
-//----------------------------------------------------------------------------------------------------------------------
-bool sKeyframeAnimationPlayerShouldLoopProc(CKeyframeAnimationPlayer& keyframeAnimationPlayer, UInt32 currentLoopCount,
-		void* userData)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	CSceneItemPlayerAnimationInternals*	internals = (CSceneItemPlayerAnimationInternals*) userData;
-
-	if ((internals->mSceneItemPlayerAnimationProcs != nil) &&
-			internals->mSceneItemPlayerAnimationProcs->canPerformShouldLoop())
-		// Ask
-		return internals->mSceneItemPlayerAnimationProcs->shouldLoop(internals->mSceneItemPlayerAnimation,
-				currentLoopCount);
-	else {
-		// Figure
-		const	CSceneItemAnimation&	sceneItemAnimation =
-												internals->mSceneItemPlayerAnimation.getSceneItemAnimation();
-		return (sceneItemAnimation.getLoopCount() == CSceneItemAnimation::kLoopForever) ||
-				(currentLoopCount < sceneItemAnimation.getLoopCount());
-	}
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void sKeyframeAnimationPlayerFinishedProc(CKeyframeAnimationPlayer& keyframeAnimationPlayer, void* userData)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	CSceneItemPlayerAnimationInternals*	internals = (CSceneItemPlayerAnimationInternals*) userData;
-
-	const	OI<CActions>&	actions = internals->mSceneItemPlayerAnimation.getSceneItemAnimation().getFinishedActions();
-	if (actions.hasInstance())
-		internals->mSceneItemPlayerAnimation.perform(*actions);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void sKeyframeAnimationPlayerActionsHandlerProc(CKeyframeAnimationPlayer& keyframeAnimationPlayer,
-		const CActions& actions, void* userData)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	CSceneItemPlayerAnimationInternals*	internals = (CSceneItemPlayerAnimationInternals*) userData;
-
-	internals->mSceneItemPlayerAnimation.perform(actions);
 }

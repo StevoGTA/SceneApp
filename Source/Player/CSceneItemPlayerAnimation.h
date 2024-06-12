@@ -10,31 +10,37 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemPlayerAnimation
 
-class CSceneItemPlayerAnimationInternals;
 class CSceneItemPlayerAnimation : public CSceneItemPlayer {
-	// Struct
+	// Procs
 	public:
 		struct Procs {
 			// Procs
-			typedef	bool	(*AnimationShouldLoopProc)(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
-									UInt32 currentLoopCount, void* userData);
+			public:
+				typedef	bool	(*AnimationShouldLoopProc)(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
+										UInt32 currentLoopCount, void* userData);
 
-					// Lifecycle methods
-					Procs(AnimationShouldLoopProc shouldLoopProc, void* userData) :
-						mShouldLoopProc(shouldLoopProc), mUserData(userData)
-						{}
+			// Methods
+			public:
+						// Lifecycle methods
+						Procs(AnimationShouldLoopProc shouldLoopProc, void* userData) :
+							mShouldLoopProc(shouldLoopProc), mUserData(userData)
+							{}
 
-					// Instance methods
-			bool	canPerformShouldLoop() const
-						{ return mShouldLoopProc != nil; }
-			bool	shouldLoop(CSceneItemPlayerAnimation& sceneItemPlayerAnimation, UInt32 currentLoopCount) const
-						{ return mShouldLoopProc(sceneItemPlayerAnimation, currentLoopCount, mUserData); }
+						// Instance methods
+				bool	canPerformShouldLoop() const
+							{ return mShouldLoopProc != nil; }
+				bool	shouldLoop(CSceneItemPlayerAnimation& sceneItemPlayerAnimation, UInt32 currentLoopCount) const
+							{ return mShouldLoopProc(sceneItemPlayerAnimation, currentLoopCount, mUserData); }
 
 			// Properties
 			private:
 				AnimationShouldLoopProc	mShouldLoopProc;
 				void*					mUserData;
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -74,5 +80,5 @@ class CSceneItemPlayerAnimation : public CSceneItemPlayer {
 
 	// Properties
 	private:
-		CSceneItemPlayerAnimationInternals*	mInternals;
+		Internals*	mInternals;
 };

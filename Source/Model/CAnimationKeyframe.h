@@ -12,9 +12,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CAnimationKeyframe
 
-class CAnimationKeyframeInternals;
 class CAnimationKeyframe {
-	// Enums
+	// TransitionType
 	public:
 		enum TransitionType {
 			// Values hold current values and then snap to next values
@@ -36,12 +35,16 @@ class CAnimationKeyframe {
 			kTransitionTypeHoldUntilStart	= 6,
 		};
 
+	// Options
+	public:
 		enum Options {
 			kOptionsNone					= 0,
 
 		//	kOptionsTextureWillChangeAlpha	= 1 << 0,
 		};
 
+	// PropertyType
+	public:
 		enum PropertyType {
 			kPropertyTypeAnchorPoint			= MAKE_OSTYPE('A', 'K', 'A', 'P'),
 			kPropertyTypeScreenPositionPoint	= MAKE_OSTYPE('A', 'K', 'S', 'P'),
@@ -53,6 +56,10 @@ class CAnimationKeyframe {
 			kPropertyTypeImageFilename			= MAKE_OSTYPE('A', 'K', 'I', 'F'),
 			kPropertyTypeOptions				= MAKE_OSTYPE('A', 'K', 'O', 'p'),
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -98,5 +105,5 @@ class CAnimationKeyframe {
 
 	// Properties
 	private:
-		CAnimationKeyframeInternals*	mInternals;
+		Internals*	mInternals;
 };

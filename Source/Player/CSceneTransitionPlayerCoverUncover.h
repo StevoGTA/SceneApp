@@ -9,8 +9,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneTransitionPlayerCoverUncover
 
-class CSceneTransitionPlayerCoverUncoverInternals;
 class CSceneTransitionPlayerCoverUncover : public CSceneTransitionPlayer {
+	// Classes
+	private:
+		class Internals;
+
 	// Methods
 	public:
 				// Lifecycle methods
@@ -25,10 +28,10 @@ class CSceneTransitionPlayerCoverUncover : public CSceneTransitionPlayer {
 
 	// Properties
 	public:
-		static	CString											mInfoIsAutoKey;		// Presence indicates
-		static	CString											mInfoDirectionKey;	// CString
-		static	CString											mInfoDurationKey;	// Float32
+		static	CString		mInfoIsAutoKey;		// Presence indicates
+		static	CString		mInfoDirectionKey;	// CString
+		static	CString		mInfoDurationKey;	// Float32
 
 	private:
-				CSceneTransitionPlayerCoverUncoverInternals*	mInternals;
+				Internals*	mInternals;
 };

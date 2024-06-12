@@ -12,22 +12,24 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemPlayer
 
-class CSceneItemPlayerInternals;
 class CSceneItemPlayer {
-	// Structs
+	// Procs
 	public:
 		struct Procs {
 			// Procs
-			typedef	void	(*PerformActionsProc)(const CActions& actions, const S2DPointF32& point, void* userData);
+			public:
+				typedef	void	(*PerformActionsProc)(const CActions& actions, const S2DPointF32& point, void* userData);
 
-					// Lifecycle methods
-					Procs(PerformActionsProc performActionsProc, void* userData) :
-						mPerformActionsProc(performActionsProc), mUserData(userData)
-						{}
+			// Methods
+			public:
+						// Lifecycle methods
+						Procs(PerformActionsProc performActionsProc, void* userData) :
+							mPerformActionsProc(performActionsProc), mUserData(userData)
+							{}
 
-					// Instance methods
-			void	performActions(const CActions& actions, const S2DPointF32& point = S2DPointF32()) const
-						{ mPerformActionsProc(actions, point, mUserData); }
+						// Instance methods
+				void	performActions(const CActions& actions, const S2DPointF32& point = S2DPointF32()) const
+							{ mPerformActionsProc(actions, point, mUserData); }
 
 			// Properties
 			private:
@@ -40,6 +42,10 @@ class CSceneItemPlayer {
 		typedef	CSceneItemPlayer*	(*CreateProc)(const CSceneItem& sceneItem,
 											const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 											const Procs& procs);
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -94,12 +100,12 @@ class CSceneItemPlayer {
 
 	// Properties
 	public:
-		static	CString						mIsVisiblePropertyName;		// bool or 1
+		static	CString		mIsVisiblePropertyName;		// bool or 1
 
-		static	CString						mCommandNameLoad;
-		static	CString						mCommandNameUnload;
-		static	CString						mCommandNameReset;
+		static	CString		mCommandNameLoad;
+		static	CString		mCommandNameUnload;
+		static	CString		mCommandNameReset;
 
 	private:
-				CSceneItemPlayerInternals*	mInternals;
+				Internals*	mInternals;
 };

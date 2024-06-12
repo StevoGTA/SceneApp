@@ -10,22 +10,40 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CScenePackage
 
-class CScenePackageInternals;
 class CScenePackage {
-	// Structs
+	// Info
 	public:
 		struct Info {
-			// Lifecycle methods
-			Info(const CString& filename, const S2DSizeF32& size, Float32 totalPixels, Float32 aspectRatio) :
-				mFilename(filename), mSize(size), mTotalPixels(totalPixels), mAspectRatio(aspectRatio)
-				{}
+			// Methods
+			public:
+									// Lifecycle methods
+									Info(const CString& filename, const S2DSizeF32& size, Float32 totalPixels,
+											Float32 aspectRatio) :
+										mFilename(filename), mSize(size), mTotalPixels(totalPixels),
+												mAspectRatio(aspectRatio)
+										{}
+
+									// Instance methods
+				const	CString&	getFilename() const
+										{ return mFilename; }
+				const	S2DSizeF32&	getSize() const
+										{ return mSize; }
+						Float32		getTotalPixels() const
+										{ return mTotalPixels; }
+						Float32		getAspectRatio() const
+										{ return mAspectRatio; }
 
 			// Properties
-			CString		mFilename;
-			S2DSizeF32	mSize;
-			Float32		mTotalPixels;
-			Float32		mAspectRatio;
+			private:
+				CString		mFilename;
+				S2DSizeF32	mSize;
+				Float32		mTotalPixels;
+				Float32		mAspectRatio;
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -51,5 +69,5 @@ class CScenePackage {
 
 	// Properties
 	private:
-		CScenePackageInternals*	mInternals;
+		Internals*	mInternals;
 };

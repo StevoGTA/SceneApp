@@ -10,11 +10,12 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local data
 
-const	S2DPointF32	sAnchorPointDefault;
-const	S2DPointF32	sScreenPositionPointDefault;
 const	Float32		kAngleDegreesDefault = 0.0f;
 const	Float32		kAlphaDefault = 1.0f;
 const	Float32		kScaleDefault = 1.0f;
+
+const	S2DPointF32	sAnchorPointDefault;
+const	S2DPointF32	sScreenPositionPointDefault;
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -221,20 +222,20 @@ void CKeyframeAnimationPlayerKeyframe::setSpriteValuesToInterpolatedValues(Float
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - CKeyframeAnimationPlayerInternals
+// MARK: - CKeyframeAnimationPlayer::Internals
 
-class CKeyframeAnimationPlayerInternals {
+class CKeyframeAnimationPlayer::Internals {
 	public:
-		CKeyframeAnimationPlayerInternals(const CKeyframeAnimationInfo& keyframeAnimationInfo,
+		Internals(const CKeyframeAnimationInfo& keyframeAnimationInfo,
 				const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 				const CKeyframeAnimationPlayer::Procs& keyframeAnimationPlayerProcsInfo,
 				const OV<UniversalTimeInterval>& startTimeInterval) :
-			mKeyframeAnimationInfo(keyframeAnimationInfo), mIsStarted(false), mIsFinished(false),
-					//mNeedToAddToDeadPlayers(false),
-					mCurrentTimeInterval(0.0), mCurrentFrameTimeInterval(0.0),
-					mStartTimeInterval(startTimeInterval), mCurrentLoopCount(0),
-			mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
-					mKeyframeAnimationPlayerProcsInfo(keyframeAnimationPlayerProcsInfo)
+			mKeyframeAnimationInfo(keyframeAnimationInfo),
+					mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
+					mKeyframeAnimationPlayerProcsInfo(keyframeAnimationPlayerProcsInfo),
+					mStartTimeInterval(startTimeInterval),
+					mIsStarted(false), mIsFinished(false),
+					mCurrentTimeInterval(0.0), mCurrentFrameTimeInterval(0.0), mCurrentLoopCount(0)
 			{}
 
 		const	CKeyframeAnimationInfo&							mKeyframeAnimationInfo;
@@ -267,9 +268,7 @@ CKeyframeAnimationPlayer::CKeyframeAnimationPlayer(const CKeyframeAnimationInfo&
 		const OV<UniversalTimeInterval>& startTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals =
-			new CKeyframeAnimationPlayerInternals(keyframeAnimationInfo, sceneAppResourceManagementInfo, procs,
-					startTimeInterval);
+	mInternals = new Internals(keyframeAnimationInfo, sceneAppResourceManagementInfo, procs, startTimeInterval);
 
 	const	TArray<CAnimationKeyframe>&				array =
 															mInternals->mKeyframeAnimationInfo.
@@ -340,12 +339,12 @@ CActions CKeyframeAnimationPlayer::getAllActions() const
 					mInternals->mKeyframeAnimationPlayerKeyframes.getIterator();
 			iterator.hasValue(); iterator.advance()) {
 		// Get actions
-		const	OI<CActions>&	actions = iterator.getValue()->mAnimationKeyframe.getActions();
+		const	OI<CActions>&	actions = (*iterator)->mAnimationKeyframe.getActions();
 
 		// Check if have actions
 		if (actions.hasInstance())
 			// Add to total list
-			allActions.addFrom(*actions);
+			allActions += *actions;
 	}
 
 	return allActions;
@@ -360,7 +359,7 @@ void CKeyframeAnimationPlayer::load(CGPU& gpu, bool start)
 					mInternals->mKeyframeAnimationPlayerKeyframes.getIterator();
 			iterator.hasValue(); iterator.advance())
 		// Load
-		iterator.getValue()->load(gpu, mInternals->mSceneAppResourceManagementInfo);
+		(*iterator)->load(gpu, mInternals->mSceneAppResourceManagementInfo);
 
 	// Reset
 	reset(start);
@@ -385,7 +384,7 @@ void CKeyframeAnimationPlayer::unload()
 					mInternals->mKeyframeAnimationPlayerKeyframes.getIterator();
 			iterator.hasValue(); iterator.advance())
 		// Unload
-		iterator.getValue()->unload();
+		(*iterator)->unload();
 }
 
 //----------------------------------------------------------------------------------------------------------------------

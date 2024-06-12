@@ -9,9 +9,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneTransitionPlayer
 
-class CSceneTransitionPlayerInternals;
 class CSceneTransitionPlayer {
-	// Enums
+	// State
 	public:
 		enum State {
 			// Transition is currently performing
@@ -24,6 +23,8 @@ class CSceneTransitionPlayer {
 			kStateReset,
 		};
 
+	// Direction
+	public:
 		enum Direction {
 			kDirectionUp,
 			kDirectionDown,
@@ -31,26 +32,33 @@ class CSceneTransitionPlayer {
 			kDirectionRight,
 		};
 
-	// Structs
+	// Procs
 	public:
 		struct Procs {
 			// Procs
-			typedef	S2DSizeF32	(*GetViewportSizeProc)(void* userData);
+			public:
+				typedef	S2DSizeF32	(*GetViewportSizeProc)(void* userData);
 
-						// Lifecycle methods
-						Procs(GetViewportSizeProc getViewportSizeProc, void* userData) :
-							mGetViewportSizeProc(getViewportSizeProc), mUserData(userData)
-							{}
+			// Methods
+			public:
+							// Lifecycle methods
+							Procs(GetViewportSizeProc getViewportSizeProc, void* userData) :
+								mGetViewportSizeProc(getViewportSizeProc), mUserData(userData)
+								{}
 
-						// Instance methods
-			S2DSizeF32	getViewportSize() const
-							{ return mGetViewportSizeProc(mUserData); }
+							// Instance methods
+				S2DSizeF32	getViewportSize() const
+								{ return mGetViewportSizeProc(mUserData); }
 
 			// Properties
 			private:
 				GetViewportSizeProc	mGetViewportSizeProc;
 				void*				mUserData;
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -83,11 +91,11 @@ class CSceneTransitionPlayer {
 
 	// Properties
 	public:
-		static	CString								mInfoDirectionUpValue;
-		static	CString								mInfoDirectionDownValue;
-		static	CString								mInfoDirectionLeftValue;
-		static	CString								mInfoDirectionRightValue;
+		static	CString		mInfoDirectionUpValue;
+		static	CString		mInfoDirectionDownValue;
+		static	CString		mInfoDirectionLeftValue;
+		static	CString		mInfoDirectionRightValue;
 
 	private:
-				CSceneTransitionPlayerInternals*	mInternals;
+				Internals*	mInternals;
 };

@@ -9,8 +9,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneTransitionPlayerPush
 
-class CSceneTransitionPlayerPushInternals;
 class CSceneTransitionPlayerPush : public CSceneTransitionPlayer {
+	// Classes
+	private:
+		class Internals;
+
 	// Methods
 	public:
 				// Lifecycle methods
@@ -24,10 +27,10 @@ class CSceneTransitionPlayerPush : public CSceneTransitionPlayer {
 
 	// Properties
 	public:
-		static	CString									mInfoIsAutoKey;		// Presence indicates
-		static	CString									mInfoDirectionKey;	// CString
-		static	CString									mInfoDurationKey;	// Float32
+		static	CString		mInfoIsAutoKey;		// Presence indicates
+		static	CString		mInfoDirectionKey;	// CString
+		static	CString		mInfoDurationKey;	// Float32
 		
 	private:
-				CSceneTransitionPlayerPushInternals*	mInternals;
+				Internals*	mInternals;
 };

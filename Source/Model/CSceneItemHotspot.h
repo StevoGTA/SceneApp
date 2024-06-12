@@ -11,8 +11,11 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemHotspot
 
-class CSceneItemHotspotInternals;
 class CSceneItemHotspot : public CSceneItem {
+	// Classes
+	private:
+		class Internals;
+
 	// Methods
 	public:
 										// Lifecycle methods
@@ -39,8 +42,8 @@ class CSceneItemHotspot : public CSceneItem {
 
 	// Properties
 	public:
-		static	CString						mType;
+		static	CString		mType;
 
 	private:
-				CSceneItemHotspotInternals*	mInternals;
+				Internals*	mInternals;
 };

@@ -60,7 +60,7 @@ class CSceneAppMediaPlayerReference : public CMediaPlayer {
 							~CSceneAppMediaPlayerReference()
 								{ mSceneAppMediaPlayer.removeReference(); }
 
-		void				setupComplete()
+		void				setupComplete() const
 								{ mSceneAppMediaPlayer.setupComplete(); }
 
 		I<CAudioPlayer>		newAudioPlayer(const CString& identifier, UInt32 trackIndex)
@@ -89,11 +89,11 @@ class CSceneAppMediaPlayerReference : public CMediaPlayer {
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneAppMediaEngineInternals
+// MARK: - CSceneAppMediaEngine::Internals
 
-class CSceneAppMediaEngineInternals {
+class CSceneAppMediaEngine::Internals {
 	public:
-		CSceneAppMediaEngineInternals(CSRSWMessageQueues& messageQueues,
+		Internals(CSRSWMessageQueues& messageQueues,
 				const SSceneAppResourceLoading& sceneAppResourceLoading) :
 			mMessageQueues(messageQueues), mSSceneAppResourceLoading(sceneAppResourceLoading)
 			{}
@@ -114,7 +114,7 @@ CSceneAppMediaEngine::CSceneAppMediaEngine(CSRSWMessageQueues& messageQueues,
 		const SSceneAppResourceLoading& sceneAppResourceLoading) : CMediaEngine()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneAppMediaEngineInternals(messageQueues, sceneAppResourceLoading);
+	mInternals = new Internals(messageQueues, sceneAppResourceLoading);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -143,38 +143,36 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const CAudioInfo& audioInf
 				new CSceneAppMediaPlayerReference(mInternals->mMessageQueues, info, *sceneAppMediaPlayerReference));
 
 	// Query audio tracks
-			I<CRandomAccessDataSource>						randomAccessDataSource =
-																	mInternals->mSSceneAppResourceLoading
-																			.createRandomAccessDataSource(
-																					resourceFilename);
-			CString											extension =
-																	*CFilesystemPath(resourceFilename).getExtension();
-			TVResult<CMediaSourceRegistry::ImportResult>	importResult =
-																	CMediaSourceRegistry::mShared.import(
-																			SMediaSource::ImportSetup(
-																					randomAccessDataSource,
-																					SMediaSource::
-																							kOptionsCreateDecoders),
-																			extension);
-	const	CMediaTrackInfos&								mediaTrackInfos =
-																	importResult.getValue().getMediaSourceImportResult()
-																			->getMediaTrackInfos();
-	const	TArray<CMediaTrackInfos::AudioTrackInfo>&		audioTrackInfos = mediaTrackInfos.getAudioTrackInfos();
+			I<CRandomAccessDataSource>		randomAccessDataSource =
+													mInternals->mSSceneAppResourceLoading
+															.createRandomAccessDataSource(resourceFilename);
+			CString							extension = *CFilesystemPath(resourceFilename).getExtension();
+			I<SMediaSource::ImportResult>	mediaSourceImportResult =
+													CMediaSourceRegistry::mShared.import(
+															SMediaSource::ImportSetup(randomAccessDataSource,
+																	SMediaSource::kOptionsCreateDecoders),
+															extension);
 
 	// Setup Media Player
 	CSceneAppMediaPlayer*	sceneAppMediaPlayer =
 									new CSceneAppMediaPlayer(mInternals->mMessageQueues, info, resourceFilename,
 											mInternals->mSceneAppMediaPlayerMap);
-	for (CArray::ItemIndex i = 0; i < audioTrackInfos.getCount(); i++) {
+	for (TIteratorD<SMediaSource::Tracks::AudioTrack> iterator =
+					mediaSourceImportResult->getTracks().getAudioTracks().getIterator();
+			iterator.hasValue(); iterator.advance()) {
 		// Setup
-		I<CAudioSource>	audioSource = getAudioSource(audioTrackInfos[i], resourceFilename);
-		I<CAudioPlayer>	audioPlayer = sceneAppMediaPlayer->newAudioPlayer(resourceFilename, i);
+		I<CAudioSource>	audioSource = getAudioSource(*iterator, resourceFilename);
+		I<CAudioPlayer>	audioPlayer = sceneAppMediaPlayer->newAudioPlayer(resourceFilename, iterator.getIndex());
 
 		// Connect
-		ConnectResult	connectResult =
-								connect((I<CAudioProcessor>&) audioSource, (I<CAudioProcessor>&) audioPlayer,
-										composeAudioProcessingFormat(*audioSource, *audioPlayer));
-		if (!connectResult.isSuccess()) {
+		TVResult<SAudio::ProcessingFormat>	audioProcessingFormat =
+													connect((I<CAudioProcessor>&) audioSource,
+															(I<CAudioProcessor>&) audioPlayer,
+															composeAudioProcessingFormat(*audioSource, *audioPlayer));
+		if (audioProcessingFormat.hasValue())
+			// Success
+			sceneAppMediaPlayer->add((const I<CAudioDestination>&) audioPlayer, iterator.getIndex());
+		else {
 			// Cleanup
 			Delete(sceneAppMediaPlayer);
 
@@ -194,59 +192,64 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const CAudioInfo& audioInf
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const VideoInfo& videoInfo,
-		CVideoFrame::Compatibility compatibility, const CMediaPlayer::Info& info)
+OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const VideoInfo& videoInfo, const CMediaPlayer::Info& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	const	CString&	filename = videoInfo.mFilename;
+	const	CString&	filename = videoInfo.getFilename();
 
 	// Query tracks
 			I<CRandomAccessDataSource>						randomAccessDataSource =
 																	mInternals->mSSceneAppResourceLoading
 																			.createRandomAccessDataSource(filename);
 			CString											extension = *CFilesystemPath(filename).getExtension();
-			TVResult<CMediaSourceRegistry::ImportResult>	importResult =
+			I<SMediaSource::ImportResult>					mediaSourceImportResult =
 																	CMediaSourceRegistry::mShared.import(
 																			SMediaSource::ImportSetup(
 																					randomAccessDataSource,
 																					SMediaSource::
 																							kOptionsCreateDecoders),
 																			extension);
-	const	CMediaTrackInfos&								mediaTrackInfos =
-																	importResult.getValue().getMediaSourceImportResult()
-																			->getMediaTrackInfos();
-	const	TArray<CMediaTrackInfos::AudioTrackInfo>&		audioTrackInfos = mediaTrackInfos.getAudioTrackInfos();
-	const	TArray<CMediaTrackInfos::VideoTrackInfo>&		videoTrackInfos = mediaTrackInfos.getVideoTrackInfos();
 
 	// Setup Media Player
 	CSceneAppMediaPlayer*	sceneAppMediaPlayer =
 									new CSceneAppMediaPlayer(mInternals->mMessageQueues, info, filename,
 											mInternals->mSceneAppMediaPlayerMap);
-	for (CArray::ItemIndex i = 0; i < audioTrackInfos.getCount(); i++) {
+	for (TIteratorD<SMediaSource::Tracks::AudioTrack> iterator =
+					mediaSourceImportResult->getTracks().getAudioTracks().getIterator();
+			iterator.hasValue(); iterator.advance()) {
 		// Setup
-		I<CAudioSource>	audioSource = getAudioSource(audioTrackInfos[i], filename);
-		I<CAudioPlayer>	audioPlayer = sceneAppMediaPlayer->newAudioPlayer(filename, i);
+		I<CAudioSource>	audioSource = getAudioSource(*iterator, filename);
+		I<CAudioPlayer>	audioPlayer = sceneAppMediaPlayer->newAudioPlayer(filename, iterator.getIndex());
 
 		// Connect
-		ConnectResult	connectResult =
-								connect((I<CAudioProcessor>&) audioSource, (I<CAudioProcessor>&) audioPlayer,
-										composeAudioProcessingFormat(*audioSource, *audioPlayer));
-		if (!connectResult.isSuccess()) {
+		TVResult<SAudio::ProcessingFormat>	audioProcessingFormat =
+													connect((I<CAudioProcessor>&) audioSource,
+															(I<CAudioProcessor>&) audioPlayer,
+															composeAudioProcessingFormat(*audioSource, *audioPlayer));
+		if (audioProcessingFormat.hasValue())
+			// Success
+			sceneAppMediaPlayer->add((const I<CAudioDestination>&) audioPlayer, iterator.getIndex());
+		else {
 			// Cleanup
 			Delete(sceneAppMediaPlayer);
 
 			return OI<CMediaPlayer>();
 		}
 	}
-	for (CArray::ItemIndex i = 0; i < videoTrackInfos.getCount(); i++) {
+	for (TIteratorD<SMediaSource::Tracks::VideoTrack> iterator =
+					mediaSourceImportResult->getTracks().getVideoTracks().getIterator();
+			iterator.hasValue(); iterator.advance()) {
 		// Setup
-		I<CVideoSource>		videoSource = getVideoSource(videoTrackInfos[i], compatibility, filename);
-		I<CVideoFrameStore>	videoFrameStore = sceneAppMediaPlayer->newVideoFrameStore(filename, i);
+		I<CVideoSource>		videoSource = getVideoSource(*iterator, filename);
+		I<CVideoFrameStore>	videoFrameStore = sceneAppMediaPlayer->newVideoFrameStore(filename, iterator.getIndex());
 
 		// Connect
 		OV<SError>	error = videoFrameStore->connectInput((const I<CVideoProcessor>&) videoSource);
-		if (error.hasValue()) {
+		if (!error.hasValue())
+			// Success
+			sceneAppMediaPlayer->add((const I<CVideoDestination>&) videoFrameStore, iterator.getIndex());
+		else {
 			// Cleanup
 			Delete(sceneAppMediaPlayer);
 

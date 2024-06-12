@@ -7,11 +7,11 @@
 #include "CGPURenderObject2D.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneItemPlayerVideoInternals
+// MARK: CSceneItemPlayerVideo::Internals
 
-class CSceneItemPlayerVideoInternals {
+class CSceneItemPlayerVideo::Internals {
 	public:
-						CSceneItemPlayerVideoInternals(CSceneItemPlayerVideo& sceneItemPlayerVideo,
+						Internals(CSceneItemPlayerVideo& sceneItemPlayerVideo,
 								const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
 							mSceneItemPlayerVideo(sceneItemPlayerVideo),
 									mGPUTextureManager(sceneAppResourceManagementInfo.mGPUTextureManager),
@@ -25,23 +25,21 @@ class CSceneItemPlayerVideoInternals {
 								mMediaPlayer =
 										mSceneAppMediaEngine.getMediaPlayer(
 												CSceneAppMediaEngine::VideoInfo(resourceFilename),
-												mGPU->getVideoFrameCompatibility(),
-												CMediaPlayer::Info(nil, nil, videoFrameUpdated, nil, finished, this));
+												CMediaPlayer::Info(nil, nil,
+														(CMediaPlayer::Info::VideoFrameUpdatedProc) videoFrameUpdated,
+														nil, (CMediaPlayer::Info::FinishedProc) finished, this));
 							}
 
-		static	void	videoFrameUpdated(const CVideoFrame& videoFrame, void* userData)
+		static	void	videoFrameUpdated(const CVideoFrame& videoFrame, Internals* internals)
 							{
-								// Setup
-								CSceneItemPlayerVideoInternals&	internals =
-																		*((CSceneItemPlayerVideoInternals*) userData);
-
 								// Collect texture references
-								TArray<I<CGPUTexture> >			textures = internals.mGPU->registerTextures(videoFrame);
+								TArray<I<CGPUTexture> >			textures =
+																		internals->mGPU->registerTextures(videoFrame);
 								TNArray<CGPUTextureReference>	gpuTextureReferences;
 								for (CArray::ItemIndex i = 0; i < textures.getCount(); i++)
 									// Add texture reference
 									gpuTextureReferences +=
-											internals.mGPUTextureManager.gpuTextureReference(textures[i]);
+											internals->mGPUTextureManager.gpuTextureReference(textures[i]);
 
 								// Setup
 								CGPUFragmentShader::Proc	fragmentShaderProc;
@@ -67,31 +65,27 @@ class CSceneItemPlayerVideoInternals {
 
 								// Create Render Object 2D
 								const	S2DRectF32&	screenRect =
-															internals.mSceneItemPlayerVideo.getSceneItemVideo()
+															internals->mSceneItemPlayerVideo.getSceneItemVideo()
 																	.getScreenRect();
 								const	S2DRectU16&	viewRect = videoFrame.getViewRect();
 										S2DRectF32	textureRect(S2DPointF32(viewRect.mOrigin.mX, viewRect.mOrigin.mY),
 															S2DSizeF32(viewRect.mSize.mWidth, viewRect.mSize.mHeight));
-								internals.mRenderObject2D =
+								internals->mRenderObject2D =
 										OI<CGPURenderObject2D>(
-												CGPURenderObject2D(*internals.mGPU,
+												CGPURenderObject2D(*internals->mGPU,
 														CGPURenderObject2D::Item(textureRect.aspectFitIn(screenRect),
 																textureRect),
 														gpuTextureReferences, fragmentShaderProc));
 							}
-		static	void	finished(void* userData)
+		static	void	finished(Internals* internals)
 							{
-								// Setup
-								CSceneItemPlayerVideoInternals&	internals =
-																		*((CSceneItemPlayerVideoInternals*) userData);
-
 								// Query finished actions
 								const	OI<CActions>	actions =
-																internals.mSceneItemPlayerVideo.getSceneItemVideo()
+																internals->mSceneItemPlayerVideo.getSceneItemVideo()
 																		.getFinishedActions();
 								if (actions.hasInstance())
 									// Perform
-									internals.mSceneItemPlayerVideo.perform(*actions);
+									internals->mSceneItemPlayerVideo.perform(*actions);
 							}
 
 		CSceneItemPlayerVideo&	mSceneItemPlayerVideo;
@@ -130,7 +124,7 @@ CSceneItemPlayerVideo::CSceneItemPlayerVideo(const CSceneItemVideo& sceneItemVid
 		CSceneItemPlayer(sceneItemVideo, sceneItemPlayerProcs)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemPlayerVideoInternals(*this, sceneAppResourceManagementInfo);
+	mInternals = new Internals(*this, sceneAppResourceManagementInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

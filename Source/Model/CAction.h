@@ -9,14 +9,17 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CAction
 
-class CActionInternals;
 class CAction {
-	// Enums
+	// Options
 	public:
 		enum Options {
 			kOptionsNone			= 0,
 			kOptionsDontPreload		= 1 << 0,
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -40,31 +43,31 @@ class CAction {
 
 	// Properties
 	public:
-									// Names
-		static	CString				mNameOpenURL;
-		static	CString				mPauseBackgroundAudio;
-		static	CString				mResumeBackgroundAudio;
-		static	CString				mNameSceneCover;
-		static	CString				mNameSceneCut;
-		static	CString				mNameScenePush;
-		static	CString				mNameSceneUncover;
-		static	CString				mNameSetItemNameValue;
-		static	CString				mNameSendItemCommand;
-		static	CString				mNameSendAppCommand;
+							// Names
+		static	CString		mNameOpenURL;
+		static	CString		mPauseBackgroundAudio;
+		static	CString		mResumeBackgroundAudio;
+		static	CString		mNameSceneCover;
+		static	CString		mNameSceneCut;
+		static	CString		mNameScenePush;
+		static	CString		mNameSceneUncover;
+		static	CString		mNameSetItemNameValue;
+		static	CString		mNameSendItemCommand;
+		static	CString		mNameSendAppCommand;
 
-									// Info keys and value types
-		static	CString				mInfoCommandKey;			// CString
-		static	CString				mInfoItemNameKey;			// CString
-		static	CString				mInfoLoadSceneIndexFromKey;	// CString
-		static	CString				mInfoPropertyNameKey;		// CString
-		static	CString				mInfoPropertyValueKey;		// SDictionaryValue
-		static	CString				mInfoSceneIndexKey;			// UInt32
-		static	CString				mInfoSceneNameKey;			// CString
-		static	CString				mInfoURLKey;				// CString
-		static	CString				mInfoUseWebViewKey;			// anything
+							// Info keys and value types
+		static	CString		mInfoCommandKey;			// CString
+		static	CString		mInfoItemNameKey;			// CString
+		static	CString		mInfoLoadSceneIndexFromKey;	// CString
+		static	CString		mInfoPropertyNameKey;		// CString
+		static	CString		mInfoPropertyValueKey;		// SDictionaryValue
+		static	CString		mInfoSceneIndexKey;			// UInt32
+		static	CString		mInfoSceneNameKey;			// CString
+		static	CString		mInfoURLKey;				// CString
+		static	CString		mInfoUseWebViewKey;			// anything
 
 	private:
-				CActionInternals*	mInternals;
+				Internals*	mInternals;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

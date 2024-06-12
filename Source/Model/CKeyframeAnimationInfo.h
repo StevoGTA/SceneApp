@@ -9,15 +9,18 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CKeyframeAnimationInfo
 
-class CKeyframeAnimationInfoInternals;
 class CKeyframeAnimationInfo {
-	// Enums
+	// PropertyType
 	public:
 		enum PropertyType {
 			kPropertyTypeKeyframeAnimationInfo	= MAKE_OSTYPE('K', 'e', 'A', 'I'),
 
 			kPropertyTypeKeyframeArray			= MAKE_OSTYPE('K', 'A', 'I', 'K'),
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -36,5 +39,5 @@ class CKeyframeAnimationInfo {
 
 	// Properties
 	private:
-		CKeyframeAnimationInfoInternals*	mInternals;
+		Internals*	mInternals;
 };

@@ -4,13 +4,15 @@
 
 #include "CSceneItemHotspot.h"
 
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneItemHotspotInternals
+#include "CReferenceCountable.h"
 
-class CSceneItemHotspotInternals : public TCopyOnWriteReferenceCountable<CSceneItemHotspotInternals> {
+//----------------------------------------------------------------------------------------------------------------------
+// MARK: CSceneItemHotspot::Internals
+
+class CSceneItemHotspot::Internals : public TCopyOnWriteReferenceCountable<Internals> {
 	public:
-		CSceneItemHotspotInternals() : TCopyOnWriteReferenceCountable() {}
-		CSceneItemHotspotInternals(const CSceneItemHotspotInternals& other) :
+		Internals() : TCopyOnWriteReferenceCountable() {}
+		Internals(const Internals& other) :
 			TCopyOnWriteReferenceCountable(),
 					mActions(other.mActions), mScreenRect(other.mScreenRect)
 			{}
@@ -33,14 +35,14 @@ CString	CSceneItemHotspot::mType(OSSTR("hotspot"));
 CSceneItemHotspot::CSceneItemHotspot() : CSceneItem()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemHotspotInternals();
+	mInternals = new Internals();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemHotspot::CSceneItemHotspot(const CDictionary& info) : CSceneItem(info)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemHotspotInternals();
+	mInternals = new Internals();
 
 	if (info.contains(CString(OSSTR("actionInfo"))))
 		mInternals->mActions = OI<CActions>(CActions(info.getDictionary(CString(OSSTR("actionInfo")))));
@@ -113,7 +115,7 @@ void CSceneItemHotspot::setActions(const OI<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mActions = actions;
@@ -131,7 +133,7 @@ void CSceneItemHotspot::setScreenRect(const S2DRectF32& rect)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mScreenRect = rect;

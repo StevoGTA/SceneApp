@@ -5,13 +5,12 @@
 #include "CSceneTransitionPlayerCoverUncover.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneTransitionPlayerCoverUncoverInternals
+// MARK: CSceneTransitionPlayerCoverUncover::Internals
 
-class CSceneTransitionPlayerCoverUncoverInternals {
+class CSceneTransitionPlayerCoverUncover::Internals {
 	public:
-		CSceneTransitionPlayerCoverUncoverInternals(bool isAuto, bool isCover,
-				CSceneTransitionPlayer::Direction direction, UniversalTimeInterval durationTimeInterval,
-				const CSceneTransitionPlayer::Procs& procs) :
+		Internals(bool isAuto, bool isCover, CSceneTransitionPlayer::Direction direction,
+				UniversalTimeInterval durationTimeInterval, const CSceneTransitionPlayer::Procs& procs) :
 			mIsAuto(isAuto), mIsCover(isCover), mDirection(direction), mCurrentOffset(0.0), mProcs(procs),
 					mDurationTimeInterval(durationTimeInterval)
 			{}
@@ -43,8 +42,8 @@ CSceneTransitionPlayerCoverUncover::CSceneTransitionPlayerCoverUncover(CScenePla
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals =
-			new CSceneTransitionPlayerCoverUncoverInternals(info.contains(mInfoIsAutoKey), isCover,
-					getDirection(info.getString(mInfoDirectionKey)), info.getFloat32(mInfoDurationKey, 0.3f), procs);
+			new Internals(info.contains(mInfoIsAutoKey), isCover, getDirection(info.getString(mInfoDirectionKey)),
+					info.getFloat32(mInfoDurationKey, 0.3f), procs);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

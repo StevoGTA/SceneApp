@@ -4,19 +4,19 @@
 
 #include "CAudioInfo.h"
 
+#include "CReferenceCountable.h"
 #include "CSceneItem.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: CAudioInfoInternals
+// MARK: CAudioInfo::Internals
 
-class CAudioInfoInternals : public TCopyOnWriteReferenceCountable<CAudioInfoInternals> {
+class CAudioInfo::Internals : public TCopyOnWriteReferenceCountable<Internals> {
 	public:
-		CAudioInfoInternals(Float32 gain, const CString& resourceFilename, OV<UInt32> loopCount,
-				CAudioInfo::Options options) :
+		Internals(Float32 gain, const CString& resourceFilename, OV<UInt32> loopCount, CAudioInfo::Options options) :
 			TCopyOnWriteReferenceCountable(),
 					mGain(gain), mResourceFilename(resourceFilename), mLoopCount(loopCount), mOptions(options)
 			{}
-		CAudioInfoInternals(const CAudioInfoInternals& other) :
+		Internals(const Internals& other) :
 			TCopyOnWriteReferenceCountable(),
 					mGain(other.mGain), mResourceFilename(other.mResourceFilename), mLoopCount(other.mLoopCount),
 					mOptions(other.mOptions)
@@ -38,7 +38,7 @@ class CAudioInfoInternals : public TCopyOnWriteReferenceCountable<CAudioInfoInte
 CAudioInfo::CAudioInfo(const CString& resourceFilename)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CAudioInfoInternals(1.0, resourceFilename, 1, kOptionsNone);
+	mInternals = new Internals(1.0, resourceFilename, 1, kOptionsNone);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -50,8 +50,7 @@ CAudioInfo::CAudioInfo(const CDictionary& info)
 	AssertFailIf(resourceFilename.isEmpty())
 
 	mInternals =
-			new CAudioInfoInternals(info.getFloat32(CString(OSSTR("gain")), 1.0),
-					info.getString(CString(OSSTR("filename"))),
+			new Internals(info.getFloat32(CString(OSSTR("gain")), 1.0), info.getString(CString(OSSTR("filename"))),
 					info.contains(CString(OSSTR("loopCount"))) ?
 							OV<UInt32>(info.getUInt32(CString(OSSTR("loopCount")))) : OV<UInt32>(),
 					(Options) info.getUInt32(CString(OSSTR("options")), kOptionsNone));
@@ -135,7 +134,7 @@ void CAudioInfo::setGain(Float32 gain)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mGain = gain;
@@ -153,7 +152,7 @@ void CAudioInfo::setResourceFilename(const CString& resourceFilename)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mResourceFilename = resourceFilename;
@@ -171,7 +170,7 @@ void CAudioInfo::setLoopCount(OV<UInt32> loopCount)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mLoopCount = loopCount;
@@ -189,7 +188,7 @@ void CAudioInfo::setOptions(Options options)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mOptions = options;

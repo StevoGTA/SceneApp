@@ -4,12 +4,14 @@
 
 #include "CScenePackage.h"
 
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: CScenePackageInternals
+#include "CReferenceCountable.h"
 
-class CScenePackageInternals : public TReferenceCountable<CScenePackageInternals> {
+//----------------------------------------------------------------------------------------------------------------------
+// MARK: CScenePackage::Internals
+
+class CScenePackage::Internals : public TReferenceCountable<Internals> {
 	public:
-		CScenePackageInternals(const S2DSizeF32& size) : TReferenceCountable(), mSize(size) {}
+		Internals(const S2DSizeF32& size) : TReferenceCountable(), mSize(size) {}
 
 		S2DSizeF32			mSize;
 		TNArray<CScene>		mScenes;
@@ -26,18 +28,18 @@ class CScenePackageInternals : public TReferenceCountable<CScenePackageInternals
 CScenePackage::CScenePackage(const S2DSizeF32& size)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CScenePackageInternals(size);
+	mInternals = new Internals(size);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CScenePackage::CScenePackage(const S2DSizeF32& size, const CDictionary& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CScenePackageInternals(size);
+	mInternals = new Internals(size);
 
 	mInternals->mScenes =
 			TNArray<CScene>(info.getArrayOfDictionaries(CString(OSSTR("scenes"))),
-					(CScene (*)(CArray::ItemRef item)) CScene::makeFrom);
+					(TNArray<CScene>::MapProc) CScene::makeFrom);
 	mInternals->mInitialSceneIndex = info.getSInt32(CString(OSSTR("initialSceneIndex")), 0);
 }
 
@@ -71,7 +73,7 @@ CDictionary CScenePackage::getInfo() const
 	CDictionary	info;
 
 	info.set(CString(OSSTR("scenes")),
-			TNArray<CDictionary>(mInternals->mScenes, (CDictionary (*)(CArray::ItemRef item)) CScene::getInfoFrom));
+			TNArray<CDictionary>(mInternals->mScenes, (TNArray<CDictionary>::MapProc) CScene::getInfoFrom));
 	if (mInternals->mInitialSceneIndex.hasValue())
 		info.set(CString(OSSTR("initialSceneIndex")), *mInternals->mInitialSceneIndex);
 
@@ -141,7 +143,7 @@ TArray<CScenePackage::Info> CScenePackage::getScenePackageInfos(const TArray<CFi
 	// Iterate files
 	for (TIteratorD<CFile> iterator = files.getIterator(); iterator.hasValue(); iterator.advance()) {
 		// Get filename
-		CString	filename = iterator.getValue().getName();
+		CString	filename = iterator->getName();
 
 		// Check for Scenes package
 		if (filename.hasPrefix(CString(OSSTR("Scenes_"))) && filename.hasSuffix(CString(OSSTR(".plist")))) {

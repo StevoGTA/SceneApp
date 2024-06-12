@@ -4,16 +4,18 @@
 
 #include "CSceneItemCustom.h"
 
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneItemCustomInternals
+#include "CReferenceCountable.h"
 
-class CSceneItemCustomInternals : public TCopyOnWriteReferenceCountable<CSceneItemCustomInternals> {
+//----------------------------------------------------------------------------------------------------------------------
+// MARK: CSceneItemCustom::Internals
+
+class CSceneItemCustom::Internals : public TCopyOnWriteReferenceCountable<Internals> {
 	public:
-		CSceneItemCustomInternals(const CString& type, const CDictionary& info) :
+		Internals(const CString& type, const CDictionary& info) :
 			TCopyOnWriteReferenceCountable(),
 					mInfo(info), mType(type)
 			{}
-		CSceneItemCustomInternals(const CSceneItemCustomInternals& other) :
+		Internals(const Internals& other) :
 			TCopyOnWriteReferenceCountable(),
 					mInfo(other.mInfo), mType(other.mType), mActionsMap(other.mActionsMap),
 							mAudioInfoMap(other.mAudioInfoMap), mSceneItemAnimationMap(other.mSceneItemAnimationMap),
@@ -40,14 +42,14 @@ class CSceneItemCustomInternals : public TCopyOnWriteReferenceCountable<CSceneIt
 CSceneItemCustom::CSceneItemCustom() : CSceneItem()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemCustomInternals(CString(OSSTR("<UNKNOWN>")), CDictionary());
+	mInternals = new Internals(CString(OSSTR("<UNKNOWN>")), CDictionary());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemCustom::CSceneItemCustom(const CString& type, const CDictionary& info) : CSceneItem(info)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemCustomInternals(type, info);
+	mInternals = new Internals(type, info);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

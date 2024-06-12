@@ -5,12 +5,12 @@
 #include "CSceneTransitionPlayerPush.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneTransitionPlayerPushInternals
+// MARK: CSceneTransitionPlayerPush::Internals
 
-class CSceneTransitionPlayerPushInternals {
+class CSceneTransitionPlayerPush::Internals {
 	public:
-		CSceneTransitionPlayerPushInternals(bool isAuto, CSceneTransitionPlayer::Direction direction,
-				UniversalTimeInterval durationTimeInterval, const CSceneTransitionPlayer::Procs& procs) :
+		Internals(bool isAuto, CSceneTransitionPlayer::Direction direction, UniversalTimeInterval durationTimeInterval,
+				const CSceneTransitionPlayer::Procs& procs) :
 			mIsAuto(isAuto), mDirection(direction), mCurrentOffset(0.0), mProcs(procs),
 					mDurationTimeInterval(durationTimeInterval)
 			{}
@@ -41,8 +41,8 @@ CSceneTransitionPlayerPush::CSceneTransitionPlayerPush(CScenePlayer& currentScen
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals =
-			new CSceneTransitionPlayerPushInternals(info.contains(mInfoIsAutoKey),
-					getDirection(info.getString(mInfoDirectionKey)), info.getFloat32(mInfoDurationKey, 0.3f), procs);
+			new Internals(info.contains(mInfoIsAutoKey), getDirection(info.getString(mInfoDirectionKey)),
+					info.getFloat32(mInfoDurationKey, 0.3f), procs);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

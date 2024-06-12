@@ -22,11 +22,12 @@ CSceneItemPlayerHotspot::CSceneItemPlayerHotspot(const CSceneItemHotspot& sceneI
 CActions CSceneItemPlayerHotspot::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Collect actions
 	CActions	actionsArray;
 
 	const	OI<CActions>&	actions = getSceneItemHotspot().getActions();
 	if (actions.hasInstance())
-		actionsArray.addFrom(*actions);
+		actionsArray += *actions;
 
 	return actionsArray;
 }

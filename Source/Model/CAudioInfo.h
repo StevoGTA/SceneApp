@@ -9,9 +9,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CAudioInfo
 
-class CAudioInfoInternals;
 class CAudioInfo {
-	// Enums
+	// Options
 	public:
 		enum Options {
 			kOptionsNone						= 0,
@@ -20,6 +19,8 @@ class CAudioInfo {
 			kOptionsLoadFileIntoMemory			= 1 << 2,
 		};
 
+	// PropertyType
+	public:
 		enum PropertyType {
 			kPropertyTypeAudioInfo	= MAKE_OSTYPE('A', 'u', 'I', 'n'),
 
@@ -27,6 +28,10 @@ class CAudioInfo {
 			kPropertyTypeLoopCount	= MAKE_OSTYPE('A', 'u', 'I', 'L'),
 			kPropertyTypeOptions	= MAKE_OSTYPE('A', 'u', 'I', 'O'),
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -54,5 +59,5 @@ class CAudioInfo {
 
 	// Properties
 	private:
-		CAudioInfoInternals*	mInternals;
+		Internals*	mInternals;
 };

@@ -4,15 +4,15 @@
 
 #include "CSceneItem.h"
 
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneItemInternals
+#include "CReferenceCountable.h"
 
-class CSceneItemInternals : public TCopyOnWriteReferenceCountable<CSceneItemInternals> {
+//----------------------------------------------------------------------------------------------------------------------
+// MARK: CSceneItem::Internals
+
+class CSceneItem::Internals : public TCopyOnWriteReferenceCountable<Internals> {
 	public:
-		CSceneItemInternals() :
-			TCopyOnWriteReferenceCountable(), mIsVisible(true), mOptions(CSceneItem::kOptionsNone)
-			{}
-		CSceneItemInternals(const CSceneItemInternals& other) :
+		Internals() : TCopyOnWriteReferenceCountable(), mIsVisible(true), mOptions(CSceneItem::kOptionsNone) {}
+		Internals(const Internals& other) :
 			TCopyOnWriteReferenceCountable(),
 					mIsVisible(other.mIsVisible), mName(other.mName), mOptions(other.mOptions)
 			{}
@@ -40,14 +40,14 @@ CString	CSceneItem::mPropertyTypeKey(OSSTR("type"));
 CSceneItem::CSceneItem()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemInternals();
+	mInternals = new Internals();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItem::CSceneItem(const CDictionary& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemInternals();
+	mInternals = new Internals();
 
 	mInternals->mIsVisible = info.getBool(CString(OSSTR("visible")), mInternals->mIsVisible);
 	mInternals->mName = info.getString(CString(OSSTR("name")), mInternals->mName);
@@ -82,7 +82,7 @@ void CSceneItem::setIsVisible(bool isVisible)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mIsVisible = isVisible;
@@ -100,7 +100,7 @@ void CSceneItem::setName(const CString& name)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mName = name;
@@ -118,7 +118,7 @@ void CSceneItem::setOptions(Options options)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Prepare to write
-	mInternals = mInternals->prepareForWrite();
+	Internals::prepareForWrite(&mInternals);
 
 	// Update
 	mInternals->mOptions = options;

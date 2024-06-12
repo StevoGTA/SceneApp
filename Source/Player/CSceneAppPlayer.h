@@ -16,9 +16,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneAppPlayer
 
-class CSceneAppPlayerInternals;
 class CSceneAppPlayer {
-	// Enums
+	// Options
 	public:
 		enum Options {
 
@@ -46,129 +45,217 @@ class CSceneAppPlayer {
 		//	kOptionsMapRGB888ToRGB565			= 1 << 8,
 		};
 
-	// Structs
+	// MouseDownInfo
 	public:
 		struct MouseDownInfo {
-			// Lifecycle methods
-			MouseDownInfo(const S2DPointF32& viewportPoint, UInt32 clickCount) :
-				mViewportPoint(viewportPoint), mClickCount(clickCount)
-				{}
-			MouseDownInfo(const MouseDownInfo& other) :
-				mViewportPoint(other.mViewportPoint), mClickCount(other.mClickCount)
-				{}
+			// Methods
+			public:
+										// Lifecycle methods
+										MouseDownInfo(const S2DPointF32& viewportPoint, UInt32 clickCount) :
+											mViewportPoint(viewportPoint), mClickCount(clickCount)
+											{}
+										MouseDownInfo(const MouseDownInfo& other) :
+											mViewportPoint(other.mViewportPoint), mClickCount(other.mClickCount)
+											{}
 
+										// Instance methods
+				const	S2DPointF32&	getViewportPoint() const
+											{ return mViewportPoint; }
+						UInt32			getClickCount() const
+											{ return mClickCount; }
 			// Properties
-			S2DPointF32	mViewportPoint;
-			UInt32		mClickCount;
+			private:
+				S2DPointF32	mViewportPoint;
+				UInt32		mClickCount;
 		};
 
+	// MouseDraggedInfo
+	public:
 		struct MouseDraggedInfo {
-			// Lifecycle methods
-			MouseDraggedInfo(const S2DPointF32& viewportPreviousPoint, const S2DPointF32& viewportCurrentPoint) :
-				mViewportPreviousPoint(viewportPreviousPoint), mViewportCurrentPoint(viewportCurrentPoint)
-				{}
-			MouseDraggedInfo(const MouseDraggedInfo& other) :
-				mViewportPreviousPoint(other.mViewportPreviousPoint), mViewportCurrentPoint(other.mViewportCurrentPoint)
-				{}
+			// Methods
+			public:
+										// Lifecycle methods
+										MouseDraggedInfo(const S2DPointF32& viewportPreviousPoint,
+												const S2DPointF32& viewportCurrentPoint) :
+											mViewportPreviousPoint(viewportPreviousPoint),
+													mViewportCurrentPoint(viewportCurrentPoint)
+											{}
+										MouseDraggedInfo(const MouseDraggedInfo& other) :
+											mViewportPreviousPoint(other.mViewportPreviousPoint),
+													mViewportCurrentPoint(other.mViewportCurrentPoint)
+											{}
+
+										// Instance methods
+				const	S2DPointF32&	getViewportPreviousPoint() const
+											{ return mViewportPreviousPoint; }
+				const	S2DPointF32&	getViewportCurrentPoint() const
+											{ return mViewportCurrentPoint; }
 
 			// Properties
-			S2DPointF32	mViewportPreviousPoint;
-			S2DPointF32	mViewportCurrentPoint;
+			private:
+				S2DPointF32	mViewportPreviousPoint;
+				S2DPointF32	mViewportCurrentPoint;
 		};
 
+	// MouseUpInfo
+	public:
 		struct MouseUpInfo {
-			// Lifecycle methods
-			MouseUpInfo(const S2DPointF32& viewportPoint) : mViewportPoint(viewportPoint) {}
-			MouseUpInfo(const MouseUpInfo& other) : mViewportPoint(other.mViewportPoint) {}
+			// Methods
+			public:
+										// Lifecycle methods
+										MouseUpInfo(const S2DPointF32& viewportPoint) : mViewportPoint(viewportPoint) {}
+										MouseUpInfo(const MouseUpInfo& other) : mViewportPoint(other.mViewportPoint) {}
+
+										// Instance methods
+				const	S2DPointF32&	getViewportPoint() const
+											{ return mViewportPoint; }
 
 			// Properties
-			S2DPointF32	mViewportPoint;
+			private:
+				S2DPointF32	mViewportPoint;
 		};
 
+	// MouseCancelledInfo
+	public:
 		struct MouseCancelledInfo {};
 
+	// TouchBeganInfo
+	public:
 		struct TouchBeganInfo {
-			// Lifecycle methods
-			TouchBeganInfo(const S2DPointF32& viewportPoint, UInt32 tapCount, void* reference = nil) :
-				mViewportPoint(viewportPoint), mTapCount(tapCount), mReference(reference)
-				{}
-			TouchBeganInfo(const TouchBeganInfo& other) :
-				mViewportPoint(other.mViewportPoint), mTapCount(other.mTapCount), mReference(other.mReference)
-				{}
+			// Methods
+			public:
+										// Lifecycle methods
+										TouchBeganInfo(const S2DPointF32& viewportPoint, UInt32 tapCount,
+												void* reference = nil) :
+											mViewportPoint(viewportPoint), mTapCount(tapCount), mReference(reference)
+											{}
+										TouchBeganInfo(const TouchBeganInfo& other) :
+											mViewportPoint(other.mViewportPoint), mTapCount(other.mTapCount),
+													mReference(other.mReference)
+											{}
+
+										// Instance methods
+				const	S2DPointF32&	getViewportPoint() const
+											{ return mViewportPoint; }
+						UInt32			getTapCount() const
+											{ return mTapCount; }
+						void*			getReference() const
+											{ return mReference; }
 
 			// Properties
-			S2DPointF32	mViewportPoint;
-			UInt32		mTapCount;
-			void*		mReference;
+			private:
+				S2DPointF32	mViewportPoint;
+				UInt32		mTapCount;
+				void*		mReference;
 		};
 
+	// TouchMovedInfo
+	public:
 		struct TouchMovedInfo {
-			// Lifecycle methods
-			TouchMovedInfo(const S2DPointF32& viewportPreviousPoint, const S2DPointF32& viewportCurrentPoint,
-					void* reference = nil) :
-				mViewportPreviousPoint(viewportPreviousPoint), mViewportCurrentPoint(viewportCurrentPoint),
-						mReference(reference)
-				{}
-			TouchMovedInfo(const TouchMovedInfo& other) :
-				mViewportPreviousPoint(other.mViewportPreviousPoint), mViewportCurrentPoint(other.mViewportCurrentPoint),
-						mReference(other.mReference)
-				{}
+			// Methods
+			public:
+										// Lifecycle methods
+										TouchMovedInfo(const S2DPointF32& viewportPreviousPoint,
+												const S2DPointF32& viewportCurrentPoint, void* reference = nil) :
+											mViewportPreviousPoint(viewportPreviousPoint),
+													mViewportCurrentPoint(viewportCurrentPoint), mReference(reference)
+											{}
+										TouchMovedInfo(const TouchMovedInfo& other) :
+											mViewportPreviousPoint(other.mViewportPreviousPoint),
+													mViewportCurrentPoint(other.mViewportCurrentPoint),
+													mReference(other.mReference)
+											{}
+
+										// Instance methods
+				const	S2DPointF32&	getViewportPreviousPoint() const
+											{ return mViewportPreviousPoint; }
+				const	S2DPointF32&	getViewportCurrentPoint() const
+											{ return mViewportCurrentPoint; }
+						void*			getReference() const
+											{ return mReference; }
 
 			// Properties
-			S2DPointF32	mViewportPreviousPoint;
-			S2DPointF32	mViewportCurrentPoint;
-			void*		mReference;
+			private:
+				S2DPointF32	mViewportPreviousPoint;
+				S2DPointF32	mViewportCurrentPoint;
+				void*		mReference;
 		};
 
+	// TouchEndedInfo
+	public:
 		struct TouchEndedInfo {
-			// Lifecycle methods
-			TouchEndedInfo(const S2DPointF32& viewportPoint, void* reference = nil) :
-				mViewportPoint(viewportPoint), mReference(reference)
-				{}
-			TouchEndedInfo(const TouchEndedInfo& other) :
-				mViewportPoint(other.mViewportPoint), mReference(other.mReference)
-				{}
+			// Methods
+			public:
+										// Lifecycle methods
+										TouchEndedInfo(const S2DPointF32& viewportPoint, void* reference = nil) :
+											mViewportPoint(viewportPoint), mReference(reference)
+											{}
+										TouchEndedInfo(const TouchEndedInfo& other) :
+											mViewportPoint(other.mViewportPoint), mReference(other.mReference)
+											{}
+
+										// Instance methods
+				const	S2DPointF32&	getViewportPoint() const
+											{ return mViewportPoint; }
+						void*			getReference() const
+											{ return mReference; }
 
 			// Properties
-			S2DPointF32	mViewportPoint;
-			void*		mReference;
+			private:
+				S2DPointF32	mViewportPoint;
+				void*		mReference;
 		};
 
+	// TouchCancelledInfo
+	public:
 		struct TouchCancelledInfo {
-			// Lifecycle methods
-			TouchCancelledInfo(void* reference = nil) : mReference(reference) {}
-			TouchCancelledInfo(const TouchCancelledInfo& other) : mReference(other.mReference) {}
+			// Methods
+			public:
+						// Lifecycle methods
+						TouchCancelledInfo(void* reference = nil) : mReference(reference) {}
+						TouchCancelledInfo(const TouchCancelledInfo& other) : mReference(other.mReference) {}
+
+						// Instance methods
+				void*	getReference() const
+							{ return mReference; }
 
 			// Properties
-			void*	mReference;
+			private:
+				void*	mReference;
 		};
 
+	// Procs
+	public:
 		struct Procs {
 			// Procs
-			typedef	void	(*InstallPeriodicProc)(void* userData);
-			typedef	void	(*RemovePeriodicProc)(void* userData);
-			typedef	void	(*OpenURLProc)(const CURL& url, bool useWebView, void* userData);
-			typedef	void	(*HandleCommandProc)(const CString& command, const CDictionary& commandInfo,
-									void* userData);
+			public:
+				typedef	void	(*InstallPeriodicProc)(void* userData);
+				typedef	void	(*RemovePeriodicProc)(void* userData);
+				typedef	void	(*OpenURLProc)(const CURL& url, bool useWebView, void* userData);
+				typedef	void	(*HandleCommandProc)(const CString& command, const CDictionary& commandInfo,
+										void* userData);
 
-					// Lifecycle methods
-					Procs(InstallPeriodicProc installPeriodicProc,
-							RemovePeriodicProc removePeriodicProc,
-							OpenURLProc openURLProc, HandleCommandProc handleCommandProc,
-							void* userData) :
-						mInstallPeriodicProc(installPeriodicProc), mRemovePeriodicProc(removePeriodicProc),
-								mOpenURLProc(openURLProc), mHandleCommandProc(handleCommandProc), mUserData(userData)
-						{}
+			// Methods
+			public:
+						// Lifecycle methods
+						Procs(InstallPeriodicProc installPeriodicProc,
+								RemovePeriodicProc removePeriodicProc,
+								OpenURLProc openURLProc, HandleCommandProc handleCommandProc,
+								void* userData) :
+							mInstallPeriodicProc(installPeriodicProc), mRemovePeriodicProc(removePeriodicProc),
+									mOpenURLProc(openURLProc), mHandleCommandProc(handleCommandProc),
+									mUserData(userData)
+							{}
 
-					// Instance methods
-			void	installPeriodic() const
-						{ mInstallPeriodicProc(mUserData); }
-			void	removePeriodic() const
-						{ mRemovePeriodicProc(mUserData); }
-			void	openURL(const CURL& url, bool useWebView) const
-						{ mOpenURLProc(url, useWebView, mUserData); }
-			void	handleCommand(const CString& command, const CDictionary& commandInfo) const
-						{ mHandleCommandProc(command, commandInfo, mUserData); }
+						// Instance methods
+				void	installPeriodic() const
+							{ mInstallPeriodicProc(mUserData); }
+				void	removePeriodic() const
+							{ mRemovePeriodicProc(mUserData); }
+				void	openURL(const CURL& url, bool useWebView) const
+							{ mOpenURLProc(url, useWebView, mUserData); }
+				void	handleCommand(const CString& command, const CDictionary& commandInfo) const
+							{ mHandleCommandProc(command, commandInfo, mUserData); }
 
 			// Properties
 			private:
@@ -178,6 +265,10 @@ class CSceneAppPlayer {
 				HandleCommandProc	mHandleCommandProc;
 				void*				mUserData;
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -217,13 +308,13 @@ class CSceneAppPlayer {
 						void							shakeCancelled();
 
 														// Subclass methods
-		virtual			CSceneItemPlayer*				createSceneItemPlayer(const CSceneItemCustom& sceneItemCustom,
+		virtual			CSceneItemPlayer*				createSceneItemPlayer(const CSceneItem& sceneItem,
 																const SSceneAppResourceManagementInfo&
 																		sceneAppResourceManagementInfo,
 																const CSceneItemPlayer::Procs& procs) const;
 		virtual			void							performAction(const CAction& action,
 																const S2DPointF32& point = S2DPointF32());
-		virtual			OV<CScene::Index>				getSceneIndex(const CAction& action) const;
+						OV<CScene::Index>				getSceneIndex(const CAction& action) const;
 
 						CScenePlayer&					loadAndStartScenePlayer(CScene::Index sceneIndex) const;
 						void							setCurrent(CSceneTransitionPlayer* sceneTransitionPlayer,
@@ -238,5 +329,5 @@ class CSceneAppPlayer {
 
 	// Properties
 	private:
-		CSceneAppPlayerInternals*	mInternals;
+		Internals*	mInternals;
 };

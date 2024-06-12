@@ -12,7 +12,6 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemAnimation
 
-class CSceneItemAnimationInternals;
 class CSceneItemAnimation : public CSceneItem {
 	// Constants
 	public:
@@ -20,11 +19,15 @@ class CSceneItemAnimation : public CSceneItem {
 		// 1 - 0xFFFFFFFE: Loop that many times and then hold last frame
 		static	const	UInt32	kLoopForever = 0;
 
-	// Enums
+	// PropertyType
 	public:
 		enum PropertyType {
 			kPropertyTypeLoopCount	= MAKE_OSTYPE('L', 'p', 'C', 't'),
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -69,8 +72,8 @@ class CSceneItemAnimation : public CSceneItem {
 
 	// Properties
 	public:
-		static	CString							mType;
+		static	CString		mType;
 
 	private:
-				CSceneItemAnimationInternals*	mInternals;
+				Internals*	mInternals;
 };

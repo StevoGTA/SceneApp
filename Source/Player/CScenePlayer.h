@@ -10,38 +10,42 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CScenePlayer
 
-class CScenePlayerInternals;
 class CScenePlayer {
-	// Structs
+	// Procs
 	public:
 		struct Procs {
 			// Procs
-			typedef	S2DSizeF32			(*GetViewportSizeProc)(void* userData);
-			typedef	CSceneItemPlayer*	(*CreateSceneItemPlayerProc)(const CSceneItem& sceneItem,
-												const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-												const CSceneItemPlayer::Procs& procs, void* userData);
-			typedef	void				(*PerformActionsProc)(const CActions& actions, const S2DPointF32& point,
-												void* userData);
+			public:
+				typedef	S2DSizeF32			(*GetViewportSizeProc)(void* userData);
+				typedef	CSceneItemPlayer*	(*CreateSceneItemPlayerProc)(const CSceneItem& sceneItem,
+													const SSceneAppResourceManagementInfo&
+															sceneAppResourceManagementInfo,
+													const CSceneItemPlayer::Procs& procs, void* userData);
+				typedef	void				(*PerformActionsProc)(const CActions& actions, const S2DPointF32& point,
+													void* userData);
 
-								// Lifecycle methods
-								Procs(GetViewportSizeProc getViewportSizeProc,
-										CreateSceneItemPlayerProc createSceneItemPlayerProc,
-										PerformActionsProc performActionsProc, void* userData) :
-									mGetViewportSizeProc(getViewportSizeProc),
-											mCreateSceneItemPlayerProc(createSceneItemPlayerProc),
-											mPerformActionsProc(performActionsProc), mUserData(userData)
-									{}
+			// Methods
+			public:
+									// Lifecycle methods
+									Procs(GetViewportSizeProc getViewportSizeProc,
+											CreateSceneItemPlayerProc createSceneItemPlayerProc,
+											PerformActionsProc performActionsProc, void* userData) :
+										mGetViewportSizeProc(getViewportSizeProc),
+												mCreateSceneItemPlayerProc(createSceneItemPlayerProc),
+												mPerformActionsProc(performActionsProc), mUserData(userData)
+										{}
 
-								// Instance methods
-			S2DSizeF32			getViewportSize() const
-									{ return mGetViewportSizeProc(mUserData); }
-			CSceneItemPlayer*	createSceneItemPlayer(const CSceneItem& sceneItem,
-										const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-										const CSceneItemPlayer::Procs& procs) const
-									{ return mCreateSceneItemPlayerProc(sceneItem, sceneAppResourceManagementInfo,
-											procs, mUserData); }
-			void				performActions(const CActions& actions, const S2DPointF32& point = S2DPointF32()) const
-									{ mPerformActionsProc(actions, point, mUserData); }
+									// Instance methods
+				S2DSizeF32			getViewportSize() const
+										{ return mGetViewportSizeProc(mUserData); }
+				CSceneItemPlayer*	createSceneItemPlayer(const CSceneItem& sceneItem,
+											const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
+											const CSceneItemPlayer::Procs& procs) const
+										{ return mCreateSceneItemPlayerProc(sceneItem, sceneAppResourceManagementInfo,
+												procs, mUserData); }
+				void				performActions(const CActions& actions, const S2DPointF32& point = S2DPointF32())
+											const
+										{ mPerformActionsProc(actions, point, mUserData); }
 
 			// Properties
 			private:
@@ -50,6 +54,10 @@ class CScenePlayer {
 				PerformActionsProc			mPerformActionsProc;
 				void*						mUserData;
 		};
+
+	// Classes
+	private:
+		class Internals;
 
 	// Methods
 	public:
@@ -92,5 +100,5 @@ class CScenePlayer {
 
 	// Properties
 	private:
-		CScenePlayerInternals*	mInternals;
+		Internals*	mInternals;
 };

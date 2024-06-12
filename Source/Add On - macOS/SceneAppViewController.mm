@@ -12,15 +12,17 @@
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: Local proc declarations
 
-static	I<CDataSource>				sSceneAppPlayerCreateDataSource(const CString& resourceFilename, void* userData);
+static	I<CDataSource>				sSceneAppPlayerCreateDataSource(const CString& resourceFilename,
+											SceneAppViewController* sceneAppViewController);
 static	I<CRandomAccessDataSource>	sSceneAppPlayerCreateRandomAccessDataSource(const CString& resourceFilename,
-											void* userData);
-static	void						sSceneAppInstallPeriodic(void* userData);
-static	void						sSceneAppRemovePeriodic(void* userData);
-static	void						sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData);
+											SceneAppViewController* sceneAppViewController);
+static	void						sSceneAppInstallPeriodic(SceneAppViewController* sceneAppViewController);
+static	void						sSceneAppRemovePeriodic(SceneAppViewController* sceneAppViewController);
+static	void						sSceneAppPlayerOpenURL(const CURL& url, bool useWebView,
+											SceneAppViewController* sceneAppViewController);
 static	void						sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
-											void* userData);
-//static	CImageX	sSceneAppPlayerGetCurrentViewportImage(void* userData);
+											SceneAppViewController* sceneAppViewController);
+//static	CImageX	sSceneAppPlayerGetCurrentViewportImage(SceneAppViewController* sceneAppViewController);
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -50,7 +52,7 @@ static	void						sSceneAppPlayerHandleCommand(const CString& command, const CDic
 + (TArray<CScenePackage::Info>) scenePackageInfosIn:(const CFolder&) folder
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return CScenePackage::getScenePackageInfos(CFilesystem::getFiles(folder).getValue());
+	return CScenePackage::getScenePackageInfos(*CFilesystem::getFiles(folder));
 }
 
 // MARK: Lifecycle methods
@@ -180,15 +182,23 @@ static	void						sSceneAppPlayerHandleCommand(const CString& command, const CDic
 	Delete(self.sceneAppPlayerInternal);
 
 	// Store
-	self.scenePackageSize = scenePackageInfo.mSize;
+	self.scenePackageSize = scenePackageInfo.getSize();
 	self.sceneAppContentRootFilesystemPath = new CFilesystemPath(sceneAppContentFolder.getFilesystemPath());
 
 	// Setup Scene App Player
 	CGPU&						gpu = ((NSView<AKTGPUView>*) self.view).gpu;
-	CSceneAppPlayer::Procs		procs(sSceneAppInstallPeriodic, sSceneAppRemovePeriodic, sSceneAppPlayerOpenURL,
-										sSceneAppPlayerHandleCommand, (__bridge void*) self);
-	SSceneAppResourceLoading	sceneAppResourceLoading(sSceneAppPlayerCreateDataSource,
-										sSceneAppPlayerCreateRandomAccessDataSource, (__bridge void*) self);
+	CSceneAppPlayer::Procs		procs(
+										(CSceneAppPlayer::Procs::InstallPeriodicProc) sSceneAppInstallPeriodic,
+										(CSceneAppPlayer::Procs::RemovePeriodicProc) sSceneAppRemovePeriodic,
+										(CSceneAppPlayer::Procs::OpenURLProc) sSceneAppPlayerOpenURL,
+										(CSceneAppPlayer::Procs::HandleCommandProc) sSceneAppPlayerHandleCommand,
+										(__bridge void*) self);
+	SSceneAppResourceLoading	sceneAppResourceLoading(
+										(SSceneAppResourceLoading::CreateDataSourceProc)
+												sSceneAppPlayerCreateDataSource,
+										(SSceneAppResourceLoading::CreateRandomAccessDataSourceProc)
+												sSceneAppPlayerCreateRandomAccessDataSource,
+										(__bridge void*) self);
 	self.sceneAppPlayerInternal =
 			(sceneAppPlayerCreationProc != nil) ?
 					sceneAppPlayerCreationProc(gpu, procs, sceneAppResourceLoading) :
@@ -260,11 +270,9 @@ static	void						sSceneAppPlayerHandleCommand(const CString& command, const CDic
 // MARK: - Local proc definitions
 
 //----------------------------------------------------------------------------------------------------------------------
-I<CDataSource> sSceneAppPlayerCreateDataSource(const CString& resourceFilename, void* userData)
+I<CDataSource> sSceneAppPlayerCreateDataSource(const CString& resourceFilename,
+		SceneAppViewController* sceneAppViewController)
 {
-	// Setup
-	SceneAppViewController*	sceneAppViewController = (__bridge SceneAppViewController*) userData;
-
 	return I<CDataSource>(
 			new CMappedFileDataSource(
 					CFile(
@@ -273,11 +281,9 @@ I<CDataSource> sSceneAppPlayerCreateDataSource(const CString& resourceFilename, 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-I<CRandomAccessDataSource> sSceneAppPlayerCreateRandomAccessDataSource(const CString& resourceFilename, void* userData)
+I<CRandomAccessDataSource> sSceneAppPlayerCreateRandomAccessDataSource(const CString& resourceFilename,
+		SceneAppViewController* sceneAppViewController)
 {
-	// Setup
-	SceneAppViewController*	sceneAppViewController = (__bridge SceneAppViewController*) userData;
-
 	return I<CRandomAccessDataSource>(
 			new CMappedFileDataSource(
 					CFile(
@@ -286,27 +292,23 @@ I<CRandomAccessDataSource> sSceneAppPlayerCreateRandomAccessDataSource(const CSt
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void sSceneAppInstallPeriodic(void* userData)
+void sSceneAppInstallPeriodic(SceneAppViewController* sceneAppViewController)
 {
-	[(__bridge SceneAppViewController*) userData installPeriodic];
+	[sceneAppViewController installPeriodic];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void sSceneAppRemovePeriodic(void* userData)
+void sSceneAppRemovePeriodic(SceneAppViewController* sceneAppViewController)
 {
-	[(__bridge SceneAppViewController*) userData removePeriodic];
+	[sceneAppViewController removePeriodic];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData)
+void sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, SceneAppViewController* sceneAppViewController)
 {
 	// Setup
-	SceneAppViewController*	sceneAppViewController = (__bridge SceneAppViewController*) userData;
-	NSURL*					nsURL =
-									[NSURL
-											URLWithString:
-													(NSString*) CFBridgingRelease(
-															CCoreFoundation::createStringRefFrom(url.getString()))];
+	CFStringRef	stringRef = ::CFStringCreateCopy(kCFAllocatorDefault, url.getString().getOSString());
+	NSURL*		nsURL = [NSURL URLWithString:(NSString*) ::CFBridgingRelease(stringRef)];
 
 	// Call on Main thread
 	dispatch_async(dispatch_get_main_queue(), ^{
@@ -323,19 +325,17 @@ void sSceneAppPlayerOpenURL(const CURL& url, bool useWebView, void* userData)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo, void* userData)
+void sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& commandInfo,
+		SceneAppViewController* sceneAppViewController)
 {
-	// Setup
-	SceneAppViewController*	sceneAppViewController = (__bridge SceneAppViewController*) userData;
-
 	// Check if have proc
 	if (sceneAppViewController.handleCommandProc != nil) {
-		NSString*						commandString =
-												(NSString*) CFBridgingRelease(
-														CCoreFoundation::createStringRefFrom(command));
+		// Setup
+		CFStringRef						stringRef = ::CFStringCreateCopy(kCFAllocatorDefault, command.getOSString());
+		NSString*						commandString = (NSString*) ::CFBridgingRelease(stringRef);
 		NSDictionary<NSString*, id>*	commandInfoDictionary =
 												(NSDictionary<NSString*, id>*)
-														CFBridgingRelease(
+														::CFBridgingRelease(
 																CCoreFoundation::createDictionaryRefFrom(commandInfo));
 
 		// Call on Main thread
@@ -352,7 +352,7 @@ void sSceneAppPlayerHandleCommand(const CString& command, const CDictionary& com
 }
 
 ////----------------------------------------------------------------------------------------------------------------------
-//CImageX sSceneAppPlayerGetCurrentViewportImage(void* userData)
+//CImageX sSceneAppPlayerGetCurrentViewportImage(SceneAppViewController* sceneAppViewController)
 //{
 //#warning FINISH
 ////	UIImage*	image = [(__bridge SceneAppGLView*) userData image];

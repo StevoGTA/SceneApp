@@ -8,16 +8,16 @@
 #include "CImage.h"
 
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: CSceneItemPlayerButtonArrayInternals
+// MARK: CSceneItemPlayerButtonArray::Internals
 
-class CSceneItemPlayerButtonArrayInternals {
+class CSceneItemPlayerButtonArray::Internals {
 	public:
-		CSceneItemPlayerButtonArrayInternals(const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
+		Internals(const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
 			mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
 					mGPURenderObject2D(nil),
 					mActiveButtonDown(false)
 			{}
-		~CSceneItemPlayerButtonArrayInternals()
+		~Internals()
 			{
 				Delete(mGPURenderObject2D);
 			}
@@ -43,7 +43,7 @@ CSceneItemPlayerButtonArray::CSceneItemPlayerButtonArray(const CSceneItemButtonA
 		CSceneItemPlayer(sceneItemButtonArray, procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new CSceneItemPlayerButtonArrayInternals(sceneAppResourceManagementInfo);
+	mInternals = new Internals(sceneAppResourceManagementInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ CActions CSceneItemPlayerButtonArray::getAllActions() const
 					getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
 			iterator.hasValue(); iterator.advance()) {
 		// Get actions for this button
-		const	OI<CActions>&	actions = iterator.getValue().getActions();
+		const	OI<CActions>&	actions = iterator->getActions();
 		if (actions.hasInstance())
 			// Add to all actions
 			allActions += *actions;
@@ -86,7 +86,7 @@ void CSceneItemPlayerButtonArray::load(CGPU& gpu)
 						getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
 				iterator.hasValue(); iterator.advance()) {
 			// Get info
-			const	CSceneItemButtonArrayButton&	button = iterator.getValue();
+			const	CSceneItemButtonArrayButton&	button = *iterator;
 			const	S2DPointF32&					screenPositionPoint = button.getScreenPositionPoint();
 			const	S2DRectF32&						upImageRect = button.getUpImageRect();
 
@@ -97,7 +97,7 @@ void CSceneItemPlayerButtonArray::load(CGPU& gpu)
 						getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
 				iterator.hasValue(); iterator.advance()) {
 			// Get info
-			const	CSceneItemButtonArrayButton&	button = iterator.getValue();
+			const	CSceneItemButtonArrayButton&	button = *iterator;
 			const	S2DPointF32&					screenPositionPoint = button.getScreenPositionPoint();
 			const	S2DRectF32&						downImageRect = button.getDownImageRect();
 
@@ -182,11 +182,10 @@ bool CSceneItemPlayerButtonArray::handlesTouchOrMouseAtPoint(const S2DPointF32& 
 					getSceneItemButtonArray().getSceneItemButtonArrayButtons().getIterator();
 			iterator.hasValue(); iterator.advance()) {
 		// Do cover check
-		S2DRectF32	screenRect(iterator.getValue().getScreenPositionPoint(),
-							iterator.getValue().getUpImageRect().mSize);
+		S2DRectF32	screenRect(iterator->getScreenPositionPoint(), iterator->getUpImageRect().mSize);
 		if (screenRect.contains(point)) {
 			// Got it
-			mInternals->mActiveButton = OR<CSceneItemButtonArrayButton>(iterator.getValue());
+			mInternals->mActiveButton = OR<CSceneItemButtonArrayButton>(*iterator);
 			mInternals->mActiveButtonDown = false;
 			mInternals->mActiveButtonScreenRect = screenRect;
 

@@ -20,11 +20,11 @@ CString	CSceneItemPlayer::mCommandNameReset(OSSTR("reset"));
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
-// MARK: - CSceneItemPlayerInternals
+// MARK: - CSceneItemPlayer::Internals
 
-class CSceneItemPlayerInternals {
+class CSceneItemPlayer::Internals {
 	public:
-		CSceneItemPlayerInternals(const CSceneItem& sceneItem, const CSceneItemPlayer::Procs& procs) :
+		Internals(const CSceneItem& sceneItem, const CSceneItemPlayer::Procs& procs) :
 			mIsVisible(false), mIsLoaded(false), mSceneItem(sceneItem), mProcs(procs)
 			{}
 
@@ -45,7 +45,7 @@ CSceneItemPlayer::CSceneItemPlayer(const CSceneItem& sceneItem, const Procs& pro
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
-	mInternals = new CSceneItemPlayerInternals(sceneItem, procs);
+	mInternals = new Internals(sceneItem, procs);
 
 	// Reset
 	reset();
