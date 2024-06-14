@@ -147,7 +147,7 @@ static	void						sDirectXGPUHandledDeviceValidation(CSceneAppViewInternals^ inte
 
 static	I<CDataSource>				sSceneAppPlayerCreateDataSource(const CString& resourceFilename,
 											CSceneAppViewInternals^ internals);
-static	I<CSeekableDataSource>		sSceneAppPlayerCreateSeekableDataSource(const CString& resourceFilename,
+static	I<CRandomAccessDataSource>	sSceneAppPlayerCreateRandomAccessDataSource(const CString& resourceFilename,
 											CSceneAppViewInternals^ internals);
 static	void						sSceneAppPlayerInstallPeriodic(CSceneAppViewInternals^ internals);
 static	void						sSceneAppPlayerRemovePeriodic(CSceneAppViewInternals^ internals);
@@ -166,17 +166,16 @@ ref class CSceneAppViewInternals sealed : Platform::Object {
 					mWindowIsClosed(false), mWindowIsVisible(true), mDisplaySupportInfo(displaySupportInfo),
 							mIsRunning(true),
 							mGPU(
-									SGPUProcsInfo(
-											(SGPUProcsInfo::GetCoreWindowProc) sDirectXGPUGetCoreWindowProc,
-											(SGPUProcsInfo::GetDisplaySupportInfoProc)
-													sDirectXGPUGetDisplaySupportInfo,
-											(SGPUProcsInfo::GetFPSProc) sDirectXGPUGetFPS,
-											(SGPUProcsInfo::GetDPIProc) sDirectXGPUGetDPI,
-											(SGPUProcsInfo::GetSizeProc) sDirectXGPUGetSize,
-											(SGPUProcsInfo::GetOrientationProc) sDirectXGPUGetOrientation,
-											(SGPUProcsInfo::RequiresDeviceValidationProc)
+								CGPU::Procs(
+											(CGPU::Procs::GetCoreWindowProc) sDirectXGPUGetCoreWindowProc,
+											(CGPU::Procs::GetDisplaySupportInfoProc) sDirectXGPUGetDisplaySupportInfo,
+											(CGPU::Procs::GetFPSProc) sDirectXGPUGetFPS,
+											(CGPU::Procs::GetDPIProc) sDirectXGPUGetDPI,
+											(CGPU::Procs::GetSizeProc) sDirectXGPUGetSize,
+											(CGPU::Procs::GetOrientationProc) sDirectXGPUGetOrientation,
+											(CGPU::Procs::RequiresDeviceValidationProc)
 													sDirectXGPURequiresDeviceValidation,
-											(SGPUProcsInfo::HandledDeviceValidationProc)
+											(CGPU::Procs::HandledDeviceValidationProc)
 													sDirectXGPUHandledDeviceValidation,
 											(void*) this)),
 							mSceneAppPlayer(NULL),
@@ -477,7 +476,7 @@ void CSceneAppView::loadScenes(const CScenePackage::Info& scenePackageInfo, cons
 
 	// Store
 	mInternals->mSceneAppContentRootFilesystemPath = new CFilesystemPath(sceneAppContentFolder.getFilesystemPath());
-	mInternals->mScenePackageSize = scenePackageInfo.mSize;
+	mInternals->mScenePackageSize = scenePackageInfo.getSize();
 
 	// Setup Scene App Player
 	CSceneAppPlayer::Procs		procs(
@@ -488,9 +487,9 @@ void CSceneAppView::loadScenes(const CScenePackage::Info& scenePackageInfo, cons
 										(void*) mInternals);
 	SSceneAppResourceLoading	sceneAppResourceLoading(
 										(SSceneAppResourceLoading::CreateDataSourceProc) sSceneAppPlayerCreateDataSource,
-										(SSceneAppResourceLoading::CreateSeekableDataSourceProc)
-												sSceneAppPlayerCreateSeekableDataSource,
-									(void*) mInternals);
+										(SSceneAppResourceLoading::CreateRandomAccessDataSourceProc)
+												sSceneAppPlayerCreateRandomAccessDataSource,
+										(void*) mInternals);
 	mInternals->mSceneAppPlayer =
 			(sceneAppPlayerCreationProc != nil) ?
 					sceneAppPlayerCreationProc(mInternals->mGPU, procs, sceneAppResourceLoading) :
@@ -581,11 +580,11 @@ I<CDataSource> sSceneAppPlayerCreateDataSource(const CString& resourceFilename, 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-I<CSeekableDataSource> sSceneAppPlayerCreateSeekableDataSource(const CString& resourceFilename,
+I<CRandomAccessDataSource> sSceneAppPlayerCreateRandomAccessDataSource(const CString& resourceFilename,
 		CSceneAppViewInternals^ internals)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return I<CSeekableDataSource>(
+	return I<CRandomAccessDataSource>(
 			new CMappedFileDataSource(
 					CFile(
 							internals->mSceneAppContentRootFilesystemPath->appendingComponent(resourceFilename,
