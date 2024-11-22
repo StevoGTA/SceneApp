@@ -155,7 +155,7 @@ void CKeyframeAnimationPlayerKeyframe::load(CGPU& gpu,
 	CGPUTextureReference	gpuTextureReference =
 									sceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
 											sceneAppResourceManagementInfo.createDataSource(mImageFilename),
-											CImage::getBitmap, mImageFilename);
+											CImage::getBitmap, OR<const CString>(mImageFilename));
 	gpuTextureReference.finishLoading();
 
 	S2DSizeU16	size = gpuTextureReference.getGPUTexture()->getUsedSize();
