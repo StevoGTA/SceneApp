@@ -17,19 +17,20 @@ class CSceneItemCustom::Internals : public TCopyOnWriteReferenceCountable<Intern
 			{}
 		Internals(const Internals& other) :
 			TCopyOnWriteReferenceCountable(),
-					mInfo(other.mInfo), mType(other.mType), mActionsMap(other.mActionsMap),
-							mAudioInfoMap(other.mAudioInfoMap), mSceneItemAnimationMap(other.mSceneItemAnimationMap),
-							mSceneItemButtonMap(other.mSceneItemButtonMap)
-//							, mSceneItemTextMap(other.mSceneItemTextMap)
+					mInfo(other.mInfo), mType(other.mType), mActionByKey(other.mActionByKey),
+							mAudioInfoByKey(other.mAudioInfoByKey),
+							mSceneItemAnimationByKey(other.mSceneItemAnimationByKey),
+							mSceneItemButtonByKey(other.mSceneItemButtonByKey),
+							mSceneItemTextByKey(other.mSceneItemTextByKey)
 			{}
 
 		CDictionary							mInfo;
 		CString								mType;
-		TNDictionary<CActions>				mActionsMap;
-		TNDictionary<CAudioInfo>			mAudioInfoMap;
-		TNDictionary<CSceneItemAnimation>	mSceneItemAnimationMap;
-		TNDictionary<CSceneItemButton>		mSceneItemButtonMap;
-//		TDictionary<CSceneItemText*>		mSceneItemTextMap;
+		TNDictionary<CActions>				mActionByKey;
+		TNDictionary<CAudioInfo>			mAudioInfoByKey;
+		TNDictionary<CSceneItemAnimation>	mSceneItemAnimationByKey;
+		TNDictionary<CSceneItemButton>		mSceneItemButtonByKey;
+		TNDictionary<CSceneItemText>		mSceneItemTextByKey;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -37,13 +38,6 @@ class CSceneItemCustom::Internals : public TCopyOnWriteReferenceCountable<Intern
 // MARK: - CSceneItemCustom
 
 // MARK: Lifecycle methods
-
-//----------------------------------------------------------------------------------------------------------------------
-CSceneItemCustom::CSceneItemCustom() : CSceneItem()
-//----------------------------------------------------------------------------------------------------------------------
-{
-	mInternals = new Internals(CString(OSSTR("<UNKNOWN>")), CDictionary());
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemCustom::CSceneItemCustom(const CString& type, const CDictionary& info) : CSceneItem(info)
@@ -163,11 +157,11 @@ const CActions& CSceneItemCustom::getActions(const CString& key) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check if cached
-	if (!mInternals->mActionsMap.contains(key))
+	if (!mInternals->mActionByKey.contains(key))
 		// Cache
-		mInternals->mActionsMap.set(key, CActions(mInternals->mInfo.getDictionary(key)));
+		mInternals->mActionByKey.set(key, CActions(mInternals->mInfo.getDictionary(key)));
 
-	return *mInternals->mActionsMap[key];
+	return *mInternals->mActionByKey[key];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -175,48 +169,48 @@ const CAudioInfo& CSceneItemCustom::getAudioInfo(const CString& key) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check if cached
-	if (!mInternals->mAudioInfoMap.contains(key))
+	if (!mInternals->mAudioInfoByKey.contains(key))
 		// Cache
-		mInternals->mAudioInfoMap.set(key, CAudioInfo(mInternals->mInfo.getDictionary(key)));
+		mInternals->mAudioInfoByKey.set(key, CAudioInfo(mInternals->mInfo.getDictionary(key)));
 
-	return *mInternals->mAudioInfoMap[key];
+	return *mInternals->mAudioInfoByKey[key];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const CSceneItemAnimation& CSceneItemCustom::getSceneItemAnimation(const CString& key) const
+CSceneItemAnimation& CSceneItemCustom::getSceneItemAnimation(const CString& key) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check if cached
-	if (!mInternals->mSceneItemAnimationMap.contains(key))
+	if (!mInternals->mSceneItemAnimationByKey.contains(key))
 		// Cache
-		mInternals->mSceneItemAnimationMap.set(key,
+		mInternals->mSceneItemAnimationByKey.set(key,
 				CSceneItemAnimation(mInternals->mInfo.getDictionary(key).getDictionary(CSceneItem::mItemInfoKey)));
 
-	return *mInternals->mSceneItemAnimationMap[key];
+	return *mInternals->mSceneItemAnimationByKey[key];
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const CSceneItemButton& CSceneItemCustom::getSceneItemButton(const CString& key) const
+CSceneItemButton& CSceneItemCustom::getSceneItemButton(const CString& key) const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check if cached
-	if (!mInternals->mSceneItemButtonMap.contains(key))
+	if (!mInternals->mSceneItemButtonByKey.contains(key))
 		// Cache
-		mInternals->mSceneItemButtonMap.set(key,
+		mInternals->mSceneItemButtonByKey.set(key,
 				CSceneItemButton(mInternals->mInfo.getDictionary(key).getDictionary(CSceneItem::mItemInfoKey)));
 
-	return *mInternals->mSceneItemButtonMap[key];
+	return *mInternals->mSceneItemButtonByKey[key];
 }
 
-////----------------------------------------------------------------------------------------------------------------------
-//const CSceneItemText& CSceneItemCustom::getSceneItemText(const CString& key) const
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	// Check if cached
-//	if (!mInternals->mSceneItemTextMap.contains(key))
-//		// Cache
-//		mInternals->mSceneItemTextMap.set(key,
-//				new CSceneItemText(mInternals->mInfo.getDictionary(key).getDictionary(CSceneItem::mItemInfoKey)));
-//
-//	return **mInternals->mSceneItemTextMap[key];
-//}
+//----------------------------------------------------------------------------------------------------------------------
+CSceneItemText& CSceneItemCustom::getSceneItemText(const CString& key) const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	// Check if cached
+	if (!mInternals->mSceneItemTextByKey.contains(key))
+		// Cache
+		mInternals->mSceneItemTextByKey.set(key,
+				CSceneItemText(mInternals->mInfo.getDictionary(key).getDictionary(CSceneItem::mItemInfoKey)));
+
+	return *mInternals->mSceneItemTextByKey[key];
+}

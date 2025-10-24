@@ -75,7 +75,7 @@ class CSceneTransitionPlayer {
 
 		virtual	bool			supportsMultitouch() const { return false; }
 
-		virtual	void			update(UniversalTimeInterval deltaTimeInterval);
+		virtual	void			update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval);
 		virtual	void			render(CGPU& gpu) const = 0;
 
 		virtual	void			touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32 tapOrClickCount,

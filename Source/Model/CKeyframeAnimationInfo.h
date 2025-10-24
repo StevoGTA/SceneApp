@@ -25,7 +25,7 @@ class CKeyframeAnimationInfo {
 	// Methods
 	public:
 											// Lifecycle methods
-											CKeyframeAnimationInfo();
+											CKeyframeAnimationInfo(const CAnimationKeyframe& animationKeyframe);
 											CKeyframeAnimationInfo(const CDictionary& info);
 											CKeyframeAnimationInfo(const CKeyframeAnimationInfo& other);
 											~CKeyframeAnimationInfo();
@@ -34,8 +34,13 @@ class CKeyframeAnimationInfo {
 				TArray<CDictionary>			getProperties() const;
 				CDictionary					getInfo() const;
 
-		const	TArray<CAnimationKeyframe>&	getAnimationKeyframesArray() const;
+		const	TArray<CAnimationKeyframe>&	getAnimationKeyframes() const;
 				void						addAnimationKeyframe(const CAnimationKeyframe& animationKeyframe);
+
+				bool						operator==(const CKeyframeAnimationInfo& other) const
+												{ return (getAnimationKeyframes() == other.getAnimationKeyframes()); }
+				bool						operator!=(const CKeyframeAnimationInfo& other) const
+												{ return !(*this == other); }
 
 	// Properties
 	private:

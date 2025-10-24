@@ -14,7 +14,7 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 	// Methods
 	public:
 													// Lifecycle methods
-													CSceneItemPlayerCustom(const CSceneItemCustom& sceneItemCustom,
+													CSceneItemPlayerCustom(CSceneItemCustom& sceneItemCustom,
 															const Procs& procs);
 
 													// CSceneItemPlayer methods
@@ -27,7 +27,8 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 				const	OV<UniversalTimeInterval>&	getStartTimeInterval() const;
 
 						void						reset();
-						void						update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
+						void						update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval,
+															bool isRunning);
 						void						render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo)
 															const;
 
@@ -49,8 +50,11 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 															const CDictionary& commandInfo, const S2DPointF32& point);
 
 													// Instance methods
-				const	CSceneItemCustom&			getSceneItemCustom() const
-														{ return (CSceneItemCustom&) getSceneItem(); }
+						OR<CSceneItemCustom>		getSceneItemCustom() const
+														{ return getSceneItem().hasReference() ?
+																OR<CSceneItemCustom>(
+																		(CSceneItemCustom&) *getSceneItem()) :
+																OR<CSceneItemCustom>(); }
 
 	protected:
 													// Subclass methods
@@ -65,9 +69,10 @@ class CSceneItemPlayerCustom : public CSceneItemPlayer {
 
 		virtual			void						reset(const CSceneItemCustom& sceneItemCustom) {}
 		virtual			void						update(const CSceneItemCustom& sceneItemCustom,
-															UniversalTimeInterval deltaTimeInterval, bool isRunning) {}
+															CGPU& gpu, UniversalTimeInterval deltaTimeInterval,
+															bool isRunning) {}
 		virtual			void						render(const CSceneItemCustom& sceneItemCustom, CGPU& gpu,
-															const CGPURenderObject::RenderInfo& renderInfo) const = 0;
+															const CGPURenderObject::RenderInfo& renderInfo) const {}
 
 		virtual			bool						handlesTouchOrMouseAtPoint(const CSceneItemCustom& sceneItemCustom,
 															const S2DPointF32& point) const

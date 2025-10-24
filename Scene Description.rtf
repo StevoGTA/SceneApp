@@ -1,4 +1,4 @@
-{\rtf1\ansi\ansicpg1252\cocoartf2513
+{\rtf1\ansi\ansicpg1252\cocoartf2822
 \cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;}
 {\colortbl;\red255\green255\blue255;}
 {\*\expandedcolortbl;;}
@@ -149,7 +149,7 @@ Root: Dictionary\
 \
 			itemInfo for all\
 				name: String\
-				visible: Number 0 or 1 (default is 1)\
+				isInitiallyVisible: Number 0 or 1 (default is 1)\
 				options: Number according to (OR together):\
 					0: None\
 					1: Anchor to Screen\
@@ -168,10 +168,12 @@ Root: Dictionary\
 			itemInfo for button\
 				actionInfo: Action Info\
 				audioInfo: AudioInfo for tap on button\
-				hitRadius: pixel radius for detecting touch or mouse hits on button.  0 to use artwork size.\
 				disabledAnimationInfo: KeyframeAnimationInfo Dictionary\
 				downAnimationInfo (optional): KeyframeAnimationInfo Dictionary\
-				startTime: Time Number (will start at load if not specified)\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 				hitRadius: pixel radius for detecting touch or mouse hits on button.  0 to use artwork size.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 				startTime: Time Number (will start at load if not specified)\
 				upAnimationInfo: KeyframeAnimationInfo Dictionary\
 \
 			itemInfo for buttonArray\
@@ -182,12 +184,32 @@ Root: Dictionary\
 					upImageRect: Rect String\
 				imageFilename: String\
 				startTime: Time Number (will start at load if not specified)\
-\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
+			itemInfo for custom\
+				specific to custom item\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 \
 			itemInfo for hotspot\
 				actionInfo: Action Info\
 				screenRect: Rect String\
 \
-			itemInfo for video\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 			itemInfo for text\
+				fontName: String\
+				fontSize: point size\
+				outlineColor: Color Dictionary\
+				outlineWidth: pixel width of outline\
+				text: String\
+				textColor: Color Dictionary\
+				horizontalPosition: Number\
+					0: Left Justified\
+					1: Centered\
+					2: Right Justified\
+				screenRect: Rect String\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 			itemInfo for video\
 				controlMode: Number\
 					0: No controls\
 					1: All controls\
@@ -214,23 +236,6 @@ Root: Dictionary\
 				screenRect: Rect String\
 				horizontalThumbImageFilename: String\
 				verticalThumbImageFilename: String\
-\
-(Not currently implemented)\
-			itemInfo for text\
-				screenRect: Rect String\
-				fontName: String\
-				fontSize: point size\
-				outlineColor: Color Dictionary\
-				outlineWidth: pixel width of outline\
-				text: String\
-				textColor: Color Dictionary\
-				horizontalPosition: Number\
-					0: Left Justified\
-					1: Centered\
-					2: Right Justified\
-\
-			itemInfo for custom\
-				specific to custom item\
 \
 \
 \

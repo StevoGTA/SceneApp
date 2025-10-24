@@ -55,7 +55,7 @@ CSceneTransitionPlayerPush::~CSceneTransitionPlayerPush()
 // MARK: CSceneTransitionPlayer methods
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneTransitionPlayerPush::update(UniversalTimeInterval deltaTimeInterval)
+void CSceneTransitionPlayerPush::update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
@@ -105,7 +105,7 @@ AssertFailUnimplemented();
 	}
 
 	// Do super
-	CSceneTransitionPlayer::update(deltaTimeInterval);
+	CSceneTransitionPlayer::update(gpu, deltaTimeInterval);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

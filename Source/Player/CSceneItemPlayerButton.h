@@ -18,7 +18,7 @@ class CSceneItemPlayerButton : public CSceneItemPlayer {
 	// Methods
 	public:
 									// Lifecycle methods
-									CSceneItemPlayerButton(const CSceneItemButton& sceneItemButton,
+									CSceneItemPlayerButton(CSceneItemButton& sceneItemButton,
 											const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 											const Procs& procs);
 									~CSceneItemPlayerButton();
@@ -30,7 +30,7 @@ class CSceneItemPlayerButton : public CSceneItemPlayer {
 				void				unload();
 
 				void				reset();
-				void				update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
+				void				update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval, bool isRunning);
 				void				render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const;
 
 				bool				handlesTouchOrMouseAtPoint(const S2DPointF32& point) const;
@@ -45,7 +45,7 @@ class CSceneItemPlayerButton : public CSceneItemPlayer {
 
 									// Instance methods
 		const	CSceneItemButton&	getSceneItemButton() const
-										{ return (CSceneItemButton&) getSceneItem(); }
+										{ return (CSceneItemButton&) *getSceneItem(); }
 
 				void				setIsEnabled(bool isEnabled);
 

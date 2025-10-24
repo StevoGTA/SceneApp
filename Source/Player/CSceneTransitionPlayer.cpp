@@ -78,11 +78,11 @@ void CSceneTransitionPlayer::setState(State state)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneTransitionPlayer::update(UniversalTimeInterval deltaTimeInterval)
+void CSceneTransitionPlayer::update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals->mFromScenePlayer.update(deltaTimeInterval);
-	mInternals->mToScenePlayer.update(deltaTimeInterval);
+	mInternals->mFromScenePlayer.update(gpu, deltaTimeInterval);
+	mInternals->mToScenePlayer.update(gpu, deltaTimeInterval);
 }
 
 // MARK: Subclass methods

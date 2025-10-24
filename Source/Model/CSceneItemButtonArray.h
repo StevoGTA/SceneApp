@@ -20,7 +20,6 @@ class CSceneItemButtonArrayButton {
 	// Methods
 	public:
 													// Lifecycle methods
-													CSceneItemButtonArrayButton();
 													CSceneItemButtonArrayButton(const CDictionary& info);
 													CSceneItemButtonArrayButton(
 															const CSceneItemButtonArrayButton& other);
@@ -72,35 +71,35 @@ class CSceneItemButtonArray : public CSceneItem {
 	// Methods
 	public:
 														// Lifecycle methods
-														CSceneItemButtonArray();
 														CSceneItemButtonArray(const CDictionary& info);
 														CSceneItemButtonArray(
 																const CSceneItemButtonArray& other);
 														~CSceneItemButtonArray();
 
 														// CSceneItem methods
-				CSceneItemButtonArray*					copy() const
-															{ return new CSceneItemButtonArray(*this); }
-
 		const	CString&								getType() const
 															{ return mType; }
 				TMArray<CDictionary>					getProperties() const;
 				CDictionary								getInfo() const;
 
 														// Instance methods
-		const	OV<UniversalTimeInterval>&				getStartTimeInterval() const;
-				void									setStartTimeInterval(
-																const OV<UniversalTimeInterval>& startTimeInterval);
+		const	TArray<CSceneItemButtonArrayButton>&	getSceneItemButtonArrayButtons() const;
 
 		const	CString&								getImageResourceFilename() const;
 				void									setImageResourceFilename(const CString& imageResourceFilename);
 
-		const	TArray<CSceneItemButtonArrayButton>&	getSceneItemButtonArrayButtons() const;
+		const	OV<UniversalTimeInterval>&				getStartTimeInterval() const;
+				void									setStartTimeInterval(
+																const OV<UniversalTimeInterval>& startTimeInterval);
 
 	// Properties
 	public:
-		static	CString		mType;
+		static	const	CString		mType;
+
+		static	const	CString		mPropertyNameButtons;
+		static	const	CString		mPropertyNameImageFilename;
+		static	const	CString		mPropertyNameStartTimeInterval;
 
 	private:
-				Internals*	mInternals;
+						Internals*	mInternals;
 };

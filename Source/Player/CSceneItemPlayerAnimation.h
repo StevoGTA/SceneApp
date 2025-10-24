@@ -45,7 +45,7 @@ class CSceneItemPlayerAnimation : public CSceneItemPlayer {
 	// Methods
 	public:
 											// Lifecycle methods
-											CSceneItemPlayerAnimation(const CSceneItemAnimation& sceneItemAnimation,
+											CSceneItemPlayerAnimation(CSceneItemAnimation& sceneItemAnimation,
 													const SSceneAppResourceManagementInfo&
 															sceneAppResourceManagementInfo,
 													const CSceneItemPlayer::Procs& sceneItemPlayerProcs);
@@ -60,12 +60,12 @@ class CSceneItemPlayerAnimation : public CSceneItemPlayer {
 		const	OV<UniversalTimeInterval>&	getStartTimeInterval() const;
 
 				void						reset();
-				void						update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
+				void						update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval, bool isRunning);
 				void						render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const;
 
 											// Instance methods
 		const	CSceneItemAnimation&		getSceneItemAnimation() const
-												{ return (const CSceneItemAnimation&) getSceneItem(); }
+												{ return (const CSceneItemAnimation&) *getSceneItem(); }
 
 				bool						getIsFinished() const;
 

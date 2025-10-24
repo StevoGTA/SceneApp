@@ -41,6 +41,11 @@ class CAction {
 				Options			getOptions() const;
 //				void			setOptions(Options options);
 
+				bool			operator==(const CAction& other) const
+									{ return (getName() == other.getName()) &&
+											(getActionInfo() == other.getActionInfo()) &&
+											(getOptions() == other.getOptions()); }
+
 	// Properties
 	public:
 							// Names

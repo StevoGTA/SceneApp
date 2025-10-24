@@ -38,7 +38,7 @@ class CSceneItemPlayerButtonArray::Internals {
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerButtonArray::CSceneItemPlayerButtonArray(const CSceneItemButtonArray& sceneItemButtonArray,
+CSceneItemPlayerButtonArray::CSceneItemPlayerButtonArray(CSceneItemButtonArray& sceneItemButtonArray,
 		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo, const Procs& procs) :
 		CSceneItemPlayer(sceneItemButtonArray, procs)
 //----------------------------------------------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ void CSceneItemPlayerButtonArray::reset()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButtonArray::update(UniversalTimeInterval deltaTimeInterval, bool isRunning)
+void CSceneItemPlayerButtonArray::update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval, bool isRunning)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals->mGPURenderObject2D->finishLoading();

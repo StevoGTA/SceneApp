@@ -23,7 +23,7 @@ class CSceneTransitionPlayerCoverUncover : public CSceneTransitionPlayer {
 				~CSceneTransitionPlayerCoverUncover();
 
 				// CSceneTransitionPlayer methods
-		void	update(UniversalTimeInterval deltaTimeInterval);
+		void	update(CGPU& gput, UniversalTimeInterval deltaTimeInterval);
 		void	render(CGPU& gpu) const;
 
 	// Properties

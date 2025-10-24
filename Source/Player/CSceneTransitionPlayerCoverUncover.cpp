@@ -56,7 +56,7 @@ CSceneTransitionPlayerCoverUncover::~CSceneTransitionPlayerCoverUncover()
 // MARK: CSceneTransitionPlayer methods
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneTransitionPlayerCoverUncover::update(UniversalTimeInterval deltaTimeInterval)
+void CSceneTransitionPlayerCoverUncover::update(CGPU& gput, UniversalTimeInterval deltaTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
@@ -106,7 +106,7 @@ AssertFailUnimplemented();
 	}
 
 	// Do super
-	CSceneTransitionPlayer::update(deltaTimeInterval);
+	CSceneTransitionPlayer::update(gput, deltaTimeInterval);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

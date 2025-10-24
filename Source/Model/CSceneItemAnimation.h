@@ -32,36 +32,30 @@ class CSceneItemAnimation : public CSceneItem {
 	// Methods
 	public:
 												// Lifecycle methods
-												CSceneItemAnimation();
+												CSceneItemAnimation(
+														const CKeyframeAnimationInfo& keyframeAnimationInfo);
 												CSceneItemAnimation(const CDictionary& info);
 												CSceneItemAnimation(const CSceneItemAnimation& other);
 												~CSceneItemAnimation();
 
 												// CSceneItem methods
-				CSceneItem*						copy() const
-													{ return new CSceneItemAnimation(*this); }
-
 		const	CString&						getType() const
 													{ return mType; }
 				TMArray<CDictionary>			getProperties() const;
 				CDictionary						getInfo() const;
 
 												// Instance methods
-		const	OI<CActions>&					getStartedActions() const;
-				void							setStartedActions(const OI<CActions>& actions);
+		const	OV<CActions>&					getStartedActions() const;
+				void							setStartedActions(const OV<CActions>& actions);
 
-		const	OI<CActions>&					getFinishedActions() const;
-				void							setFinishedActions(const OI<CActions>& actions);
+		const	OV<CActions>&					getFinishedActions() const;
+				void							setFinishedActions(const OV<CActions>& actions);
 
-		const	OI<CAudioInfo>&					getAudioInfo() const;
-				void							setAudioInfo(const OI<CAudioInfo>& audioInfo);
+		const	OV<CAudioInfo>&					getAudioInfo() const;
+				void							setAudioInfo(const OV<CAudioInfo>& audioInfo);
 
-//		const	OI<CCelAnimationInfo>&			getCelAnimationInfo() const;
-//				void							setCelAnimationInfo(const OI<CCelAnimationInfo>& celAnimationInfo);
-
-		const	OI<CKeyframeAnimationInfo>&		getKeyframeAnimationInfo() const;
-				void							setKeyframeAnimationInfo(
-														const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo);
+		const	OV<CKeyframeAnimationInfo>&		getKeyframeAnimationInfo() const;
+				void							setAnimationInfo(const CKeyframeAnimationInfo& keyframeAnimationInfo);
 
 				UInt32							getLoopCount() const;
 				void							setLoopCount(UInt32 loopCount);
@@ -70,9 +64,19 @@ class CSceneItemAnimation : public CSceneItem {
 				void							setStartTimeInterval(
 														const OV<UniversalTimeInterval>& startTimeInterval);
 
+				bool							operator==(const CSceneItemAnimation& other) const
+													{ return mInternals == other.mInternals; }
 	// Properties
 	public:
-		static	CString		mType;
+		static	const	CString		mType;
+
+		static	const	CString		mPropertyNameStartedActions;
+		static	const	CString		mPropertyNameFinishedActions;
+		static	const	CString		mPropertyNameAudio;
+		static	const	CString		mPropertyNameCelAnimations;
+		static	const	CString		mPropertyNameKeyframeAnimations;
+		static	const	CString		mPropertyNameLoopCount;
+		static	const	CString		mPropertyNameStartTime;
 
 	private:
 				Internals*	mInternals;

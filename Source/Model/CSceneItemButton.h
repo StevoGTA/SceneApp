@@ -20,38 +20,34 @@ class CSceneItemButton : public CSceneItem {
 	// Methods
 	public:
 											// Lifecycle methods
-											CSceneItemButton();
 											CSceneItemButton(const CDictionary& info);
 											CSceneItemButton(const CSceneItemButton& other);
 											~CSceneItemButton();
 
 											// CSceneItem methods
-				CSceneItemButton*			copy() const
-												{ return new CSceneItemButton(*this); }
-
 		const	CString&					getType() const
 												{ return mType; }
 				TMArray<CDictionary>		getProperties() const;
 				CDictionary					getInfo() const;
 
 											// Instance methods
-		const	OI<CActions>&				getActions() const;
-				void						setActions(const OI<CActions>& actions);
+		const	OV<CActions>&				getActions() const;
+				void						setActions(const OV<CActions>& actions);
 
-		const	OI<CAudioInfo>&				getAudioInfo() const;
-				void						setAudioInfo(const OI<CAudioInfo>& audioInfo);
+		const	OV<CAudioInfo>&				getAudioInfo() const;
+				void						setAudioInfo(const OV<CAudioInfo>& audioInfo);
 
-		const	OI<CKeyframeAnimationInfo>&	getUpKeyframeAnimationInfo() const;
+		const	OV<CKeyframeAnimationInfo>&	getUpKeyframeAnimationInfo() const;
 				void						setUpKeyframeAnimationInfo(
-													const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo);
+													const OV<CKeyframeAnimationInfo>& keyframeAnimationInfo);
 
-		const	OI<CKeyframeAnimationInfo>&	getDownKeyframeAnimationInfo() const;
+		const	OV<CKeyframeAnimationInfo>&	getDownKeyframeAnimationInfo() const;
 				void						setDownKeyframeAnimationInfo(
-													const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo);
+													const OV<CKeyframeAnimationInfo>& keyframeAnimationInfo);
 
-		const	OI<CKeyframeAnimationInfo>&	getDisabledKeyframeAnimationInfo() const;
+		const	OV<CKeyframeAnimationInfo>&	getDisabledKeyframeAnimationInfo() const;
 				void						setDisabledKeyframeAnimationInfo(
-													const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo);
+													const OV<CKeyframeAnimationInfo>& keyframeAnimationInfo);
 
 		const	OV<UniversalTimeInterval>&	getStartTimeInterval() const;
 				void						setStartTimeInterval(
@@ -62,8 +58,16 @@ class CSceneItemButton : public CSceneItem {
 
 	// Properties
 	public:
-		static	CString		mType;
+		static	const	CString		mType;
+
+		static	const	CString		mPropertyNameActions;
+		static	const	CString		mPropertyNameAudio;
+		static	const	CString		mPropertyNameUpAnimation;
+		static	const	CString		mPropertyNameDownAnimation;
+		static	const	CString		mPropertyNameDisabledAnimation;
+		static	const	CString		mPropertyNameStartTime;
+		static	const	CString		mPropertyNameHitRadius;
 
 	private:
-				Internals*	mInternals;
+						Internals*	mInternals;
 };

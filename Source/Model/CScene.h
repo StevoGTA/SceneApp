@@ -35,7 +35,6 @@ class CScene : public CEquatable {
 	// Methods
 	public:
 												// Lifecycle methods
-												CScene();
 												CScene(const CDictionary& info);
 												CScene(const CScene& other);
 												~CScene();

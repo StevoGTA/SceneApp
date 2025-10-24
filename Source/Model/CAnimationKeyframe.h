@@ -64,7 +64,9 @@ class CAnimationKeyframe {
 	// Methods
 	public:
 											// Lifecycle methods
-											CAnimationKeyframe();
+											CAnimationKeyframe(const CString& imageResourceFilename,
+													const S2DPointF32& anchorPoint,
+													const S2DPointF32& screenPositionPoint, Float32 scale);
 											CAnimationKeyframe(const CDictionary& info);
 											CAnimationKeyframe(const CAnimationKeyframe& other);
 											~CAnimationKeyframe();
@@ -102,6 +104,18 @@ class CAnimationKeyframe {
 
 				Options						getOptions() const;
 				void						setOptions(Options options);
+
+				bool						operator==(const CAnimationKeyframe& other) const
+												{ return (getActions() == other.getActions()) &&
+														(getAnchorPoint() == other.getAnchorPoint()) &&
+														(getScreenPositionPoint() == other.getScreenPositionPoint()) &&
+														(getAngleDegrees() == other.getAngleDegrees()) &&
+														(getAlpha() == other.getAlpha()) &&
+														(getScale() == other.getScale()) &&
+														(getDelay() == other.getDelay()) &&
+														(getTransitionType() == other.getTransitionType()) &&
+														(getImageResourceFilename() == other.getImageResourceFilename()) &&
+														(getOptions() == other.getOptions()); }
 
 	// Properties
 	private:

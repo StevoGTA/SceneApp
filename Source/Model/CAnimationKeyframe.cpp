@@ -41,10 +41,16 @@ class CAnimationKeyframe::Internals : public TCopyOnWriteReferenceCountable<Inte
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CAnimationKeyframe::CAnimationKeyframe()
+CAnimationKeyframe::CAnimationKeyframe(const CString& imageResourceFilename, const S2DPointF32& anchorPoint,
+		const S2DPointF32& screenPositionPoint, Float32 scale)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Setup
 	mInternals = new Internals();
+	mInternals->mImageResourceFilename.setValue(imageResourceFilename);
+	mInternals->mAnchorPoint.setValue(anchorPoint);
+	mInternals->mScreenPositionPoint.setValue(screenPositionPoint);
+	mInternals->mScale.setValue(scale);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

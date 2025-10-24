@@ -308,7 +308,7 @@ class CSceneAppPlayer {
 						void							shakeCancelled();
 
 														// Subclass methods
-		virtual			CSceneItemPlayer*				createSceneItemPlayer(const CSceneItem& sceneItem,
+		virtual			I<CSceneItemPlayer>				createSceneItemPlayer(CSceneItem& sceneItem,
 																const SSceneAppResourceManagementInfo&
 																		sceneAppResourceManagementInfo,
 																const CSceneItemPlayer::Procs& procs) const;

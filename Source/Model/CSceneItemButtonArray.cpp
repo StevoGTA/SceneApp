@@ -31,13 +31,6 @@ class CSceneItemButtonArrayButton::Internals : public TCopyOnWriteReferenceCount
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemButtonArrayButton::CSceneItemButtonArrayButton()
-//----------------------------------------------------------------------------------------------------------------------
-{
-	mInternals = new Internals();
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 CSceneItemButtonArrayButton::CSceneItemButtonArrayButton(const CDictionary& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -212,16 +205,13 @@ class CSceneItemButtonArray::Internals : public TCopyOnWriteReferenceCountable<I
 
 // MARK: Properties
 
-CString	CSceneItemButtonArray::mType(OSSTR("buttonArray"));
+const	CString	CSceneItemButtonArray::mType(OSSTR("buttonArray"));
+
+const	CString	CSceneItemButtonArray::mPropertyNameButtons(OSSTR("buttonsInfo"));
+const	CString	CSceneItemButtonArray::mPropertyNameImageFilename(OSSTR("imageFilename"));
+const	CString	CSceneItemButtonArray::mPropertyNameStartTimeInterval(OSSTR("startTime"));
 
 // MARK: Lifecycle methods
-
-//----------------------------------------------------------------------------------------------------------------------
-CSceneItemButtonArray::CSceneItemButtonArray() : CSceneItem()
-//----------------------------------------------------------------------------------------------------------------------
-{
-	mInternals = new Internals();
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItemButtonArray::CSceneItemButtonArray(const CDictionary& info) : CSceneItem(info)
@@ -229,12 +219,11 @@ CSceneItemButtonArray::CSceneItemButtonArray(const CDictionary& info) : CSceneIt
 {
 	mInternals = new Internals();
 
-	if (info.contains(CString(OSSTR("startTime"))))
-		mInternals->mStartTimeInterval = OV<UniversalTimeInterval>(info.getFloat64(CString(OSSTR("startTime"))));
-	mInternals->mImageResourceFilename = info.getString(CString(OSSTR("imageFilename")));
 	mInternals->mSceneItemButtonArrayButtons =
-			TNArray<CSceneItemButtonArrayButton>(info.getArrayOfDictionaries(CString(OSSTR("buttonsInfo"))),
+			TNArray<CSceneItemButtonArrayButton>(info.getArrayOfDictionaries(mPropertyNameButtons),
 					(TNArray<CSceneItemButtonArrayButton>::MapProc) CSceneItemButtonArrayButton::makeFrom);
+	mInternals->mImageResourceFilename = info.getString(mPropertyNameImageFilename);
+	mInternals->mStartTimeInterval = info.getOVFloat64(mPropertyNameStartTimeInterval);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -263,19 +252,19 @@ TMArray<CDictionary> CSceneItemButtonArray::getProperties() const
 	// Add properties
 	CDictionary	startTimePropertyInfo;
 	startTimePropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Start Time Interval")));
-	startTimePropertyInfo.set(mPropertyNameKey, CString(OSSTR("startTime")));
+	startTimePropertyInfo.set(mPropertyNameKey, mPropertyNameStartTimeInterval);
 	startTimePropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeStartTimeInterval);
 	properties += startTimePropertyInfo;
 
 	CDictionary	resourceFilenamePropertyInfo;
 	resourceFilenamePropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Image Filename")));
-	resourceFilenamePropertyInfo.set(mPropertyNameKey, CString(OSSTR("imageFilename")));
+	resourceFilenamePropertyInfo.set(mPropertyNameKey, mPropertyNameImageFilename);
 	resourceFilenamePropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeFilename);
 	properties += resourceFilenamePropertyInfo;
 
 	CDictionary	buttonArrayPropertyInfo;
 	buttonArrayPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Button Array")));
-	buttonArrayPropertyInfo.set(mPropertyNameKey, CString(OSSTR("buttonsInfo")));
+	buttonArrayPropertyInfo.set(mPropertyNameKey, mPropertyNameButtons);
 	buttonArrayPropertyInfo.set(mPropertyTypeKey, kPropertyTypeButtonArray);
 	properties += buttonArrayPropertyInfo;
 
@@ -288,12 +277,11 @@ CDictionary CSceneItemButtonArray::getInfo() const
 {
 	CDictionary	info = CSceneItem::getInfo();
 
-	if (mInternals->mStartTimeInterval.hasValue())
-		info.set(CString(OSSTR("startTime")), *mInternals->mStartTimeInterval);
-	info.set(CString(OSSTR("imageFilename")), mInternals->mImageResourceFilename);
-	info.set(CString(OSSTR("buttonsInfo")),
+	info.set(mPropertyNameButtons,
 			TNArray<CDictionary>(mInternals->mSceneItemButtonArrayButtons,
 					(TNArray<CDictionary>::MapProc) CSceneItemButtonArrayButton::getInfoFrom));
+	info.set(mPropertyNameImageFilename, mInternals->mImageResourceFilename);
+	info.set(mPropertyNameStartTimeInterval, mInternals->mStartTimeInterval);
 
 	return info;
 }
@@ -301,21 +289,10 @@ CDictionary CSceneItemButtonArray::getInfo() const
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-const OV<UniversalTimeInterval>& CSceneItemButtonArray::getStartTimeInterval() const
+const TArray<CSceneItemButtonArrayButton>& CSceneItemButtonArray::getSceneItemButtonArrayButtons() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return mInternals->mStartTimeInterval;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-void CSceneItemButtonArray::setStartTimeInterval(const OV<UniversalTimeInterval>& startTimeInterval)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	// Prepare to write
-	Internals::prepareForWrite(&mInternals);
-
-	// Update
-	mInternals->mStartTimeInterval = startTimeInterval;
+	return mInternals->mSceneItemButtonArrayButtons;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -329,16 +306,39 @@ const CString& CSceneItemButtonArray::getImageResourceFilename() const
 void CSceneItemButtonArray::setImageResourceFilename(const CString& imageResourceFilename)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Prepare to write
-	Internals::prepareForWrite(&mInternals);
+	// Check if changed
+	if (imageResourceFilename != mInternals->mImageResourceFilename) {
+		// Prepare to write
+		Internals::prepareForWrite(&mInternals);
 
-	// Update
-	mInternals->mImageResourceFilename = imageResourceFilename;
+		// Update
+		mInternals->mImageResourceFilename = imageResourceFilename;
+
+		// Note updated
+		noteUpdated(mPropertyNameImageFilename);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const TArray<CSceneItemButtonArrayButton>& CSceneItemButtonArray::getSceneItemButtonArrayButtons() const
+const OV<UniversalTimeInterval>& CSceneItemButtonArray::getStartTimeInterval() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return mInternals->mSceneItemButtonArrayButtons;
+	return mInternals->mStartTimeInterval;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void CSceneItemButtonArray::setStartTimeInterval(const OV<UniversalTimeInterval>& startTimeInterval)
+//----------------------------------------------------------------------------------------------------------------------
+{
+	// Check if changed
+	if (startTimeInterval != mInternals->mStartTimeInterval) {
+		// Prepare to write
+		Internals::prepareForWrite(&mInternals);
+
+		// Update
+		mInternals->mStartTimeInterval = startTimeInterval;
+
+		// Note updated
+		noteUpdated(mPropertyNameStartTimeInterval);
+	}
 }

@@ -270,13 +270,13 @@ CKeyframeAnimationPlayer::CKeyframeAnimationPlayer(const CKeyframeAnimationInfo&
 {
 	mInternals = new Internals(keyframeAnimationInfo, sceneAppResourceManagementInfo, procs, startTimeInterval);
 
-	const	TArray<CAnimationKeyframe>&				array =
+	const	TArray<CAnimationKeyframe>&				animationKeyframes =
 															mInternals->mKeyframeAnimationInfo.
-																	getAnimationKeyframesArray();
+																	getAnimationKeyframes();
 			OR<CKeyframeAnimationPlayerKeyframe>	previousPlayerKeyframe;
-	for (CArray::ItemIndex i = 0; i < array.getCount(); i++) {
+	for (CArray::ItemIndex i = 0; i < animationKeyframes.getCount(); i++) {
 		CKeyframeAnimationPlayerKeyframe*	playerKeyframe =
-													new CKeyframeAnimationPlayerKeyframe(array[i],
+													new CKeyframeAnimationPlayerKeyframe(animationKeyframes[i],
 															previousPlayerKeyframe);
 		mInternals->mKeyframeAnimationPlayerKeyframes += I<CKeyframeAnimationPlayerKeyframe>(playerKeyframe);
 		previousPlayerKeyframe = OR<CKeyframeAnimationPlayerKeyframe>(*playerKeyframe);

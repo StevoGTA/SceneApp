@@ -88,31 +88,31 @@ CString	CSceneItemPlayerButton::mPropertyNameEnabled(OSSTR("enabled"));
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerButton::CSceneItemPlayerButton(const CSceneItemButton& sceneItemButton,
+CSceneItemPlayerButton::CSceneItemPlayerButton(CSceneItemButton& sceneItemButton,
 		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo, const Procs& procs) :
 		CSceneItemPlayer(sceneItemButton, procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals = new Internals(*this, sceneAppResourceManagementInfo);
 
-	OI<CKeyframeAnimationInfo>	upKeyframeAnimationInfo = sceneItemButton.getUpKeyframeAnimationInfo();
-	if (upKeyframeAnimationInfo.hasInstance()) {
+	OV<CKeyframeAnimationInfo>	upKeyframeAnimationInfo = sceneItemButton.getUpKeyframeAnimationInfo();
+	if (upKeyframeAnimationInfo.hasValue()) {
 		mInternals->mUpKeyframeAnimationPlayer =
 				new CKeyframeAnimationPlayer(*upKeyframeAnimationInfo, sceneAppResourceManagementInfo,
 						mInternals->mKeyframeAnimationPlayerProcsInfo, sceneItemButton.getStartTimeInterval());
 		mInternals->mCurrentKeyframeAnimationPlayer = mInternals->mUpKeyframeAnimationPlayer;
 	}
 	
-	OI<CKeyframeAnimationInfo>	downKeyframeAnimationInfo = sceneItemButton.getDownKeyframeAnimationInfo();
-	if (downKeyframeAnimationInfo.hasInstance())
+	OV<CKeyframeAnimationInfo>	downKeyframeAnimationInfo = sceneItemButton.getDownKeyframeAnimationInfo();
+	if (downKeyframeAnimationInfo.hasValue())
 		mInternals->mDownKeyframeAnimationPlayer =
 				new CKeyframeAnimationPlayer(*downKeyframeAnimationInfo, sceneAppResourceManagementInfo,
 						mInternals->mKeyframeAnimationPlayerProcsInfo, sceneItemButton.getStartTimeInterval());
 	else
 		mInternals->mDownKeyframeAnimationPlayer = mInternals->mUpKeyframeAnimationPlayer;
 
-	OI<CKeyframeAnimationInfo>	disabledKeyframeAnimationInfo = sceneItemButton.getDisabledKeyframeAnimationInfo();
-	if (disabledKeyframeAnimationInfo.hasInstance()) {
+	OV<CKeyframeAnimationInfo>	disabledKeyframeAnimationInfo = sceneItemButton.getDisabledKeyframeAnimationInfo();
+	if (disabledKeyframeAnimationInfo.hasValue()) {
 		mInternals->mDisabledKeyframeAnimationPlayer =
 				new CKeyframeAnimationPlayer(*disabledKeyframeAnimationInfo, sceneAppResourceManagementInfo,
 						mInternals->mKeyframeAnimationPlayerProcsInfo, sceneItemButton.getStartTimeInterval());
@@ -132,9 +132,7 @@ CSceneItemPlayerButton::~CSceneItemPlayerButton()
 CActions CSceneItemPlayerButton::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	OI<CActions>	actions = getSceneItemButton().getActions();
-
-	return actions.hasInstance() ? *actions : CActions();
+	return getSceneItemButton().getActions().getValue(CActions());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -145,8 +143,8 @@ void CSceneItemPlayerButton::load(CGPU& gpu)
 	const	CSceneItemButton&	sceneItemButton = getSceneItemButton();
 	
 	// Load audio
-	const	OI<CAudioInfo>&	audioInfo = sceneItemButton.getAudioInfo();
-	if (audioInfo.hasInstance())
+	const	OV<CAudioInfo>&	audioInfo = sceneItemButton.getAudioInfo();
+	if (audioInfo.hasValue())
 		// Setup CMediaPlayer
 		mInternals->mMediaPlayer = mInternals->mSceneAppMediaEngine.getMediaPlayer(*audioInfo);
 
@@ -203,7 +201,7 @@ void CSceneItemPlayerButton::reset()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerButton::update(UniversalTimeInterval deltaTimeInterval, bool isRunning)
+void CSceneItemPlayerButton::update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval, bool isRunning)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	if (mInternals->mIsEnabled) {
@@ -292,8 +290,8 @@ void CSceneItemPlayerButton::touchEndedOrMouseUpAtPoint(const S2DPointF32& point
 		mInternals->mCurrentKeyframeAnimationPlayer = mInternals->mUpKeyframeAnimationPlayer;
 
 		if (mInternals->isPointInHitRect(point)) {
-			OI<CActions>	actions = getSceneItemButton().getActions();
-			if (actions.hasInstance())
+			OV<CActions>	actions = getSceneItemButton().getActions();
+			if (actions.hasValue())
 				perform(*actions, point);
 		}
 	}

@@ -22,44 +22,102 @@ static	const	Float32	kVSwipeDragMinY = 12.0f;
 
 class CScenePlayer::Internals : public TReferenceCountable<Internals> {
 	public:
-										Internals(const CScene& scene,
-												const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
-												const CScenePlayer::Procs& procs, CScenePlayer& scenePlayer) :
-											TReferenceCountable(), mIsLoaded(false), mIsRunning(false), mScene(scene),
-													mScenePlayer(scenePlayer),
-													mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
-													mSceneItemPlayerProcsInfo(
-															(CScenePlayer::Procs::PerformActionsProc)
-																	sceneItemPlayerActionsPerformProc,
-															this),
-													mScenePlayerProcsInfo(procs)
-											{}
+											Internals(const CScene& scene,
+													const SSceneAppResourceManagementInfo&
+															sceneAppResourceManagementInfo,
+													const CScenePlayer::Procs& procs, CScenePlayer& scenePlayer) :
+												TReferenceCountable(),
+														mScene(scene),
+														mSceneAppResourceManagementInfo(sceneAppResourceManagementInfo),
+														mScenePlayerProcs(procs),
+														mScenePlayer(scenePlayer),
+														mIsLoaded(false), mIsRunning(false),
+														mSceneItemPlayerProcs(
+																(CSceneItemPlayer::Procs::AddSceneItemProc)
+																		sceneItemPlayerAddSceneItem,
+																(CSceneItemPlayer::Procs::AddSceneItemPlayerProc)
+																		sceneItemPlayerAddSceneItemPlayer,
+																(CSceneItemPlayer::Procs::GetSceneItemPlayerProc)
+																		sceneItemPlayerGetSceneItemPlayer,
+																(CSceneItemPlayer::Procs::RemoveSceneItemPlayerProc)
+																		sceneItemPlayerRemoveSceneItemPlayer,
+																(CSceneItemPlayer::Procs::PerformActionsProc)
+																		sceneItemPlayerPerformActions,
+																this)
+												{}
 
-				OR<CSceneItemPlayer>	getSceneItemPlayerForSceneItemWithName(const CString& itemName)
-											{
-												// Iterate all scene item players
-												for (TIteratorD<I<CSceneItemPlayer> > iterator =
-														mSceneItemPlayers.getIterator();
-														iterator.hasValue(); iterator.advance()) {
-													// Get info
-													CSceneItemPlayer&	sceneItemPlayer = **iterator;
+				I<CSceneItemPlayer>			add(CSceneItem& sceneItem, CGPU& gpu)
+												{
+													// Create scene item player
+													I<CSceneItemPlayer>	sceneItemPlayer =
+																				mScenePlayerProcs.createSceneItemPlayer(
+																						sceneItem,
+																						mSceneAppResourceManagementInfo,
+																						mSceneItemPlayerProcs);
 
-													// Check if scene item matches
-													if (sceneItemPlayer.getSceneItem().getName() == itemName)
-														// Match
-														return OR<CSceneItemPlayer>(sceneItemPlayer);
+													// Add
+													add(sceneItemPlayer, gpu);
+
+													return sceneItemPlayer;
+												}
+				I<CSceneItemPlayer>			add(const I<CSceneItemPlayer>& sceneItemPlayer, CGPU& gpu)
+												{
+													// Add
+													mSceneItemPlayers += sceneItemPlayer;
+
+													// Check if need to load
+													if (!(sceneItemPlayer->getSceneItemOptions() &
+															CSceneItem::kOptionsDontLoadWithScene))
+														// Load
+														sceneItemPlayer->load(gpu);
+
+													return sceneItemPlayer;
+												}
+				OR<I<CSceneItemPlayer> >	getSceneItemPlayerForSceneItemWithName(const CString& name)
+												{
+													// Ensure have a name
+													if (!name.isEmpty()) {
+														// Iterate all scene item players
+														for (TIteratorD<I<CSceneItemPlayer> > iterator =
+																mSceneItemPlayers.getIterator();
+																iterator.hasValue(); iterator.advance()) {
+															// Check if scene item matches
+															if ((*iterator)->getName() == name)
+																// Match
+																return OR<I<CSceneItemPlayer> >(*iterator);
+														}
+													}
+
+													return OR<I<CSceneItemPlayer> >();
 												}
 
-												return OR<CSceneItemPlayer>();
-											}
+		static	I<CSceneItemPlayer>			sceneItemPlayerAddSceneItem(CSceneItem& sceneItem, CGPU& gpu,
+													Internals* internals)
+												{ return internals->add(sceneItem, gpu); }
+		static	I<CSceneItemPlayer>			sceneItemPlayerAddSceneItemPlayer(
+													const I<CSceneItemPlayer>& sceneItemPlayer, CGPU& gpu,
+													Internals* internals)
+												{ return internals->add(sceneItemPlayer, gpu); }
+		static	OR<I<CSceneItemPlayer> >	sceneItemPlayerGetSceneItemPlayer(const CSceneItem& sceneItem,
+													Internals* internals)
+												{ return internals->getSceneItemPlayerForSceneItemWithName(
+														sceneItem.getName()); }
+		static	void						sceneItemPlayerRemoveSceneItemPlayer(
+													const I<CSceneItemPlayer>& sceneItemPlayer, Internals* internals)
+												{
+													// Unload
+													sceneItemPlayer->unload();
 
-		static	void					sceneItemPlayerActionsPerformProc(const CActions& actions,
-												const S2DPointF32& point, Internals* internals)
-											{ internals->mScenePlayerProcsInfo.performActions(actions, point); }
+													// Remove
+													internals->mSceneItemPlayers.remove(sceneItemPlayer);
+												}
+		static	void						sceneItemPlayerPerformActions(const CActions& actions,
+													const S2DPointF32& point, Internals* internals)
+												{ internals->mScenePlayerProcs.performActions(actions, point); }
 
 		const	CScene&									mScene;
 				SSceneAppResourceManagementInfo			mSceneAppResourceManagementInfo;
-		const	CScenePlayer::Procs&					mScenePlayerProcsInfo;
+		const	CScenePlayer::Procs&					mScenePlayerProcs;
 				CScenePlayer&							mScenePlayer;
 
 				bool									mIsLoaded;
@@ -67,7 +125,7 @@ class CScenePlayer::Internals : public TReferenceCountable<Internals> {
 				TReferenceDictionary<CSceneItemPlayer>	mTouchHandlingInfo;
 				S2DPointF32								mInitialTouchPoint;
 				S2DOffsetF32							mCurrentOffset;
-				CSceneItemPlayer::Procs					mSceneItemPlayerProcsInfo;
+				CSceneItemPlayer::Procs					mSceneItemPlayerProcs;
 				TNArray<I<CSceneItemPlayer> >			mSceneItemPlayers;
 };
 
@@ -132,31 +190,9 @@ void CScenePlayer::load(CGPU& gpu)
 
 	// Iterate all scene items
 	const	TArray<I<CSceneItem> >&	sceneItems = mInternals->mScene.getSceneItems();
-	for (UInt32 i = 0; i < sceneItems.getCount(); i++) {
-		// Get scene
-		CSceneItem&	sceneItem = *sceneItems[i];
-
-		// Create scene item player
-		CSceneItemPlayer*	sceneItemPlayer =
-									mInternals->mScenePlayerProcsInfo.createSceneItemPlayer(sceneItem,
-											mInternals->mSceneAppResourceManagementInfo,
-											mInternals->mSceneItemPlayerProcsInfo);
-		if (sceneItemPlayer == nil) {
-			// No SceneItemPlayer
-#if !defined(DEBUG)
-			AssertFailUnimplemented();
-#else
-			CLogServices::logMessage(CString("No player created for ") + sceneItem.getType());
-			continue;
-#endif
-		}
-		mInternals->mSceneItemPlayers += I<CSceneItemPlayer>(sceneItemPlayer);
-
-		// Check if need to load
-		if (!(sceneItem.getOptions() & CSceneItem::kOptionsDontLoadWithScene))
-			// Load
-			sceneItemPlayer->load(gpu);
-	}
+	for (UInt32 i = 0; i < sceneItems.getCount(); i++)
+		// Add
+		mInternals->add(*sceneItems[i], gpu);
 
 	// Iterate all created scene item players
 	for (TIteratorD<I<CSceneItemPlayer> > iterator = mInternals->mSceneItemPlayers.getIterator(); iterator.hasValue();
@@ -176,22 +212,24 @@ void CScenePlayer::unload()
 	if (!mInternals->mIsLoaded)
 		return;
 
-	// Remove all scene item players
-	mInternals->mSceneItemPlayers.removeAll();
+	// Remove all scene item players - in reverse order
+	while (!mInternals->mSceneItemPlayers.isEmpty())
+		// Remove the last one
+		mInternals->mSceneItemPlayers.removeAtIndex(mInternals->mSceneItemPlayers.getCount() - 1);
 
 	// No longer loaded
 	mInternals->mIsLoaded = false;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CScenePlayer::start()
+void CScenePlayer::start(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Is running
 	mInternals->mIsRunning = true;
 
 	// Update all scene item players to get them into their initial state
-	update(0.0);
+	update(gpu, 0.0);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -214,7 +252,7 @@ void CScenePlayer::reset()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CScenePlayer::update(UniversalTimeInterval deltaTimeInterval)
+void CScenePlayer::update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Iterate all scene item players
@@ -227,7 +265,7 @@ void CScenePlayer::update(UniversalTimeInterval deltaTimeInterval)
 		if ((mInternals->mIsRunning || !sceneItemPlayer.getStartTimeInterval().hasValue()) &&
 				sceneItemPlayer.getIsVisible())
 			// Update
-			sceneItemPlayer.update(deltaTimeInterval, mInternals->mIsRunning);
+			sceneItemPlayer.update(gpu, deltaTimeInterval, mInternals->mIsRunning);
 	}
 }
 
@@ -247,12 +285,12 @@ void CScenePlayer::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderI
 		// Check if is visible
 		if (sceneItemPlayer.getIsVisible()) {
 			// Check how this scene item is anchored
-			if (sceneItemPlayer.getSceneItem().getOptions() & CSceneItem::kOptionsAnchorToScreen)
+			if (sceneItemPlayer.getSceneItemOptions() & CSceneItem::kOptionsAnchorToScreen)
 				// Draw anchored to screen
 				sceneItemPlayer.render(gpu, renderInfo);
 			else
 				// Draw anchored to bg
-				sceneItemPlayer.render(gpu, offsetRenderInfo);
+				sceneItemPlayer.render(gpu, offsetRenderInfo.offset(sceneItemPlayer.getScreenPositionOffset()));
 		}
 	}
 }
@@ -262,10 +300,10 @@ void CScenePlayer::setItemPlayerProperty(const CString& itemName, const CString&
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Retrieve scene item player
-	OR<CSceneItemPlayer>	sceneItemPlayer = mInternals->getSceneItemPlayerForSceneItemWithName(itemName);
+	OR<I<CSceneItemPlayer> >	sceneItemPlayer = mInternals->getSceneItemPlayerForSceneItemWithName(itemName);
 	if (sceneItemPlayer.hasReference())
 		// Make the call
-		sceneItemPlayer->setProperty(property, value);
+		(*sceneItemPlayer)->setProperty(property, value);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -274,10 +312,10 @@ void CScenePlayer::handleItemPlayerCommand(CGPU& gpu, const CString& itemName, c
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Retrieve scene item player
-	OR<CSceneItemPlayer>	sceneItemPlayer = mInternals->getSceneItemPlayerForSceneItemWithName(itemName);
+	OR<I<CSceneItemPlayer> >	sceneItemPlayer = mInternals->getSceneItemPlayerForSceneItemWithName(itemName);
 	if (sceneItemPlayer.hasReference())
 		// Make the call
-		sceneItemPlayer->handleCommand(gpu, command, commandInfo, point);
+		(*sceneItemPlayer)->handleCommand(gpu, command, commandInfo, point);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -290,7 +328,7 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32
 	// Check for 2 taps/clicks and have double tap action
 	if ((tapOrClickCount == 2) && mInternals->mScene.getDoubleTapActions().hasInstance())
 		// 2 taps or clicks and have double tap action
-		mInternals->mScenePlayerProcsInfo.performActions(*mInternals->mScene.getDoubleTapActions());
+		mInternals->mScenePlayerProcs.performActions(*mInternals->mScene.getDoubleTapActions());
 	else {
 		// Setup
 		S2DPointF32	scenePoint = point.offset(mInternals->mCurrentOffset.inverted());
@@ -308,7 +346,7 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32
 
 			// Compose scene item player point
 			S2DPointF32	sceneItemPlayerPoint =
-								(sceneItemPlayer.getSceneItem().getOptions() & CSceneItem::kOptionsAnchorToScreen) ?
+								(sceneItemPlayer.getSceneItemOptions() & CSceneItem::kOptionsAnchorToScreen) ?
 										point : scenePoint;
 			if (sceneItemPlayer.handlesTouchOrMouseAtPoint(sceneItemPlayerPoint)) {
 				// Found it
@@ -327,7 +365,7 @@ void CScenePlayer::touchBeganOrMouseDownAtPoint(const S2DPointF32& point, UInt32
 
 		// Compose scene item player point
 		S2DPointF32	sceneItemPlayerPoint =
-							(targetSceneItemPlayer->getSceneItem().getOptions() & CSceneItem::kOptionsAnchorToScreen) ?
+							(targetSceneItemPlayer->getSceneItemOptions() & CSceneItem::kOptionsAnchorToScreen) ?
 									point : scenePoint;
 
 		// Pass to scene item player
@@ -363,7 +401,7 @@ void CScenePlayer::touchOrMouseMovedFromPoint(const S2DPointF32& point1, const S
 		// Prepare to adjust point if needed
 		S2DPointF32	adjustedPoint1 = point1;
 		S2DPointF32	adjustedPoint2 = point2;
-		if ((targetSceneItemPlayer->getSceneItem().getOptions() & CSceneItem::kOptionsAnchorToScreen) == 0) {
+		if ((targetSceneItemPlayer->getSceneItemOptions() & CSceneItem::kOptionsAnchorToScreen) == 0) {
 			// Adjust points
 			adjustedPoint1 = adjustedPoint1.offset(mInternals->mCurrentOffset.inverted());
 			adjustedPoint2 = adjustedPoint2.offset(mInternals->mCurrentOffset.inverted());
@@ -376,7 +414,7 @@ void CScenePlayer::touchOrMouseMovedFromPoint(const S2DPointF32& point1, const S
 		mInternals->mCurrentOffset = mInternals->mCurrentOffset + S2DOffsetF32(point1, point2);
 
 		// Bound
-				S2DSizeF32	viewportSize = mInternals->mScenePlayerProcsInfo.getViewportSize();
+				S2DSizeF32	viewportSize = mInternals->mScenePlayerProcs.getViewportSize();
 		const	S2DRectF32&	sceneBoundsRect = mInternals->mScene.getBoundsRect();
 		mInternals->mCurrentOffset =
 				mInternals->mCurrentOffset.bounded(
@@ -396,7 +434,7 @@ void CScenePlayer::touchEndedOrMouseUpAtPoint(const S2DPointF32& point, const vo
 	if (targetSceneItemPlayer.hasReference()) {
 		// Send to Scene Item Player
 		S2DPointF32	adjustedPoint = point;
-		if ((targetSceneItemPlayer->getSceneItem().getOptions() & CSceneItem::kOptionsAnchorToScreen) == 0)
+		if ((targetSceneItemPlayer->getSceneItemOptions() & CSceneItem::kOptionsAnchorToScreen) == 0)
 			// Offset
 			adjustedPoint = adjustedPoint.offset(mInternals->mCurrentOffset.inverted());
 

@@ -13,6 +13,7 @@
 #include "CSceneItemPlayerButton.h"
 #include "CSceneItemPlayerButtonArray.h"
 #include "CSceneItemPlayerHotspot.h"
+#include "CSceneItemPlayerText.h"
 #include "CSceneItemPlayerVideo.h"
 #include "CScenePackage.h"
 #include "CScenePlayer.h"
@@ -56,7 +57,7 @@ class CSceneAppPlayer::Internals {
 		static	bool				compareReference(const STouchHandlerInfo& touchHandlerInfo, void* reference)
 										{ return touchHandlerInfo.mReference == reference; }
 		static	S2DSizeF32			scenePlayerGetViewportSize(Internals* internals);
-		static	CSceneItemPlayer*	scenePlayerCreateSceneItemPlayer(const CSceneItem& sceneItem,
+		static	I<CSceneItemPlayer>	scenePlayerCreateSceneItemPlayer(CSceneItem& sceneItem,
 											const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 											const CSceneItemPlayer::Procs& procs, Internals* internals);
 		static	void				scenePlayerActionsPerform(const CActions& actions, const S2DPointF32& point,
@@ -72,7 +73,7 @@ class CSceneAppPlayer::Internals {
 
 		CSceneAppPlayer::Procs								mSceneAppPlayerProcs;
 		SSceneAppResourceLoading							mSceneAppResourceLoading;
-		CScenePlayer::Procs									mScenePlayerProcsInfo;
+		CScenePlayer::Procs									mScenePlayerProcs;
 		CSceneTransitionPlayer::Procs						mSceneTransitionPlayerProcs;
 
 		CScenePackage										mScenePackage;
@@ -102,7 +103,7 @@ CSceneAppPlayer::Internals::Internals(CSceneAppPlayer& sceneAppPlayer, CGPU& gpu
 			mSceneAppMediaEngine(mMessageQueues, sceneAppResourceLoading),
 			mSceneAppPlayer(sceneAppPlayer), mSceneAppPlayerProcs(procs),
 			mSceneAppResourceLoading(sceneAppResourceLoading),
-			mScenePlayerProcsInfo((CScenePlayer::Procs::GetViewportSizeProc) scenePlayerGetViewportSize,
+			mScenePlayerProcs((CScenePlayer::Procs::GetViewportSizeProc) scenePlayerGetViewportSize,
 					(CScenePlayer::Procs::CreateSceneItemPlayerProc) scenePlayerCreateSceneItemPlayer,
 					(CScenePlayer::Procs::PerformActionsProc) scenePlayerActionsPerform, this),
 			mSceneTransitionPlayerProcs((CSceneTransitionPlayer::Procs::GetViewportSizeProc) scenePlayerGetViewportSize,
@@ -381,7 +382,7 @@ void CSceneAppPlayer::Internals::setCurrentSceneIndex(CScene::Index sceneIndex)
 	cancelAllSceneTransitionTouches();
 
 	// Start new scene player
-	mCurrentScenePlayer->start();
+	mCurrentScenePlayer->start(mGPU);
 
 	// Setup Background Audio
 	const	OI<CAudioInfo>&	background1AudioInfo = mCurrentScenePlayer->getScene().getBackground1AudioInfo();
@@ -433,7 +434,7 @@ S2DSizeF32 CSceneAppPlayer::Internals::scenePlayerGetViewportSize(Internals* int
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayer* CSceneAppPlayer::Internals::scenePlayerCreateSceneItemPlayer(const CSceneItem& sceneItem,
+I<CSceneItemPlayer> CSceneAppPlayer::Internals::scenePlayerCreateSceneItemPlayer(CSceneItem& sceneItem,
 		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 		const CSceneItemPlayer::Procs& procs, Internals* internals)
 //----------------------------------------------------------------------------------------------------------------------
@@ -594,7 +595,7 @@ void CSceneAppPlayer::loadScenes(const CScenePackage::Info& scenePackageInfo)
 				CScenePlayer(mInternals->mScenePackage.getSceneAtIndex(i),
 						SSceneAppResourceManagementInfo(mInternals->mGPUTextureManager,
 								mInternals->mSceneAppMediaEngine, mInternals->mSceneAppResourceLoading),
-						mInternals->mScenePlayerProcsInfo);
+						mInternals->mScenePlayerProcs);
 
 	// Set initial scene
 	mInternals->setCurrentSceneIndex(mInternals->mScenePackage.getInitialSceneIndex());
@@ -605,7 +606,7 @@ void CSceneAppPlayer::start(bool loadAllTextures)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Start
-	mInternals->mCurrentScenePlayer->start();
+	mInternals->mCurrentScenePlayer->start(mInternals->mGPU);
 
 	// Update last periodic output time
 	if ((mInternals->mLastPeriodicOutputTimeInterval != 0.0) && (mInternals->mStopTime != 0.0))
@@ -669,7 +670,7 @@ void CSceneAppPlayer::handlePeriodic(UniversalTimeInterval outputTimeInterval)
 		// Update
 		if (mInternals->mCurrentSceneTransitionPlayer.hasInstance()) {
 			// Update transition
-			mInternals->mCurrentSceneTransitionPlayer->update(deltaTimeInterval);
+			mInternals->mCurrentSceneTransitionPlayer->update(mInternals->mGPU, deltaTimeInterval);
 
 			switch (mInternals->mCurrentSceneTransitionPlayer->getState()) {
 				case CSceneTransitionPlayer::kStateActive:
@@ -689,7 +690,7 @@ void CSceneAppPlayer::handlePeriodic(UniversalTimeInterval outputTimeInterval)
 			}
 		} else
 			// Update current scene
-			mInternals->mCurrentScenePlayer->update(deltaTimeInterval);
+			mInternals->mCurrentScenePlayer->update(mInternals->mGPU, deltaTimeInterval);
 	}
 
 	// Render - camera is at (0, 0.7, 1.5), looking at point (0, -0.1, 0) with the up-vector along the y-axis.
@@ -806,7 +807,7 @@ void CSceneAppPlayer::shakeCancelled()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayer* CSceneAppPlayer::createSceneItemPlayer(const CSceneItem& sceneItem,
+I<CSceneItemPlayer> CSceneAppPlayer::createSceneItemPlayer(CSceneItem& sceneItem,
 		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 		const CSceneItemPlayer::Procs& procs) const
 //----------------------------------------------------------------------------------------------------------------------
@@ -815,25 +816,35 @@ CSceneItemPlayer* CSceneAppPlayer::createSceneItemPlayer(const CSceneItem& scene
 	const	CString&	type = sceneItem.getType();
 	if (type == CSceneItemAnimation::mType)
 		// Animation
-		return new CSceneItemPlayerAnimation((const CSceneItemAnimation&) sceneItem, sceneAppResourceManagementInfo,
-				procs);
+		return I<CSceneItemPlayer>(
+				new CSceneItemPlayerAnimation((CSceneItemAnimation&) sceneItem, sceneAppResourceManagementInfo, procs));
 	else if (type == CSceneItemButton::mType)
 		// Button
-		return new CSceneItemPlayerButton((const CSceneItemButton&) sceneItem, sceneAppResourceManagementInfo,
-				procs);
+		return I<CSceneItemPlayer>(
+				new CSceneItemPlayerButton((CSceneItemButton&) sceneItem, sceneAppResourceManagementInfo, procs));
 	else if (type == CSceneItemButtonArray::mType)
 		// Button array
-		return new CSceneItemPlayerButtonArray((const CSceneItemButtonArray&) sceneItem, sceneAppResourceManagementInfo,
-				procs);
+		return I<CSceneItemPlayer>(
+				new CSceneItemPlayerButtonArray((CSceneItemButtonArray&) sceneItem, sceneAppResourceManagementInfo,
+						procs));
 	else if (type == CSceneItemHotspot::mType)
 		// Hotspot
-		return new CSceneItemPlayerHotspot((const CSceneItemHotspot&) sceneItem, procs);
+		return I<CSceneItemPlayer>(new CSceneItemPlayerHotspot((CSceneItemHotspot&) sceneItem, procs));
+	else if (type == CSceneItemText::mType)
+		// Text
+		return I<CSceneItemPlayer>(
+				new CSceneItemPlayerText((CSceneItemText&) sceneItem, sceneAppResourceManagementInfo, procs));
 	else if (type == CSceneItemVideo::mType)
 		// Video
-		return new CSceneItemPlayerVideo((const CSceneItemVideo&) sceneItem, sceneAppResourceManagementInfo, procs);
-	else
-		// ???
-		return nil;
+		return I<CSceneItemPlayer>(
+				new CSceneItemPlayerVideo((CSceneItemVideo&) sceneItem, sceneAppResourceManagementInfo, procs));
+	else {
+		// No SceneItemPlayer
+		CLogServices::logMessage(CString("No player created for ") + sceneItem.getType());
+		AssertFailUnimplemented();
+
+		return I<CSceneItemPlayer>(nil);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -888,7 +899,7 @@ CScenePlayer& CSceneAppPlayer::loadAndStartScenePlayer(CScene::Index sceneIndex)
 
 	// Load and start
 	scenePlayer.load(mInternals->mGPU);
-	scenePlayer.start();
+	scenePlayer.start(mInternals->mGPU);
 
 	return scenePlayer;
 }

@@ -22,7 +22,7 @@ class CSceneTransitionPlayerPush : public CSceneTransitionPlayer {
 				~CSceneTransitionPlayerPush();
 
 				// CSceneTransitionPlayer methods
-		void	update(UniversalTimeInterval deltaTimeInterval);
+		void	update(CGPU& gput, UniversalTimeInterval deltaTimeInterval);
 		void	render(CGPU& gpu) const;
 
 	// Properties

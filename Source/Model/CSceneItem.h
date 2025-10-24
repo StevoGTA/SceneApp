@@ -5,6 +5,7 @@
 #pragma once
 
 #include "CDictionary.h"
+#include "CUUID.h"
 #include "TimeAndDate.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -49,6 +50,10 @@ class CSceneItem {
 			kPropertyTypeFontSize			= MAKE_OSTYPE('F', 'n', 't', 'S'),
 		};
 
+	// Updated Proc
+	public:
+		typedef	void	(*NoteUpdatedProc)(const CString& propertyName, void* userData);
+
 	// Classes
 	private:
 		class Internals;
@@ -56,16 +61,15 @@ class CSceneItem {
 	// Methods
 	public:
 												// Lifecycle methods
-												CSceneItem();
+												CSceneItem(const CString& name = CUUID().getBase64String(),
+														bool isInitiallyVisible = true, Options options = kOptionsNone);
 												CSceneItem(const CDictionary& info);
 												CSceneItem(const CSceneItem& other);
 		virtual									~CSceneItem();
 						
 												// Instance methods
-		virtual			CSceneItem*				copy() const = 0;
-
-						bool					getIsVisible() const;
-						void					setIsVisible(bool isVisible);
+						bool					getIsInitiallyVisible() const;
+						void					setIsInitiallyVisible(bool isInitiallyVisible);
 
 				const	CString&				getName() const;
 						void					setName(const CString& name);
@@ -78,14 +82,24 @@ class CSceneItem {
 		virtual			TMArray<CDictionary>	getProperties() const;
 		virtual			CDictionary				getInfo() const;
 
+						void					setNoteUpdatedProc(NoteUpdatedProc noteUpdatedProc, void* userData);
+
+	protected:
+												// Subclass methods
+						void					noteUpdated(const CString& propertyName);
+
 	// Properties
 	public:
-		static	CString		mItemInfoKey;
+		static	const	CString		mItemInfoKey;
 
-		static	CString		mPropertyNameKey;
-		static	CString		mPropertyTitleKey;
-		static	CString		mPropertyTypeKey;
+		static	const	CString		mPropertyNameKey;
+		static	const	CString		mPropertyTitleKey;
+		static	const	CString		mPropertyTypeKey;
+
+		static	const	CString		mPropertyNameIsInitiallyVisible;
+		static	const	CString		mPropertyNameName;
+		static	const	CString		mPropertyNameOptions;
 
 	private:
-				Internals*	mInternals;
+						Internals*	mInternals;
 };

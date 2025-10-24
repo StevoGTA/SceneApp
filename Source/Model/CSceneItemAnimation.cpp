@@ -22,11 +22,10 @@ class CSceneItemAnimation::Internals : public TCopyOnWriteReferenceCountable<Int
 					mStartTimeInterval(other.mStartTimeInterval)
 			{}
 
-		OI<CActions>				mStartedActions;
-		OI<CActions>				mFinishedActions;
-		OI<CAudioInfo>				mAudioInfo;
-//		OI<CCelAnimationInfo>		mCelAnimationInfo;
-		OI<CKeyframeAnimationInfo>	mKeyframeAnimationInfo;
+		OV<CActions>				mStartedActions;
+		OV<CActions>				mFinishedActions;
+		OV<CAudioInfo>				mAudioInfo;
+		OV<CKeyframeAnimationInfo>	mKeyframeAnimationInfo;
 		UInt32						mLoopCount;
 		OV<UniversalTimeInterval>	mStartTimeInterval;
 };
@@ -37,15 +36,25 @@ class CSceneItemAnimation::Internals : public TCopyOnWriteReferenceCountable<Int
 
 // MARK: Properties
 
-CString	CSceneItemAnimation::mType(OSSTR("animation"));
+const	CString	CSceneItemAnimation::mType(OSSTR("animation"));
+
+const	CString	CSceneItemAnimation::mPropertyNameStartedActions(OSSTR("startedActionInfo"));
+const	CString	CSceneItemAnimation::mPropertyNameFinishedActions(OSSTR("finishedActionInfo"));
+const	CString	CSceneItemAnimation::mPropertyNameAudio(OSSTR("audioInfo"));
+const	CString	CSceneItemAnimation::mPropertyNameCelAnimations(OSSTR("celAnimationInfo"));
+const	CString	CSceneItemAnimation::mPropertyNameKeyframeAnimations(OSSTR("keyframeAnimationInfo"));
+const	CString	CSceneItemAnimation::mPropertyNameLoopCount(OSSTR("loopCount"));
+const	CString	CSceneItemAnimation::mPropertyNameStartTime(OSSTR("startTime"));
 
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemAnimation::CSceneItemAnimation() : CSceneItem()
+CSceneItemAnimation::CSceneItemAnimation(const CKeyframeAnimationInfo& keyframeAnimationInfo) : CSceneItem()
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Setup
 	mInternals = new Internals();
+	mInternals->mKeyframeAnimationInfo.setValue(keyframeAnimationInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -54,22 +63,17 @@ CSceneItemAnimation::CSceneItemAnimation(const CDictionary& info) : CSceneItem(i
 {
 	mInternals = new Internals();
 
-	if (info.contains(CString(OSSTR("startedActionInfo"))))
-		mInternals->mStartedActions = OI<CActions>(CActions(info.getDictionary(CString(OSSTR("startedActionInfo")))));
-	if (info.contains(CString(OSSTR("finishedActionInfo"))))
-		mInternals->mFinishedActions = OI<CActions>(CActions(info.getDictionary(CString(OSSTR("finishedActionInfo")))));
-	if (info.contains(CString(OSSTR("audioInfo"))))
-		mInternals->mAudioInfo = OI<CAudioInfo>(CAudioInfo(info.getDictionary(CString(OSSTR("audioInfo")))));
-//	if (info.contains(CString(OSSTR("celAnimationInfo"))))
-//		mInternals->mCelAnimationInfo =
-//				OI<CCelAnimationInfo>(CCelAnimationInfo(info.getDictionary(CString(OSSTR("celAnimationInfo")))));
-	if (info.contains(CString(OSSTR("keyframeAnimationInfo"))))
-		mInternals->mKeyframeAnimationInfo =
-				OI<CKeyframeAnimationInfo>(CKeyframeAnimationInfo(
-						info.getDictionary(CString(OSSTR("keyframeAnimationInfo")))));
-	mInternals->mLoopCount = info.getUInt32(CString(OSSTR("loopCount")), 1);
-	if (info.contains(CString(OSSTR("startTime"))))
-		mInternals->mStartTimeInterval = OV<UniversalTimeInterval>(info.getFloat64(CString(OSSTR("startTime"))));
+	if (info.contains(mPropertyNameStartedActions))
+		mInternals->mStartedActions.setValue(CActions(info.getDictionary(mPropertyNameStartedActions)));
+	if (info.contains(mPropertyNameFinishedActions))
+		mInternals->mFinishedActions.setValue(CActions(info.getDictionary(mPropertyNameFinishedActions)));
+	if (info.contains(mPropertyNameAudio))
+		mInternals->mAudioInfo.setValue(CAudioInfo(info.getDictionary(mPropertyNameAudio)));
+	if (info.contains(mPropertyNameKeyframeAnimations))
+		mInternals->mKeyframeAnimationInfo.setValue(
+				CKeyframeAnimationInfo(info.getDictionary(mPropertyNameKeyframeAnimations)));
+	mInternals->mLoopCount = info.getUInt32(mPropertyNameLoopCount, 1);
+	mInternals->mStartTimeInterval = info.getOVFloat64(mPropertyNameStartTime);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -98,43 +102,37 @@ TMArray<CDictionary> CSceneItemAnimation::getProperties() const
 	// Add properties
 	CDictionary	startedActionPropertyInfo;
 	startedActionPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Started Actions")));
-	startedActionPropertyInfo.set(mPropertyNameKey, CString(OSSTR("startedActionInfo")));
+	startedActionPropertyInfo.set(mPropertyNameKey, mPropertyNameStartedActions);
 	startedActionPropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeActions);
 	properties += startedActionPropertyInfo;
 
 	CDictionary	finishedActionPropertyInfo;
 	finishedActionPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Finished Actions")));
-	finishedActionPropertyInfo.set(mPropertyNameKey, CString(OSSTR("finishedActionInfo")));
+	finishedActionPropertyInfo.set(mPropertyNameKey, mPropertyNameFinishedActions);
 	finishedActionPropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeActions);
 	properties += finishedActionPropertyInfo;
 
 	CDictionary	audioInfoPropertyInfo;
 	audioInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Audio")));
-	audioInfoPropertyInfo.set(mPropertyNameKey, CString(OSSTR("audioInfo")));
+	audioInfoPropertyInfo.set(mPropertyNameKey, mPropertyNameAudio);
 	audioInfoPropertyInfo.set(mPropertyTypeKey, CAudioInfo::kPropertyTypeAudioInfo);
 	properties += audioInfoPropertyInfo;
 
-//	CDictionary	celAnimationInfoPropertyInfo;
-//	celAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Cel Animation")));
-//	celAnimationInfoPropertyInfo.set(mPropertyNameKey, CString(OSSTR("celAnimationInfo")));
-//	celAnimationInfoPropertyInfo.set(mPropertyTypeKey, kSceneItemPropertyTypeCelAnimationInfo);
-//	properties += celAnimationInfoPropertyInfo;
-
 	CDictionary	keyframeAnimationInfoPropertyInfo;
 	keyframeAnimationInfoPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Keyframe Animation")));
-	keyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, CString(OSSTR("keyframeAnimationInfo")));
+	keyframeAnimationInfoPropertyInfo.set(mPropertyNameKey, mPropertyNameKeyframeAnimations);
 	keyframeAnimationInfoPropertyInfo.set(mPropertyTypeKey, CKeyframeAnimationInfo::kPropertyTypeKeyframeAnimationInfo);
 	properties += keyframeAnimationInfoPropertyInfo;
 
 	CDictionary	loopCountPropertyInfo;
 	loopCountPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Loop Count")));
-	loopCountPropertyInfo.set(mPropertyNameKey, CString(OSSTR("loopCount")));
+	loopCountPropertyInfo.set(mPropertyNameKey, mPropertyNameLoopCount);
 	loopCountPropertyInfo.set(mPropertyTypeKey, kPropertyTypeLoopCount);
 	properties += loopCountPropertyInfo;
 
 	CDictionary	startTimeIntervalPropertyInfo;
 	startTimeIntervalPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Start Time")));
-	startTimeIntervalPropertyInfo.set(mPropertyNameKey, CString(OSSTR("startTime")));
+	startTimeIntervalPropertyInfo.set(mPropertyNameKey, mPropertyNameStartTime);
 	startTimeIntervalPropertyInfo.set(mPropertyTypeKey, CSceneItem::kPropertyTypeStartTimeInterval);
 	properties += startTimeIntervalPropertyInfo;
 
@@ -147,19 +145,16 @@ CDictionary CSceneItemAnimation::getInfo() const
 {
 	CDictionary	info = CSceneItem::getInfo();
 
-	if (mInternals->mStartedActions.hasInstance())
-		info.set(CString(OSSTR("startedActionInfo")), mInternals->mStartedActions->getInfo());
-	if (mInternals->mFinishedActions.hasInstance())
-		info.set(CString(OSSTR("finishedActionInfo")), mInternals->mFinishedActions->getInfo());
-	if (mInternals->mAudioInfo.hasInstance())
-		info.set(CString(OSSTR("audioInfo")), mInternals->mAudioInfo->getInfo());
-//	if (mInternals->mCelAnimationInfo.hasInstance())
-//		info.set(CString(OSSTR("celAnimationInfo")), mInternals->mCelAnimationInfo->getInfo());
-	if (mInternals->mKeyframeAnimationInfo.hasInstance())
-		info.set(CString(OSSTR("keyframeAnimationInfo")), mInternals->mKeyframeAnimationInfo->getInfo());
-	info.set(CString(OSSTR("loopCount")), mInternals->mLoopCount);
-	if (mInternals->mStartTimeInterval.hasValue())
-		info.set(CString(OSSTR("startTime")), *mInternals->mStartTimeInterval);
+	if (mInternals->mStartedActions.hasValue())
+		info.set(mPropertyNameStartedActions, mInternals->mStartedActions->getInfo());
+	if (mInternals->mFinishedActions.hasValue())
+		info.set(mPropertyNameFinishedActions, mInternals->mFinishedActions->getInfo());
+	if (mInternals->mAudioInfo.hasValue())
+		info.set(mPropertyNameAudio, mInternals->mAudioInfo->getInfo());
+	if (mInternals->mKeyframeAnimationInfo.hasValue())
+		info.set(mPropertyNameKeyframeAnimations, mInternals->mKeyframeAnimationInfo->getInfo());
+	info.set(mPropertyNameLoopCount, mInternals->mLoopCount);
+	info.set(mPropertyNameStartTime, mInternals->mStartTimeInterval);
 
 	return info;
 }
@@ -167,95 +162,100 @@ CDictionary CSceneItemAnimation::getInfo() const
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-const OI<CActions>& CSceneItemAnimation::getStartedActions() const
+const OV<CActions>& CSceneItemAnimation::getStartedActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mStartedActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemAnimation::setStartedActions(const OI<CActions>& actions)
+void CSceneItemAnimation::setStartedActions(const OV<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Prepare to write
-	Internals::prepareForWrite(&mInternals);
+	// Check if changed
+	if (actions != mInternals->mStartedActions) {
+		// Prepare to write
+		Internals::prepareForWrite(&mInternals);
 
-	// Update
-	mInternals->mStartedActions = actions;
+		// Update
+		mInternals->mStartedActions = actions;
+
+		// Note updated
+		noteUpdated(mPropertyNameStartedActions);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const OI<CActions>& CSceneItemAnimation::getFinishedActions() const
+const OV<CActions>& CSceneItemAnimation::getFinishedActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mFinishedActions;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemAnimation::setFinishedActions(const OI<CActions>& actions)
+void CSceneItemAnimation::setFinishedActions(const OV<CActions>& actions)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Prepare to write
-	Internals::prepareForWrite(&mInternals);
+	// Check if changed
+	if (actions != mInternals->mFinishedActions) {
+		// Prepare to write
+		Internals::prepareForWrite(&mInternals);
 
-	// Update
-	mInternals->mFinishedActions = actions;
+		// Update
+		mInternals->mFinishedActions = actions;
+
+		// Note updated
+		noteUpdated(mPropertyNameFinishedActions);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const OI<CAudioInfo>& CSceneItemAnimation::getAudioInfo() const
+const OV<CAudioInfo>& CSceneItemAnimation::getAudioInfo() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mAudioInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemAnimation::setAudioInfo(const OI<CAudioInfo>& audioInfo)
+void CSceneItemAnimation::setAudioInfo(const OV<CAudioInfo>& audioInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Prepare to write
-	Internals::prepareForWrite(&mInternals);
+	// Check if changed
+	if (audioInfo != mInternals->mAudioInfo) {
+		// Prepare to write
+		Internals::prepareForWrite(&mInternals);
 
-	// Update
-	mInternals->mAudioInfo = audioInfo;
+		// Update
+		mInternals->mAudioInfo = audioInfo;
+
+		// Note updated
+		noteUpdated(mPropertyNameAudio);
+	}
 }
 
-////----------------------------------------------------------------------------------------------------------------------
-//const OI<CCelAnimationInfo>& CSceneItemAnimation::getCelAnimationInfo() const
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	return mInternals->mCelAnimationInfo;
-//}
-
-////----------------------------------------------------------------------------------------------------------------------
-//void CSceneItemAnimation::setCelAnimationInfo(const OI<CCelAnimationInfo>& celAnimationInfo)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//	// Prepare to write
-//	Internals::prepareForWrite(&mInternals);
-//
-//	// Update
-//	mInternals->mCelAnimationInfo = celAnimationInfo;
-//	mInternals->mKeyframeAnimationInfo = OI<CKeyframeAnimationInfo>();
-//}
-
 //----------------------------------------------------------------------------------------------------------------------
-const OI<CKeyframeAnimationInfo>& CSceneItemAnimation::getKeyframeAnimationInfo() const
+const OV<CKeyframeAnimationInfo>& CSceneItemAnimation::getKeyframeAnimationInfo() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mKeyframeAnimationInfo;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemAnimation::setKeyframeAnimationInfo(const OI<CKeyframeAnimationInfo>& keyframeAnimationInfo)
+void CSceneItemAnimation::setAnimationInfo(const CKeyframeAnimationInfo& keyframeAnimationInfo)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Prepare to write
-	Internals::prepareForWrite(&mInternals);
+	// Check if changed
+	if (!mInternals->mKeyframeAnimationInfo.hasValue() ||
+			(keyframeAnimationInfo != *mInternals->mKeyframeAnimationInfo)) {
+		// Prepare to write
+		Internals::prepareForWrite(&mInternals);
 
-	// Update
-//	mInternals->mCelAnimationInfo = mInternals->mCelAnimationInfo();
-	mInternals->mKeyframeAnimationInfo = keyframeAnimationInfo;
+		// Update
+		mInternals->mKeyframeAnimationInfo.setValue(keyframeAnimationInfo);
+
+		// Note updated
+		noteUpdated(mPropertyNameKeyframeAnimations);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -269,11 +269,17 @@ UInt32 CSceneItemAnimation::getLoopCount() const
 void CSceneItemAnimation::setLoopCount(UInt32 loopCount)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Prepare to write
-	Internals::prepareForWrite(&mInternals);
+	// Check if changed
+	if (loopCount != mInternals->mLoopCount) {
+		// Prepare to write
+		Internals::prepareForWrite(&mInternals);
 
-	// Update
-	mInternals->mLoopCount = loopCount;
+		// Update
+		mInternals->mLoopCount = loopCount;
+
+		// Note updated
+		noteUpdated(mPropertyNameLoopCount);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -287,9 +293,15 @@ const OV<UniversalTimeInterval>& CSceneItemAnimation::getStartTimeInterval() con
 void CSceneItemAnimation::setStartTimeInterval(const OV<UniversalTimeInterval>& startTimeInterval)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Prepare to write
-	Internals::prepareForWrite(&mInternals);
+	// Check if changed
+	if (startTimeInterval != mInternals->mStartTimeInterval) {
+		// Prepare to write
+		Internals::prepareForWrite(&mInternals);
 
-	// Update
-	mInternals->mStartTimeInterval = startTimeInterval;
+		// Update
+		mInternals->mStartTimeInterval = startTimeInterval;
+
+		// Note updated
+		noteUpdated(mPropertyNameStartTime);
+	}
 }

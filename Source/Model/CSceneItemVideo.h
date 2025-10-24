@@ -4,7 +4,6 @@
 
 #pragma once
 
-//#include "CSceneItemHotspot.h"
 #include "C2DGeometry.h"
 #include "CAction.h"
 #include "CSceneItem.h"
@@ -22,12 +21,6 @@ class CSceneItemVideo : public CSceneItem {
 			kControlModeDefault = kControlModeHidden,
 		};
 
-	// PropertyType
-	public:
-		enum PropertyType {
-//			kPropertyTypeControlMode	= MAKE_OSTYPE('C', 'l', 'M', 'd'),
-		};
-
 	// Classes
 	private:
 		class Internals;
@@ -35,15 +28,11 @@ class CSceneItemVideo : public CSceneItem {
 	// Methods
 	public:
 												// Lifecycle methods
-												CSceneItemVideo();
 												CSceneItemVideo(const CDictionary& info);
 												CSceneItemVideo(const CSceneItemVideo& other);
 												~CSceneItemVideo();
 
 												// CSceneItem methods
-				CSceneItem*						copy() const
-													{ return new CSceneItemVideo(*this); }
-
 		const	CString&						getType() const
 													{ return mType; }
 				TMArray<CDictionary>			getProperties() const;
@@ -53,17 +42,11 @@ class CSceneItemVideo : public CSceneItem {
 				ControlMode						getControlMode() const;
 				void							setControlMode(ControlMode controlMode);
 
-		const	OI<CString>&					getResourceFilename() const;
-				void							setResourceFilename(const OI<CString>& resourceFilename);
+		const	OV<CString>&					getResourceFilename() const;
+				void							setResourceFilename(const OV<CString>& resourceFilename);
 
-		const	OI<CActions>&					getFinishedActions() const;
-				void							setFinishedActions(const OI<CActions>& actions);
-
-//		const	TPtrArray<CSceneItemHotspot*>&	getSceneHotspotsArray() const;
-
-//		const	CString&						getInImageResourceFilename() const;
-//				void							setInImageResourceFilename(
-//														const CString& inImageResourceFilename);
+		const	OV<CActions>&					getFinishedActions() const;
+				void							setFinishedActions(const OV<CActions>& actions);
 
 		const	S2DRectF32&						getScreenRect() const;
 				void							setScreenRect(const S2DRectF32& rect);
@@ -73,7 +56,15 @@ class CSceneItemVideo : public CSceneItem {
 
 	// Properties
 	public:
-		static	CString		mType;
+		static	const	CString		mType;
+
+		static	const	CString		mPropertyNameControlMode;
+		static	const	CString		mPropertyNameFilename;
+		static	const	CString		mPropertyNameFinishedActions;
+		static	const	CString		mPropertyNameHotspots;
+		static	const	CString		mPropertyNameInBackgroundImageFilename;
+		static	const	CString		mPropertyNameScreenRect;
+		static	const	CString		mPropertyNameStartTimeInterval;
 
 	private:
 				Internals*	mInternals;

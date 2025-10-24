@@ -14,8 +14,7 @@ class CSceneItemPlayerHotspot : public CSceneItemPlayer {
 	// Methods
 	public:
 									// Lifecycle methods
-									CSceneItemPlayerHotspot(const CSceneItemHotspot& sceneItemHotspot,
-											const Procs& procs);
+									CSceneItemPlayerHotspot(CSceneItemHotspot& sceneItemHotspot, const Procs& procs);
 
 									// CSceneItemPlayer methods
 				CActions			getAllActions() const;
@@ -28,5 +27,5 @@ class CSceneItemPlayerHotspot : public CSceneItemPlayer {
 
 									// Instance methods
 		const	CSceneItemHotspot&	getSceneItemHotspot() const
-										{ return (CSceneItemHotspot&) getSceneItem(); }
+										{ return (CSceneItemHotspot&) *getSceneItem(); }
 };

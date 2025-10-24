@@ -10,8 +10,8 @@
 #include "CSceneItemButtonArray.h"
 #include "CSceneItemCustom.h"
 #include "CSceneItemHotspot.h"
+#include "CSceneItemText.h"
 #include "CSceneItemVideo.h"
-//#include "CSceneItemText.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CScene::Internals
@@ -42,13 +42,6 @@ class CScene::Internals : public TCopyOnWriteReferenceCountable<Internals> {
 // MARK: - CScene
 
 // MARK: Lifecycle methods
-
-//----------------------------------------------------------------------------------------------------------------------
-CScene::CScene()
-//----------------------------------------------------------------------------------------------------------------------
-{
-	mInternals = new Internals();
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 CScene::CScene(const CDictionary& info)
@@ -92,9 +85,9 @@ CScene::CScene(const CDictionary& info)
 		else if (itemType == CSceneItemVideo::mType)
 			// Video
 			mInternals->mSceneItems += I<CSceneItem>(new CSceneItemVideo(itemInfo));
-//		else if (itemType == CSceneItemText::mType)
-//			// Text
-//			mInternals->mSceneItems += I<CSceneItem>(new CSceneItemText(itemInfo));
+		else if (itemType == CSceneItemText::mType)
+			// Text
+			mInternals->mSceneItems += I<CSceneItem>(new CSceneItemText(itemInfo));
 		else
 			// Custom
 			mInternals->mSceneItems += I<CSceneItem>(new CSceneItemCustom(itemType, itemInfo));

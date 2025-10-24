@@ -18,7 +18,7 @@ class CSceneItemPlayerVideo : public CSceneItemPlayer {
 	// Methods
 	public:
 											// Lifecycle methods
-											CSceneItemPlayerVideo(const CSceneItemVideo& sceneItemVideo,
+											CSceneItemPlayerVideo(CSceneItemVideo& sceneItemVideo,
 													const SSceneAppResourceManagementInfo&
 															sceneAppResourceManagementInfo,
 													const Procs& procs);
@@ -33,7 +33,7 @@ class CSceneItemPlayerVideo : public CSceneItemPlayer {
 		const	OV<UniversalTimeInterval>&	getStartTimeInterval() const;
 
 				void						reset();
-				void						update(UniversalTimeInterval deltaTimeInterval, bool isRunning);
+				void						update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval, bool isRunning);
 				void						render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const;
 
 				bool						handlesTouchOrMouseAtPoint(const S2DPointF32& point) const;
@@ -44,7 +44,7 @@ class CSceneItemPlayerVideo : public CSceneItemPlayer {
 
 											// Instance methods
 		const	CSceneItemVideo&			getSceneItemVideo() const
-												{ return (CSceneItemVideo&) getSceneItem(); }
+												{ return (CSceneItemVideo&) *getSceneItem(); }
 
 	// Properties
 	public:

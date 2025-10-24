@@ -80,10 +80,10 @@ class CSceneItemPlayerVideo::Internals {
 		static	void	finished(Internals* internals)
 							{
 								// Query finished actions
-								const	OI<CActions>	actions =
+								const	OV<CActions>	actions =
 																internals->mSceneItemPlayerVideo.getSceneItemVideo()
 																		.getFinishedActions();
-								if (actions.hasInstance())
+								if (actions.hasValue())
 									// Perform
 									internals->mSceneItemPlayerVideo.perform(*actions);
 							}
@@ -118,7 +118,7 @@ CString	CSceneItemPlayerVideo::mCommandNameStop(OSSTR("stop"));
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerVideo::CSceneItemPlayerVideo(const CSceneItemVideo& sceneItemVideo,
+CSceneItemPlayerVideo::CSceneItemPlayerVideo(CSceneItemVideo& sceneItemVideo,
 		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 		const CSceneItemPlayer::Procs& sceneItemPlayerProcs) :
 		CSceneItemPlayer(sceneItemVideo, sceneItemPlayerProcs)
@@ -140,9 +140,7 @@ CSceneItemPlayerVideo::~CSceneItemPlayerVideo()
 CActions CSceneItemPlayerVideo::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	OI<CActions>	actions = getSceneItemVideo().getFinishedActions();
-
-	return actions.hasInstance() ? *actions : CActions();
+	return getSceneItemVideo().getFinishedActions().getValue(CActions());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -156,8 +154,8 @@ void CSceneItemPlayerVideo::load(CGPU& gpu)
 	mInternals->mGPU = OR<CGPU>(gpu);
 
 	// Check if have resource filename
-	const	OI<CString>&	resourceFilename = sceneItemVideo.getResourceFilename();
-	if (resourceFilename.hasInstance())
+	const	OV<CString>&	resourceFilename = sceneItemVideo.getResourceFilename();
+	if (resourceFilename.hasValue())
 		// Load
 		mInternals->load(*resourceFilename);
 
@@ -213,7 +211,7 @@ void CSceneItemPlayerVideo::reset()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerVideo::update(UniversalTimeInterval deltaTimeInterval, bool isRunning)
+void CSceneItemPlayerVideo::update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval, bool isRunning)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Update

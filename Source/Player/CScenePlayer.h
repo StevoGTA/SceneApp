@@ -17,7 +17,7 @@ class CScenePlayer {
 			// Procs
 			public:
 				typedef	S2DSizeF32			(*GetViewportSizeProc)(void* userData);
-				typedef	CSceneItemPlayer*	(*CreateSceneItemPlayerProc)(const CSceneItem& sceneItem,
+				typedef	I<CSceneItemPlayer>	(*CreateSceneItemPlayerProc)(const CSceneItem& sceneItem,
 													const SSceneAppResourceManagementInfo&
 															sceneAppResourceManagementInfo,
 													const CSceneItemPlayer::Procs& procs, void* userData);
@@ -38,7 +38,7 @@ class CScenePlayer {
 									// Instance methods
 				S2DSizeF32			getViewportSize() const
 										{ return mGetViewportSizeProc(mUserData); }
-				CSceneItemPlayer*	createSceneItemPlayer(const CSceneItem& sceneItem,
+				I<CSceneItemPlayer>	createSceneItemPlayer(const CSceneItem& sceneItem,
 											const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 											const CSceneItemPlayer::Procs& procs) const
 										{ return mCreateSceneItemPlayerProc(sceneItem, sceneAppResourceManagementInfo,
@@ -75,9 +75,9 @@ class CScenePlayer {
 				void		load(CGPU& gpu);
 				void		unload();
 
-				void		start();
+				void		start(CGPU& gpu);
 				void		reset();
-				void		update(UniversalTimeInterval deltaTimeInterval);
+				void		update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval);
 				void		render(CGPU& gpu,
 									const CGPURenderObject::RenderInfo& renderInfo = CGPURenderObject::RenderInfo())
 									const;

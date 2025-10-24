@@ -10,7 +10,7 @@
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerHotspot::CSceneItemPlayerHotspot(const CSceneItemHotspot& sceneItemHotspot, const Procs& procs) :
+CSceneItemPlayerHotspot::CSceneItemPlayerHotspot(CSceneItemHotspot& sceneItemHotspot, const Procs& procs) :
 		CSceneItemPlayer(sceneItemHotspot, procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -22,14 +22,7 @@ CSceneItemPlayerHotspot::CSceneItemPlayerHotspot(const CSceneItemHotspot& sceneI
 CActions CSceneItemPlayerHotspot::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Collect actions
-	CActions	actionsArray;
-
-	const	OI<CActions>&	actions = getSceneItemHotspot().getActions();
-	if (actions.hasInstance())
-		actionsArray += *actions;
-
-	return actionsArray;
+	return getSceneItemHotspot().getActions().getValue(CActions());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -44,7 +37,7 @@ void CSceneItemPlayerHotspot::touchBeganOrMouseDownAtPoint(const S2DPointF32& po
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	const	OI<CActions>&	actions = getSceneItemHotspot().getActions();
-	if (actions.hasInstance())
+	const	OV<CActions>&	actions = getSceneItemHotspot().getActions();
+	if (actions.hasValue())
 		perform(*actions, point);
 }

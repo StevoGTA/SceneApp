@@ -7,7 +7,7 @@
 #include "CAudioInfo.h"
 #include "CSceneItemAnimation.h"
 #include "CSceneItemButton.h"
-//#include "CSceneItemText.h"
+#include "CSceneItemText.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemCustom
@@ -20,15 +20,11 @@ class CSceneItemCustom : public CSceneItem {
 	// Methods
 	public:
 										// Lifecycle methods
-										CSceneItemCustom();
 										CSceneItemCustom(const CString& type, const CDictionary& info);
 										CSceneItemCustom(const CSceneItemCustom& other);
 										~CSceneItemCustom();
 
 										// CSceneItem methods
-				CSceneItemCustom*		copy() const
-											{ return new CSceneItemCustom(*this); }
-
 				CString&				getType() const;
 				CDictionary				getInfo() const;
 
@@ -47,9 +43,9 @@ class CSceneItemCustom : public CSceneItem {
 
 		const	CActions&				getActions(const CString& key) const;
 		const	CAudioInfo&				getAudioInfo(const CString& key) const;
-		const	CSceneItemAnimation&	getSceneItemAnimation(const CString& key) const;
-		const	CSceneItemButton&		getSceneItemButton(const CString& key) const;
-//		const	CSceneItemText&			getSceneItemText(const CString& key) const;
+				CSceneItemAnimation&	getSceneItemAnimation(const CString& key) const;
+				CSceneItemButton&		getSceneItemButton(const CString& key) const;
+				CSceneItemText&			getSceneItemText(const CString& key) const;
 
 	// Properties
 	private:

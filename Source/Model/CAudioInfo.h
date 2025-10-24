@@ -57,6 +57,12 @@ class CAudioInfo {
 				Options				getOptions() const;
 				void				setOptions(Options options);
 
+				bool				operator==(const CAudioInfo& other) const
+										{ return (getGain() == other.getGain()) &&
+												(getResourceFilename() == other.getResourceFilename()) &&
+												(getLoopCount() == other.getLoopCount()) &&
+												(getOptions() == other.getOptions()); }
+
 	// Properties
 	private:
 		Internals*	mInternals;

@@ -10,7 +10,7 @@
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerCustom::CSceneItemPlayerCustom(const CSceneItemCustom& sceneItemCustom, const Procs& procs) :
+CSceneItemPlayerCustom::CSceneItemPlayerCustom(CSceneItemCustom& sceneItemCustom, const Procs& procs) :
 		CSceneItemPlayer(sceneItemCustom, procs)
 //----------------------------------------------------------------------------------------------------------------------
 {
@@ -22,15 +22,17 @@ CSceneItemPlayerCustom::CSceneItemPlayerCustom(const CSceneItemCustom& sceneItem
 CActions CSceneItemPlayerCustom::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return getAllActions(getSceneItemCustom());
+	return getSceneItemCustom().hasReference() ? getAllActions(*getSceneItemCustom()) : CActions();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayerCustom::load(CGPU& gpu)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Load
-	load(gpu, getSceneItemCustom());
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Load
+		load(gpu, *getSceneItemCustom());
 
 	// Do super
 	CSceneItemPlayer::load(gpu);
@@ -40,8 +42,12 @@ void CSceneItemPlayerCustom::load(CGPU& gpu)
 void CSceneItemPlayerCustom::allPeersHaveLoaded()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	allPeersHaveLoaded(getSceneItemCustom());
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// All ppers have loaded
+		allPeersHaveLoaded(*getSceneItemCustom());
 
+	// Do super
 	CSceneItemPlayer::allPeersHaveLoaded();
 }
 
@@ -49,8 +55,12 @@ void CSceneItemPlayerCustom::allPeersHaveLoaded()
 void CSceneItemPlayerCustom::unload()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	unload(getSceneItemCustom());
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Unload
+		unload(*getSceneItemCustom());
 
+	// Do super
 	CSceneItemPlayer::unload();
 }
 
@@ -58,39 +68,52 @@ void CSceneItemPlayerCustom::unload()
 const OV<UniversalTimeInterval>& CSceneItemPlayerCustom::getStartTimeInterval() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return getStartTimeInterval(getSceneItemCustom());
+	// Setup
+	static	OV<UniversalTimeInterval>	sNone;
+	return getSceneItemCustom().hasReference() ? getStartTimeInterval(*getSceneItemCustom()) : sNone;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayerCustom::reset()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	reset(getSceneItemCustom());
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Reset
+		reset(*getSceneItemCustom());
 
+	// Do super
 	CSceneItemPlayer::reset();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerCustom::update(UniversalTimeInterval deltaTimeInterval, bool isRunning)
+void CSceneItemPlayerCustom::update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval, bool isRunning)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	update(getSceneItemCustom(), deltaTimeInterval, isRunning);
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Update
+		update(*getSceneItemCustom(), gpu, deltaTimeInterval, isRunning);
 
-	CSceneItemPlayer::update(deltaTimeInterval, isRunning);
+	// Do super
+	CSceneItemPlayer::update(gpu, deltaTimeInterval, isRunning);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 void CSceneItemPlayerCustom::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	render(getSceneItemCustom(), gpu, renderInfo);
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Render
+		render(*getSceneItemCustom(), gpu, renderInfo);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 bool CSceneItemPlayerCustom::handlesTouchOrMouseAtPoint(const S2DPointF32& point) const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return handlesTouchOrMouseAtPoint(getSceneItemCustom(), point);
+	return getSceneItemCustom().hasReference() ? handlesTouchOrMouseAtPoint(*getSceneItemCustom(), point) : false;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -98,8 +121,12 @@ void CSceneItemPlayerCustom::touchBeganOrMouseDownAtPoint(const S2DPointF32& poi
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	touchBeganOrMouseDownAtPoint(getSceneItemCustom(), point, tapOrClickCount, reference);
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Touch began or mouse down at point
+		touchBeganOrMouseDownAtPoint(*getSceneItemCustom(), point, tapOrClickCount, reference);
 
+	// Do super
 	CSceneItemPlayer::touchBeganOrMouseDownAtPoint(point, tapOrClickCount, reference);
 }
 
@@ -108,8 +135,12 @@ void CSceneItemPlayerCustom::touchOrMouseMovedFromPoint(const S2DPointF32& point
 		const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	touchOrMouseMovedFromPoint(getSceneItemCustom(), point1, point2, reference);
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Touch or mouse moved from point
+		touchOrMouseMovedFromPoint(*getSceneItemCustom(), point1, point2, reference);
 
+	// Do super
 	CSceneItemPlayer::touchOrMouseMovedFromPoint(point1, point2, reference);
 }
 
@@ -117,8 +148,12 @@ void CSceneItemPlayerCustom::touchOrMouseMovedFromPoint(const S2DPointF32& point
 void CSceneItemPlayerCustom::touchEndedOrMouseUpAtPoint(const S2DPointF32& point, const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	touchEndedOrMouseUpAtPoint(getSceneItemCustom(), point, reference);
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Touch ended or mouse up at point
+		touchEndedOrMouseUpAtPoint(*getSceneItemCustom(), point, reference);
 
+	// Do super
 	CSceneItemPlayer::touchEndedOrMouseUpAtPoint(point, reference);
 }
 
@@ -126,8 +161,12 @@ void CSceneItemPlayerCustom::touchEndedOrMouseUpAtPoint(const S2DPointF32& point
 void CSceneItemPlayerCustom::touchOrMouseCancelled(const void* reference)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	touchOrMouseCancelled(getSceneItemCustom(), reference);
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Touch or mouse cancelled
+		touchOrMouseCancelled(*getSceneItemCustom(), reference);
 
+	// Do super
 	CSceneItemPlayer::touchOrMouseCancelled(reference);
 }
 
@@ -135,8 +174,12 @@ void CSceneItemPlayerCustom::touchOrMouseCancelled(const void* reference)
 void CSceneItemPlayerCustom::shakeBegan()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	shakeBegan(getSceneItemCustom());
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Shake began
+		shakeBegan(*getSceneItemCustom());
 
+	// Do super
 	CSceneItemPlayer::shakeBegan();
 }
 
@@ -144,8 +187,12 @@ void CSceneItemPlayerCustom::shakeBegan()
 void CSceneItemPlayerCustom::shakeEnded()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	shakeEnded(getSceneItemCustom());
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Shake ended
+		shakeEnded(*getSceneItemCustom());
 
+	// Do super
 	CSceneItemPlayer::shakeEnded();
 }
 
@@ -153,8 +200,12 @@ void CSceneItemPlayerCustom::shakeEnded()
 void CSceneItemPlayerCustom::shakeCancelled()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	shakeCancelled(getSceneItemCustom());
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Shake cancelled
+		shakeCancelled(*getSceneItemCustom());
 
+	// Do super
 	CSceneItemPlayer::shakeCancelled();
 }
 
@@ -162,7 +213,10 @@ void CSceneItemPlayerCustom::shakeCancelled()
 void CSceneItemPlayerCustom::setProperty(const CString& propertyName, const SValue& value)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	setProperty(getSceneItemCustom(), propertyName, value);
+	// Check for Scene Item Custom
+	if (getSceneItemCustom().hasReference())
+		// Set property
+		setProperty(*getSceneItemCustom(), propertyName, value);
 
 	CSceneItemPlayer::setProperty(propertyName, value);
 }
@@ -173,7 +227,7 @@ bool CSceneItemPlayerCustom::handleCommand(CGPU& gpu, const CString& command, co
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Try subclass
-	if (handleCommand(gpu, getSceneItemCustom(), command, commandInfo, point))
+	if (getSceneItemCustom().hasReference() && handleCommand(gpu, *getSceneItemCustom(), command, commandInfo, point))
 		// Handled
 		return true;
 

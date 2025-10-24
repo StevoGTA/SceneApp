@@ -15,10 +15,10 @@ class CKeyframeAnimationInfo::Internals : public TCopyOnWriteReferenceCountable<
 		Internals() : TCopyOnWriteReferenceCountable() {}
 		Internals(const Internals& other) :
 			TCopyOnWriteReferenceCountable(),
-					mAnimationKeyframesArray(other.mAnimationKeyframesArray)
+					mAnimationKeyframes(other.mAnimationKeyframes)
 			{}
 
-		TNArray<CAnimationKeyframe>	mAnimationKeyframesArray;
+		TNArray<CAnimationKeyframe>	mAnimationKeyframes;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -28,10 +28,12 @@ class CKeyframeAnimationInfo::Internals : public TCopyOnWriteReferenceCountable<
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CKeyframeAnimationInfo::CKeyframeAnimationInfo()
+CKeyframeAnimationInfo::CKeyframeAnimationInfo(const CAnimationKeyframe& animationKeyframe)
 //----------------------------------------------------------------------------------------------------------------------
 {
+	// Setup
 	mInternals = new Internals();
+	mInternals->mAnimationKeyframes += animationKeyframe;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -42,7 +44,7 @@ CKeyframeAnimationInfo::CKeyframeAnimationInfo(const CDictionary& info)
 
 	TArray<CDictionary>	keyframeInfos = info.getArrayOfDictionaries(CString(OSSTR("keyframes")));
 	for (CArray::ItemIndex i = 0; i < keyframeInfos.getCount(); i++)
-		mInternals->mAnimationKeyframesArray += CAnimationKeyframe(keyframeInfos[i]);
+		mInternals->mAnimationKeyframes += CAnimationKeyframe(keyframeInfos[i]);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -85,18 +87,18 @@ CDictionary CKeyframeAnimationInfo::getInfo() const
 	CDictionary	info;
 
 	TNArray<CDictionary>	keyframeInfos;
-	for (CArray::ItemIndex i = 0; i < mInternals->mAnimationKeyframesArray.getCount(); i++)
-		keyframeInfos += mInternals->mAnimationKeyframesArray[i].getInfo();
+	for (CArray::ItemIndex i = 0; i < mInternals->mAnimationKeyframes.getCount(); i++)
+		keyframeInfos += mInternals->mAnimationKeyframes[i].getInfo();
 	info.set(CString(OSSTR("keyframes")), keyframeInfos);
 
 	return info;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const TArray<CAnimationKeyframe>& CKeyframeAnimationInfo::getAnimationKeyframesArray() const
+const TArray<CAnimationKeyframe>& CKeyframeAnimationInfo::getAnimationKeyframes() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return mInternals->mAnimationKeyframesArray;
+	return mInternals->mAnimationKeyframes;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -107,5 +109,5 @@ void CKeyframeAnimationInfo::addAnimationKeyframe(const CAnimationKeyframe& anim
 	Internals::prepareForWrite(&mInternals);
 
 	// Update
-	mInternals->mAnimationKeyframesArray += animationKeyframe;
+	mInternals->mAnimationKeyframes += animationKeyframe;
 }

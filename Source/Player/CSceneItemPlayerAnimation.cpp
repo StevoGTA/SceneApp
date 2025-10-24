@@ -4,7 +4,6 @@
 
 #include "CSceneItemPlayerAnimation.h"
 
-//#include "CCelAnimationPlayer.h"
 #include "CKeyframeAnimationPlayer.h"
 #include "CSceneAppMediaEngine.h"
 
@@ -13,59 +12,31 @@
 
 class CSceneItemPlayerAnimation::Internals {
 	public:
-		Internals(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
-				const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo) :
-			mSceneItemPlayerAnimation(sceneItemPlayerAnimation),
-					mSceneAppMediaEngine(sceneAppResourceManagementInfo.mSceneAppMediaEngine),
-					mKeyframeAnimationPlayer(nil),
-					mIsStarted(false), mCurrentTimeInterval(0.0), mSceneItemPlayerAnimationProcs(nil),
-//					mCelAnimationPlayerProcsInfo(celAnimationPlayerGetFinishedAction, nil,
-//							celAnimationPlayerFinished, nil, this),
-					mKeyframeAnimationPlayerProcsInfo(
-							(CKeyframeAnimationPlayer::Procs::ShouldLoopProc) keyframeAnimationPlayerShouldLoop,
-							nil,
-							(CKeyframeAnimationPlayer::Procs::DidFinishProc) keyframeAnimationPlayerDidFinish,
-							(CKeyframeAnimationPlayer::Procs::PerformActionsProc) keyframeAnimationPlayerPerformActions,
-							this)
-			{}
-		~Internals()
-			{
-//				Delete(mCelAnimationPlayer);
-				Delete(mKeyframeAnimationPlayer);
-			}
+													Internals(CSceneItemPlayerAnimation& sceneItemPlayerAnimation,
+															const SSceneAppResourceManagementInfo&
+																	sceneAppResourceManagementInfo) :
+														mSceneItemPlayerAnimation(sceneItemPlayerAnimation),
+																mSceneAppMediaEngine(
+																		sceneAppResourceManagementInfo
+																				.mSceneAppMediaEngine),
+																mKeyframeAnimationPlayer(nil),
+																mIsStarted(false), mCurrentTimeInterval(0.0),
+																mSceneItemPlayerAnimationProcs(nil),
+																mKeyframeAnimationPlayerProcsInfo(
+																		(CKeyframeAnimationPlayer::Procs::ShouldLoopProc)
+																				keyframeAnimationPlayerShouldLoop,
+																		nil,
+																		(CKeyframeAnimationPlayer::Procs::DidFinishProc)
+																				keyframeAnimationPlayerDidFinish,
+																		(CKeyframeAnimationPlayer::Procs::PerformActionsProc)
+																				keyframeAnimationPlayerPerformActions,
+																		this)
+														{}
+													~Internals()
+														{
+															Delete(mKeyframeAnimationPlayer);
+														}
 
-//		static	ECelAnimationPlayerFinishedAction	celAnimationPlayerGetFinishedAction(
-//															CCelAnimationPlayer& celAnimationPlayer,
-//															UInt32 currentLoopCount, Internals* internals)
-//														{
-//															if ((internals->mSceneItemPlayerAnimationProcs != nil) &&
-//																	(internals->mSceneItemPlayerAnimationProcs->mShouldLoopProc != nil))
-//																// Ask
-//																return internals->mSceneItemPlayerAnimationProcs->mShouldLoopProc(internals->mSceneItemPlayerAnimation,
-//																		currentLoopCount,
-//																		internals->mSceneItemPlayerAnimationProcs->mUserData) ?
-//																				kCelAnimationPlayerFinishedActionLoop : kCelAnimationPlayerFinishedActionFinish;
-//															else {
-//																// Figure
-//																const	CSceneItemAnimation&	sceneItemAnimation =
-//																										internals->mSceneItemPlayerAnimation.getSceneItemAnimation();
-//																if (sceneItemAnimation.getLoopCount() == kSceneItemAnimationLoopForever)
-//																	// Loop forever
-//																	return kCelAnimationPlayerFinishedActionLoop;
-//																else if (sceneItemAnimation.getLoopCount() == kSceneItemAnimationLoopHoldLastFrame)
-//																	// Hold last frame
-//																	return kCelAnimationPlayerFinishedActionHoldLastFrame;
-//																else
-//																	// Process regular loop count
-//																	return (currentLoopCount < sceneItemAnimation.getLoopCount()) ?
-//																			kCelAnimationPlayerFinishedActionLoop : kCelAnimationPlayerFinishedActionFinish;
-//															}
-//														}
-//		static	void								celAnimationPlayerFinished(
-//															CCelAnimationPlayer& celAnimationPlayer,
-//															Internals* internals)
-//														{
-//														}
 
 		static	bool								keyframeAnimationPlayerShouldLoop(
 															CKeyframeAnimationPlayer& keyframeAnimationPlayer,
@@ -94,12 +65,12 @@ class CSceneItemPlayerAnimation::Internals {
 															CKeyframeAnimationPlayer& keyframeAnimationPlayer,
 															Internals* internals)
 														{
-															const	OI<CActions>&	actions =
+															const	OV<CActions>&	actions =
 																							internals->
 																									mSceneItemPlayerAnimation
 																											.getSceneItemAnimation()
 																											.getFinishedActions();
-															if (actions.hasInstance())
+															if (actions.hasValue())
 																internals->mSceneItemPlayerAnimation.perform(*actions);
 														}
 		static	void								keyframeAnimationPlayerPerformActions(
@@ -110,7 +81,6 @@ class CSceneItemPlayerAnimation::Internals {
 				CSceneItemPlayerAnimation&			mSceneItemPlayerAnimation;
 				CSceneAppMediaEngine&				mSceneAppMediaEngine;
 
-//				CCelAnimationPlayer*				mCelAnimationPlayer;
 				CKeyframeAnimationPlayer*			mKeyframeAnimationPlayer;
 				OI<CMediaPlayer>					mMediaPlayer;
 
@@ -118,7 +88,6 @@ class CSceneItemPlayerAnimation::Internals {
 				UniversalTimeInterval				mCurrentTimeInterval;
 
 		const	CSceneItemPlayerAnimation::Procs*	mSceneItemPlayerAnimationProcs;
-//				SCelAnimationPlayerProcsInfo		mCelAnimationPlayerProcsInfo;
 				CKeyframeAnimationPlayer::Procs		mKeyframeAnimationPlayerProcsInfo;
 };
 
@@ -129,7 +98,7 @@ class CSceneItemPlayerAnimation::Internals {
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItemPlayerAnimation::CSceneItemPlayerAnimation(const CSceneItemAnimation& sceneItemAnimation,
+CSceneItemPlayerAnimation::CSceneItemPlayerAnimation(CSceneItemAnimation& sceneItemAnimation,
 		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo,
 		const CSceneItemPlayer::Procs& sceneItemPlayerProcs) :
 		CSceneItemPlayer(sceneItemAnimation, sceneItemPlayerProcs)
@@ -137,12 +106,8 @@ CSceneItemPlayerAnimation::CSceneItemPlayerAnimation(const CSceneItemAnimation& 
 {
 	mInternals = new Internals(*this, sceneAppResourceManagementInfo);
 
-//	if (sceneItemAnimation.getCelAnimationInfoOrNil() != nil)
-//		mInternals->mCelAnimationPlayer =
-//				new CCelAnimationPlayer(*getSceneItemAnimation().getCelAnimationInfoOrNil(),
-//						sceneAppResourceManagementInfo, mInternals->mCelAnimationPlayerProcsInfo, 0.0);
 	if (mInternals == nil) (void) mInternals;
-	else if (sceneItemAnimation.getKeyframeAnimationInfo().hasInstance())
+	else if (sceneItemAnimation.getKeyframeAnimationInfo().hasValue())
 		mInternals->mKeyframeAnimationPlayer =
 				new CKeyframeAnimationPlayer(*sceneItemAnimation.getKeyframeAnimationInfo(),
 						sceneAppResourceManagementInfo, mInternals->mKeyframeAnimationPlayerProcsInfo, 0.0);
@@ -161,8 +126,6 @@ CSceneItemPlayerAnimation::~CSceneItemPlayerAnimation()
 CActions CSceneItemPlayerAnimation::getAllActions() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-//	if (mInternals->mCelAnimationPlayer != nil)
-//		return CActions();
 	if (mInternals == nil) return CActions();
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		return mInternals->mKeyframeAnimationPlayer->getAllActions();
@@ -178,15 +141,13 @@ void CSceneItemPlayerAnimation::load(CGPU& gpu)
 	const	CSceneItemAnimation&	sceneItemAnimation = getSceneItemAnimation();
 	
 	// Load animation
-//	if (mInternals->mCelAnimationPlayer != nil)
-//		mInternals->mCelAnimationPlayer->load(!sceneItemAnimation.getStartTimeInterval().hasValue());
 	if (mInternals == nil) (void) mInternals;
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		mInternals->mKeyframeAnimationPlayer->load(gpu, !sceneItemAnimation.getStartTimeInterval().hasValue());
 
 	// Check audio info
-	const	OI<CAudioInfo>&	audioInfo = sceneItemAnimation.getAudioInfo();
-	if (audioInfo.hasInstance())
+	const	OV<CAudioInfo>&	audioInfo = sceneItemAnimation.getAudioInfo();
+	if (audioInfo.hasValue())
 		// Setup media player
 		mInternals->mMediaPlayer = mInternals->mSceneAppMediaEngine.getMediaPlayer(*audioInfo);
 
@@ -203,8 +164,8 @@ void CSceneItemPlayerAnimation::load(CGPU& gpu)
 			mInternals->mMediaPlayer->play();
 
 		// Check for started actions
-		const	OI<CActions>&	startedActions = sceneItemAnimation.getStartedActions();
-		if (startedActions.hasInstance())
+		const	OV<CActions>&	startedActions = sceneItemAnimation.getStartedActions();
+		if (startedActions.hasValue())
 			// Perform
 			perform(*startedActions);
 	}
@@ -215,8 +176,6 @@ void CSceneItemPlayerAnimation::unload()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Unload animation
-//	if (mInternals->mCelAnimationPlayer != nil)
-//		mInternals->mCelAnimationPlayer->unload();
 	if (mInternals == nil) (void) mInternals;
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		mInternals->mKeyframeAnimationPlayer->unload();
@@ -237,8 +196,6 @@ void CSceneItemPlayerAnimation::reset()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Reset animation
-//	if (mInternals->mCelAnimationPlayer != nil)
-//		mInternals->mCelAnimationPlayer->reset(!getSceneItemAnimation().getStartTimeInterval().hasValue());
 	if (mInternals == nil) (void) mInternals;
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		mInternals->mKeyframeAnimationPlayer->reset(!getSceneItemAnimation().getStartTimeInterval().hasValue());
@@ -257,7 +214,7 @@ void CSceneItemPlayerAnimation::reset()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItemPlayerAnimation::update(UniversalTimeInterval deltaTimeInterval, bool isRunning)
+void CSceneItemPlayerAnimation::update(CGPU& gpu, UniversalTimeInterval deltaTimeInterval, bool isRunning)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check if started
@@ -268,8 +225,6 @@ void CSceneItemPlayerAnimation::update(UniversalTimeInterval deltaTimeInterval, 
 			mInternals->mIsStarted = true;
 			
 			// Finish loading
-//			if (mInternals->mCelAnimationPlayer != nil)
-//				mInternals->mCelAnimationPlayer->finishLoading();
 			if (mInternals == nil) (void) mInternals;
 			else if (mInternals->mKeyframeAnimationPlayer != nil)
 				mInternals->mKeyframeAnimationPlayer->finishLoading();
@@ -280,16 +235,13 @@ void CSceneItemPlayerAnimation::update(UniversalTimeInterval deltaTimeInterval, 
 				mInternals->mMediaPlayer->play();
 
 			// Started action
-			const	OI<CActions>&	startedActions = getSceneItemAnimation().getStartedActions();
-			if (startedActions.hasInstance())
+			const	OV<CActions>&	startedActions = getSceneItemAnimation().getStartedActions();
+			if (startedActions.hasValue())
 				perform(*startedActions);
 		}
 	}
 	
 	if (mInternals->mIsStarted) {
-//		if (mInternals->mCelAnimationPlayer != nil)
-//			// Update
-//			mInternals->mCelAnimationPlayer->update(deltaTimeInterval, isRunning);
 		if (mInternals == nil) (void) mInternals;
 		else if (mInternals->mKeyframeAnimationPlayer != nil)
 			// Update
@@ -301,8 +253,6 @@ void CSceneItemPlayerAnimation::update(UniversalTimeInterval deltaTimeInterval, 
 void CSceneItemPlayerAnimation::render(CGPU& gpu, const CGPURenderObject::RenderInfo& renderInfo) const
 //----------------------------------------------------------------------------------------------------------------------
 {
-//	if (mInternals->mCelAnimationPlayer != nil)
-//		mInternals->mCelAnimationPlayer->render(gpu, offset);
 	if (mInternals == nil) (void) mInternals;
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		mInternals->mKeyframeAnimationPlayer->render(gpu, renderInfo);
@@ -314,8 +264,6 @@ void CSceneItemPlayerAnimation::render(CGPU& gpu, const CGPURenderObject::Render
 bool CSceneItemPlayerAnimation::getIsFinished() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-//	if (mInternals->mCelAnimationPlayer != nil)
-//		return mInternals->mCelAnimationPlayer->getIsFinished();
 	if (mInternals == nil) return true;
 	else if (mInternals->mKeyframeAnimationPlayer != nil)
 		return mInternals->mKeyframeAnimationPlayer->getIsFinished();
@@ -350,9 +298,6 @@ void CSceneItemPlayerAnimation::setCommonTexturesSceneItemPlayerAnimation(
 		const CSceneItemPlayerAnimation& commonTexturesSceneItemPlayerAnimation)
 //----------------------------------------------------------------------------------------------------------------------
 {
-//	if (mInternals->mCelAnimationPlayer != nil)
-//		mInternals->mCelAnimationPlayer->setCommonTexturesCelAnimationPlayer(
-//				*commonTexturesSceneItemPlayerAnimation.mInternals->mCelAnimationPlayer);
 }
 
 //----------------------------------------------------------------------------------------------------------------------

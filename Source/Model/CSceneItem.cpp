@@ -11,15 +11,23 @@
 
 class CSceneItem::Internals : public TCopyOnWriteReferenceCountable<Internals> {
 	public:
-		Internals() : TCopyOnWriteReferenceCountable(), mIsVisible(true), mOptions(CSceneItem::kOptionsNone) {}
+		Internals(const CString& name, bool isInitiallyVisible, Options options) :
+			TCopyOnWriteReferenceCountable(),
+					mName(name), mIsInitiallyVisible(isInitiallyVisible), mOptions(options),
+					mNoteUpdatedProc(nil), mNoteUpdatedProcUserData(nil)
+			{}
 		Internals(const Internals& other) :
 			TCopyOnWriteReferenceCountable(),
-					mIsVisible(other.mIsVisible), mName(other.mName), mOptions(other.mOptions)
+					mIsInitiallyVisible(other.mIsInitiallyVisible), mName(other.mName), mOptions(other.mOptions),
+					mNoteUpdatedProc(other.mNoteUpdatedProc), mNoteUpdatedProcUserData(other.mNoteUpdatedProcUserData)
 			{}
 
-		bool				mIsVisible;
 		CString				mName;
+		bool				mIsInitiallyVisible;
 		CSceneItem::Options	mOptions;
+
+		NoteUpdatedProc		mNoteUpdatedProc;
+		void*				mNoteUpdatedProcUserData;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -28,30 +36,33 @@ class CSceneItem::Internals : public TCopyOnWriteReferenceCountable<Internals> {
 
 // MARK: Properties
 
-CString	CSceneItem::mItemInfoKey(OSSTR("itemInfo"));
+const	CString	CSceneItem::mItemInfoKey(OSSTR("itemInfo"));
 
-CString	CSceneItem::mPropertyNameKey(OSSTR("name"));
-CString	CSceneItem::mPropertyTitleKey(OSSTR("title"));
-CString	CSceneItem::mPropertyTypeKey(OSSTR("type"));
+const	CString	CSceneItem::mPropertyNameKey(OSSTR("name"));
+const	CString	CSceneItem::mPropertyTitleKey(OSSTR("title"));
+const	CString	CSceneItem::mPropertyTypeKey(OSSTR("type"));
+
+const	CString	CSceneItem::mPropertyNameIsInitiallyVisible(OSSTR("isInitiallyVisible"));
+const	CString	CSceneItem::mPropertyNameName(OSSTR("name"));
+const	CString	CSceneItem::mPropertyNameOptions(OSSTR("options"));
 
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneItem::CSceneItem()
+CSceneItem::CSceneItem(const CString& name, bool isInitiallyVisible, Options options)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new Internals();
+	mInternals = new Internals(name, isInitiallyVisible, options);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneItem::CSceneItem(const CDictionary& info)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	mInternals = new Internals();
-
-	mInternals->mIsVisible = info.getBool(CString(OSSTR("visible")), mInternals->mIsVisible);
-	mInternals->mName = info.getString(CString(OSSTR("name")), mInternals->mName);
-	mInternals->mOptions = (Options) info.getUInt32(CString(OSSTR("options")), mInternals->mOptions);
+	mInternals =
+			new Internals(info.getString(mPropertyNameName, CString::mEmpty),
+					info.getBool(mPropertyNameIsInitiallyVisible, true),
+					(Options) info.getUInt32(mPropertyNameOptions, kOptionsNone));
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -71,21 +82,27 @@ CSceneItem::~CSceneItem()
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-bool CSceneItem::getIsVisible() const
+bool CSceneItem::getIsInitiallyVisible() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return mInternals->mIsVisible;
+	return mInternals->mIsInitiallyVisible;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneItem::setIsVisible(bool isVisible)
+void CSceneItem::setIsInitiallyVisible(bool isInitiallyVisible)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Prepare to write
-	Internals::prepareForWrite(&mInternals);
+	// Check if changed
+	if (isInitiallyVisible != mInternals->mIsInitiallyVisible) {
+		// Prepare to write
+		Internals::prepareForWrite(&mInternals);
 
-	// Update
-	mInternals->mIsVisible = isVisible;
+		// Update
+		mInternals->mIsInitiallyVisible = isInitiallyVisible;
+
+		// Note updated
+		noteUpdated(mPropertyNameIsInitiallyVisible);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -99,11 +116,17 @@ const CString& CSceneItem::getName() const
 void CSceneItem::setName(const CString& name)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Prepare to write
-	Internals::prepareForWrite(&mInternals);
+	// Check if changed
+	if (name != mInternals->mName) {
+		// Prepare to write
+		Internals::prepareForWrite(&mInternals);
 
-	// Update
-	mInternals->mName = name;
+		// Update
+		mInternals->mName = name;
+
+		// Note updated
+		noteUpdated(mPropertyNameName);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -117,11 +140,17 @@ CSceneItem::Options CSceneItem::getOptions() const
 void CSceneItem::setOptions(Options options)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Prepare to write
-	Internals::prepareForWrite(&mInternals);
+	// Check if changed
+	if (options != mInternals->mOptions) {
+		// Prepare to write
+		Internals::prepareForWrite(&mInternals);
 
-	// Update
-	mInternals->mOptions = options;
+		// Update
+		mInternals->mOptions = options;
+
+		// Note updated
+		noteUpdated(mPropertyNameOptions);
+	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -141,19 +170,19 @@ TMArray<CDictionary> CSceneItem::getProperties() const
 	// Add properties
 	CDictionary	namePropertyInfo;
 	namePropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Name")));
-	namePropertyInfo.set(mPropertyNameKey, CString(OSSTR("name")));
+	namePropertyInfo.set(mPropertyNameKey, mPropertyNameName);
 	namePropertyInfo.set(mPropertyTypeKey, kPropertyTypeName);
 	properties += namePropertyInfo;
 
 	CDictionary	visiblePropertyInfo;
-	visiblePropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Visible")));
-	visiblePropertyInfo.set(mPropertyNameKey, CString(OSSTR("visible")));
+	visiblePropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Initially Visible")));
+	visiblePropertyInfo.set(mPropertyNameKey, mPropertyNameIsInitiallyVisible);
 	visiblePropertyInfo.set(mPropertyTypeKey, kPropertyTypeBoolean);
 	properties += visiblePropertyInfo;
 
 	CDictionary	optionsPropertyInfo;
 	optionsPropertyInfo.set(mPropertyTitleKey, CString(OSSTR("Options")));
-	optionsPropertyInfo.set(mPropertyNameKey, CString(OSSTR("options")));
+	optionsPropertyInfo.set(mPropertyNameKey, mPropertyNameOptions);
 	optionsPropertyInfo.set(mPropertyTypeKey, kPropertyTypeOptions);
 	properties += optionsPropertyInfo;
 
@@ -166,9 +195,28 @@ CDictionary CSceneItem::getInfo() const
 {
 	CDictionary	info;
 
-	info.set(CString(OSSTR("visible")), (UInt32) (mInternals->mIsVisible ? 1 : 0));
-	info.set(CString(OSSTR("name")), mInternals->mName);
-	info.set(CString(OSSTR("options")), (UInt32) mInternals->mOptions);
+	info.set(mPropertyNameIsInitiallyVisible, (UInt32) (mInternals->mIsInitiallyVisible ? 1 : 0));
+	info.set(mPropertyNameName, mInternals->mName);
+	info.set(mPropertyNameOptions, (UInt32) mInternals->mOptions);
 
 	return info;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void CSceneItem::setNoteUpdatedProc(NoteUpdatedProc noteUpdatedProc, void* userData)
+//----------------------------------------------------------------------------------------------------------------------
+{
+	// Store
+	mInternals->mNoteUpdatedProc = noteUpdatedProc;
+	mInternals->mNoteUpdatedProcUserData = userData;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+void CSceneItem::noteUpdated(const CString& propertyName)
+//----------------------------------------------------------------------------------------------------------------------
+{
+	// Check if have proc
+	if (mInternals->mNoteUpdatedProc != nil)
+		// Call proc
+		mInternals->mNoteUpdatedProc(propertyName, mInternals->mNoteUpdatedProcUserData);
 }
