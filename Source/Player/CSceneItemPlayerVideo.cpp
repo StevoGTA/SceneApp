@@ -5,6 +5,7 @@
 #include "CSceneItemPlayerVideo.h"
 
 #include "CGPURenderObject2D.h"
+#include "ConcurrencyPrimitives.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneItemPlayerVideo::Internals
@@ -70,12 +71,14 @@ class CSceneItemPlayerVideo::Internals {
 								const	S2DRectU16&	viewRect = videoFrame.getViewRect();
 										S2DRectF32	textureRect(S2DPointF32(viewRect.mOrigin.mX, viewRect.mOrigin.mY),
 															S2DSizeF32(viewRect.mSize.mWidth, viewRect.mSize.mHeight));
+								internals->mRenderObject2DLock.lock();
 								internals->mRenderObject2D =
 										OI<CGPURenderObject2D>(
 												CGPURenderObject2D(*internals->mGPU,
 														CGPURenderObject2D::Item(textureRect.aspectFitIn(screenRect),
 																textureRect),
 														gpuTextureReferences, fragmentShaderProc));
+								internals->mRenderObject2DLock.unlock();
 							}
 		static	void	finished(Internals* internals)
 							{
@@ -94,15 +97,12 @@ class CSceneItemPlayerVideo::Internals {
 
 		OI<CMediaPlayer>		mMediaPlayer;
 		OR<CGPU>				mGPU;
+		CLock					mRenderObject2DLock;
 		OI<CGPURenderObject2D>	mRenderObject2D;
 
 		bool					mIsStarted;
 		UniversalTimeInterval	mCurrentTimeInterval;
 };
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Register Scene Item Player
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -161,22 +161,6 @@ void CSceneItemPlayerVideo::load(CGPU& gpu)
 
 	// Do super
 	CSceneItemPlayer::load(gpu);
-
-//	if (sceneItemVideo.getStartTimeInterval().hasValue() && (*sceneItemVideo.getStartTimeInterval() == 0.0)) {
-//		// Start
-////		mInternals->mIsStarted = true;
-////
-////		// Check for audio
-//		if (mInternals->mMediaPlayer.hasInstance())
-//			// Start
-//			mInternals->mMediaPlayer->play();
-////
-////		// Check for started actions
-////		const	OI<CActions>&	startedActions = sceneItemAnimation.getStartedActions();
-////		if (startedActions.hasInstance())
-////			// Perform
-////			perform(*startedActions);
-//	}
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -234,9 +218,11 @@ void CSceneItemPlayerVideo::render(CGPU& gpu, const CGPURenderObject::RenderInfo
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Check if can render
+	mInternals->mRenderObject2DLock.lock();
 	if (mInternals->mRenderObject2D.hasInstance())
 		// Render
 		mInternals->mRenderObject2D->render(CGPURenderObject2D::Indexes::forIndex(0), renderInfo);
+	mInternals->mRenderObject2DLock.unlock();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -283,25 +269,3 @@ bool CSceneItemPlayerVideo::handleCommand(CGPU& gpu, const CString& command, con
 		// Unknown
 		return false;
 }
-
-//----------------------------------------------------------------------------------------------------------------------
-//----------------------------------------------------------------------------------------------------------------------
-// MARK: - Local proc definitions
-
-////----------------------------------------------------------------------------------------------------------------------
-//void sSceneAppMoviePlayerTouchBeganOrMouseDownAtPoint(CSceneAppMoviePlayer& sceneAppMoviePlayer,
-//		const S2DPointF32& point, void* userData)
-////----------------------------------------------------------------------------------------------------------------------
-//{
-//			CSceneItemPlayerMovieInternals*	internals = (CSceneItemPlayerMovieInternals*) userData;
-//			CSceneItemPlayerMovie&			sceneItemPlayerMovie = internals->mSceneItemPlayerMovie;
-//	const	TPtrArray<CSceneItemHotspot*>&		hotspotsArray = sceneItemPlayerMovie.getSceneItemMovie().getSceneHotspotsArray();
-//	for (CArray::ItemIndex i = 0; i < hotspotsArray.getCount(); i++) {
-//		CSceneItemHotspot*	hotspot = hotspotsArray[i];
-//		if (hotspot->getScreenRect().contains(point)) {
-//			sceneItemPlayerMovie.perform(*hotspot->getActionsOrNil(), point);
-//
-//			return;
-//		}
-//	}
-//}

@@ -101,7 +101,8 @@ void CSceneItemPlayerText::update(CGPU& gpu, UniversalTimeInterval deltaTimeInte
 		// Create Render Object 2D
 		mInternals->mRenderObject2D.setInstance(
 				new CGPURenderObject2D(gpu, CGPURenderObject2D::Item(screenRect, textureRect),
-						mInternals->mGPUTextureManager.gpuTextureReference(bitmap)));
+						mInternals->mGPUTextureManager.gpuTextureReference(bitmap,
+								OV<CString>(getSceneItemText().getText()))));
 	}
 }
 

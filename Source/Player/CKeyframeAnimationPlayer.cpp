@@ -32,6 +32,7 @@ class CKeyframeAnimationPlayerKeyframe {
 		const	OI<CActions>&							getActions() const;
 		const	OV<UniversalTimeInterval>&				getDelay() const;
 		const	OV<CAnimationKeyframe::TransitionType>&	getTransitionType() const;
+				S2DRectF32								getScreenRect() const;
 
 				void									load(CGPU& gpu,
 																const SSceneAppResourceManagementInfo&
@@ -54,6 +55,7 @@ class CKeyframeAnimationPlayerKeyframe {
 				CString				mImageFilename;
 
 				CGPURenderObject2D*	mGPURenderObject2D;
+				S2DSizeU16			mGPUTextureSize;
 };
 
 // MARK: Lifecycle methods
@@ -148,6 +150,19 @@ const OV<CAnimationKeyframe::TransitionType>& CKeyframeAnimationPlayerKeyframe::
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+S2DRectF32 CKeyframeAnimationPlayerKeyframe::getScreenRect() const
+//----------------------------------------------------------------------------------------------------------------------
+{
+	//
+	S2DRectF32	rect;
+	rect.mOrigin.mX = mScreenPositionPoint.mX - mAnchorPoint.mX;
+	rect.mOrigin.mY = mScreenPositionPoint.mY - mAnchorPoint.mY;
+	rect.mSize = S2DSizeF32(mGPUTextureSize.mWidth, mGPUTextureSize.mHeight);
+
+	return rect;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 void CKeyframeAnimationPlayerKeyframe::load(CGPU& gpu,
 		const SSceneAppResourceManagementInfo& sceneAppResourceManagementInfo)
 //----------------------------------------------------------------------------------------------------------------------
@@ -155,11 +170,11 @@ void CKeyframeAnimationPlayerKeyframe::load(CGPU& gpu,
 	CGPUTextureReference	gpuTextureReference =
 									sceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
 											sceneAppResourceManagementInfo.createDataSource(mImageFilename),
-											CImage::getBitmap, OR<const CString>(mImageFilename));
+											CImage::getBitmap, OV<CString>(mImageFilename));
 	gpuTextureReference.finishLoading();
 
-	S2DSizeU16	size = gpuTextureReference.getGPUTexture()->getUsedSize();
-	S2DRectF32	rect(0.0, 0.0, size.mWidth, size.mHeight);
+	mGPUTextureSize = gpuTextureReference.getGPUTexture()->getUsedSize();
+	S2DRectF32	rect(0.0, 0.0, mGPUTextureSize.mWidth, mGPUTextureSize.mHeight);
 	mGPURenderObject2D = new CGPURenderObject2D(gpu, CGPURenderObject2D::Item(rect, rect), gpuTextureReference);
 }
 
@@ -306,25 +321,8 @@ CKeyframeAnimationPlayer::~CKeyframeAnimationPlayer()
 S2DRectF32 CKeyframeAnimationPlayer::getScreenRect()
 //----------------------------------------------------------------------------------------------------------------------
 {
-	// Check if have previous player key frame
-	if (mInternals->mPreviousPlayerKeyframe.hasReference()) {
-		// Get texture size
-		const	S2DSizeU16&	gpuTextureSize =
-									mInternals->mPreviousPlayerKeyframe->mGPURenderObject2D->getGPUTextureReferences().
-											getFirst().getGPUTexture()->getUsedSize();
-
-		S2DRectF32	rect;
-		rect.mOrigin.mX =
-				mInternals->mPreviousPlayerKeyframe->mScreenPositionPoint.mX -
-						mInternals->mPreviousPlayerKeyframe->mAnchorPoint.mX;
-		rect.mOrigin.mY =
-				mInternals->mPreviousPlayerKeyframe->mScreenPositionPoint.mY -
-						mInternals->mPreviousPlayerKeyframe->mAnchorPoint.mY;
-		rect.mSize = S2DSizeF32(gpuTextureSize.mWidth, gpuTextureSize.mHeight);
-
-		return rect;
-	} else
-		return S2DRectF32();
+	return mInternals->mPreviousPlayerKeyframe.hasReference() ?
+			mInternals->mPreviousPlayerKeyframe->getScreenRect() : S2DRectF32();
 }
 
 //----------------------------------------------------------------------------------------------------------------------

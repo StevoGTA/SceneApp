@@ -113,7 +113,7 @@ void CSceneItemPlayerButtonArray::load(CGPU& gpu)
 										mInternals->mSceneAppResourceManagementInfo.createDataSource(
 												getSceneItemButtonArray().getImageResourceFilename()),
 										CImage::getBitmap,
-										OR<const CString>(getSceneItemButtonArray().getImageResourceFilename()))));
+										OV<CString>(getSceneItemButtonArray().getImageResourceFilename()))));
 	}
 
 	// Do super
