@@ -6,7 +6,6 @@
 
 #import "CCoreFoundation.h"
 #import "CFileDataSource.h"
-#import "CFilesystem.h"
 #import "CSceneAppPlayer.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -44,15 +43,6 @@ static	void						sSceneAppPlayerHandleCommand(const CString& command, const CDic
 - (CSceneAppPlayer&) sceneAppPlayer
 {
 	return *self.sceneAppPlayerInternal;
-}
-
-// MARK: Class methods
-
-//----------------------------------------------------------------------------------------------------------------------
-+ (TArray<CScenePackage::Info>) scenePackageInfosIn:(const CFolder&) folder
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return CScenePackage::getScenePackageInfos(*CFilesystem::getFiles(folder));
 }
 
 // MARK: Lifecycle methods

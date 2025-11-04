@@ -4,6 +4,7 @@
 
 #include "CScenePackage.h"
 
+#include "CFilesystem.h"
 #include "CReferenceCountable.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -134,11 +135,14 @@ CScenePackage& CScenePackage::operator=(const CScenePackage& other)
 // MARK: Class methods
 
 //----------------------------------------------------------------------------------------------------------------------
-TArray<CScenePackage::Info> CScenePackage::getScenePackageInfos(const TArray<CFile>& files)
+TArray<CScenePackage::Info> CScenePackage::getScenePackageInfos(const CFolder& folder)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
 	TNArray<Info>	scenePackageInfos;
+
+	// Get files
+	TArray<CFile>	files = *CFilesystem::getFiles(folder);
 
 	// Iterate files
 	for (TIteratorD<CFile> iterator = files.getIterator(); iterator.hasValue(); iterator.advance()) {

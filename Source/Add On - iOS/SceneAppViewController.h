@@ -25,9 +25,6 @@ typedef CSceneAppPlayer*	_Nonnull	(^CreateSceneAppPlayerProc)(CGPU& gpu, const C
 @property (nonatomic, strong, nullable)	void				(^handleCommandProc)(const CString& command,
 																	const CDictionary& commandInfo);
 
-// MARK: Class methods
-+ (TArray<CScenePackage::Info>) scenePackageInfosIn:(const CFolder&) folder;
-
 // MARK: Instance methods
 - (instancetype) initWithView:(UIView<UKTGPUView>*) view
 		scenePackageInfo:(const CScenePackage::Info&) scenePackageInfo

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "CFile.h"
+#include "CFolder.h"
 #include "CScene.h"
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ class CScenePackage {
 				CScenePackage&		operator=(const CScenePackage& other);
 
 									// Class methods
-		static	TArray<Info>		getScenePackageInfos(const TArray<CFile>& files);
+		static	TArray<Info>		getScenePackageInfos(const CFolder& folder);
 
 	// Properties
 	private:
