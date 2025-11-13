@@ -6,7 +6,7 @@
 
 #include "CGPUTextureManager.h"
 #include "CSceneAppMediaEngine.h"
-#include "SSceneAppResourceLoading.h"
+#include "CSceneAppResourceLoading.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: SSceneAppResourceManagementInfo
@@ -17,7 +17,7 @@ struct SSceneAppResourceManagementInfo {
 									// Lifecycle methods
 									SSceneAppResourceManagementInfo(CGPUTextureManager& gpuTextureManager,
 											CSceneAppMediaEngine& sceneAppMediaEngine,
-											const SSceneAppResourceLoading& sceneAppResourceLoading) :
+											const CSceneAppResourceLoading& sceneAppResourceLoading) :
 										mGPUTextureManager(gpuTextureManager),
 												mSceneAppMediaEngine(sceneAppMediaEngine),
 												mSceneAppResourceLoading(sceneAppResourceLoading)
@@ -39,5 +39,5 @@ struct SSceneAppResourceManagementInfo {
 	public:
 				CGPUTextureManager&			mGPUTextureManager;
 				CSceneAppMediaEngine&		mSceneAppMediaEngine;
-		const	SSceneAppResourceLoading&	mSceneAppResourceLoading;
+		const	CSceneAppResourceLoading&	mSceneAppResourceLoading;
 };

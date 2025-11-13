@@ -112,8 +112,7 @@ void CSceneItemPlayerButtonArray::load(CGPU& gpu)
 								mInternals->mSceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
 										mInternals->mSceneAppResourceManagementInfo.createDataSource(
 												getSceneItemButtonArray().getImageResourceFilename()),
-										CImage::getBitmap,
-										OV<CString>(getSceneItemButtonArray().getImageResourceFilename()))));
+										CImage::getBitmap, getSceneItemButtonArray().getImageResourceFilename())));
 	}
 
 	// Do super

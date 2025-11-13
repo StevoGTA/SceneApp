@@ -145,10 +145,6 @@ static	DisplayOrientations			sDirectXGPUGetOrientation(CSceneAppViewInternals^ i
 static	bool						sDirectXGPURequiresDeviceValidation(CSceneAppViewInternals^ internals);
 static	void						sDirectXGPUHandledDeviceValidation(CSceneAppViewInternals^ internals);
 
-static	I<CDataSource>				sSceneAppPlayerCreateDataSource(const CString& resourceFilename,
-											CSceneAppViewInternals^ internals);
-static	I<CRandomAccessDataSource>	sSceneAppPlayerCreateRandomAccessDataSource(const CString& resourceFilename,
-											CSceneAppViewInternals^ internals);
 static	void						sSceneAppPlayerInstallPeriodic(CSceneAppViewInternals^ internals);
 static	void						sSceneAppPlayerRemovePeriodic(CSceneAppViewInternals^ internals);
 static	void						sSceneAppPlayerOpenURL(const CURL& url, bool useWebView,
@@ -178,7 +174,7 @@ ref class CSceneAppViewInternals sealed : Platform::Object {
 											(CGPU::Procs::HandledDeviceValidationProc)
 													sDirectXGPUHandledDeviceValidation,
 											(void*) this)),
-							mSceneAppPlayer(NULL),
+							mSceneAppPlayer(nullptr),
 							mLastPointerPressedTimestamp(0.0), mPointerClickCount(0),
 							mStepTimer(1.0 / 60.0)
 					{}
@@ -466,17 +462,12 @@ void CSceneAppView::Uninitialize()
 // MARK: Instance methods
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneAppView::loadScenes(const CScenePackage::Info& scenePackageInfo, const CFolder& sceneAppContentFolder,
+void CSceneAppView::load(const CScenePackage& scenePackage, const CSceneAppResourceLoading& sceneAppResourceLoading,
 		CSceneAppViewSceneAppPlayerCreationProc sceneAppPlayerCreationProc)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Cleanup
-	Delete(mInternals->mSceneAppContentRootFilesystemPath);
 	Delete(mInternals->mSceneAppPlayer);
-
-	// Store
-	mInternals->mSceneAppContentRootFilesystemPath = new CFilesystemPath(sceneAppContentFolder.getFilesystemPath());
-	mInternals->mScenePackageSize = scenePackageInfo.getSize();
 
 	// Setup Scene App Player
 	CSceneAppPlayer::Procs		procs(
@@ -485,28 +476,17 @@ void CSceneAppView::loadScenes(const CScenePackage::Info& scenePackageInfo, cons
 										(CSceneAppPlayer::Procs::OpenURLProc) sSceneAppPlayerOpenURL,
 										(CSceneAppPlayer::Procs::HandleCommandProc) sSceneAppPlayerHandleCommand,
 										(void*) mInternals);
-	SSceneAppResourceLoading	sceneAppResourceLoading(
-										(SSceneAppResourceLoading::CreateDataSourceProc) sSceneAppPlayerCreateDataSource,
-										(SSceneAppResourceLoading::CreateRandomAccessDataSourceProc)
-												sSceneAppPlayerCreateRandomAccessDataSource,
-										(void*) mInternals);
 	mInternals->mSceneAppPlayer =
 			(sceneAppPlayerCreationProc != nil) ?
 					sceneAppPlayerCreationProc(mInternals->mGPU, procs, sceneAppResourceLoading) :
 					new CSceneAppPlayer(mInternals->mGPU, procs, sceneAppResourceLoading);
 
 	// Load scenes
-	mInternals->mSceneAppPlayer->loadScenes(scenePackageInfo);
+//	mInternals->mSceneAppPlayer->loadScenes(scenePackageInfo);
+	mInternals->mSceneAppPlayer->loadScenes(scenePackage);
 }
 
 // MARK: Class methods
-
-//----------------------------------------------------------------------------------------------------------------------
-TArray<CScenePackage::Info> CSceneAppView::getScenePackageInfos(const CFolder& folder)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return CScenePackage::getScenePackageInfos(CFilesystem::getFiles(folder).getValue());
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
@@ -566,29 +546,6 @@ void sDirectXGPUHandledDeviceValidation(CSceneAppViewInternals^ internals)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	internals->mRequiresDeviceValidation = false;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-I<CDataSource> sSceneAppPlayerCreateDataSource(const CString& resourceFilename, CSceneAppViewInternals^ internals)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return I<CDataSource>(
-			new CMappedFileDataSource(
-					CFile(
-							internals->mSceneAppContentRootFilesystemPath->appendingComponent(resourceFilename,
-									CFilesystemPath::kStylePOSIX))));
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-I<CRandomAccessDataSource> sSceneAppPlayerCreateRandomAccessDataSource(const CString& resourceFilename,
-		CSceneAppViewInternals^ internals)
-//----------------------------------------------------------------------------------------------------------------------
-{
-	return I<CRandomAccessDataSource>(
-			new CMappedFileDataSource(
-					CFile(
-							internals->mSceneAppContentRootFilesystemPath->appendingComponent(resourceFilename,
-									CFilesystemPath::kStylePOSIX))));
 }
 
 //----------------------------------------------------------------------------------------------------------------------

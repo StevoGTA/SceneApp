@@ -5,13 +5,13 @@
 #pragma once
 
 #include "CGPU.h"
+#include "CSceneAppResourceLoading.h"
 #include "CScenePackage.h"
 #include "CScenePlayer.h"
 #include "CSceneItemPlayerCustom.h"
 #include "CSceneItemPlayer.h"
 #include "CSceneTransitionPlayer.h"
 #include "CURL.h"
-#include "SSceneAppResourceLoading.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneAppPlayer
@@ -274,7 +274,7 @@ class CSceneAppPlayer {
 	public:
 														// Lifecycle methods
 														CSceneAppPlayer(CGPU& gpu, const Procs& procs,
-																const SSceneAppResourceLoading&
+																const CSceneAppResourceLoading&
 																		sceneAppResourceLoading);
 		virtual											~CSceneAppPlayer();
 
@@ -282,7 +282,7 @@ class CSceneAppPlayer {
 						Options							getOptions() const;
 						void							setOptions(Options options);
 
-						void							loadScenes(const CScenePackage::Info& scenePackageInfo);
+						void							loadScenes(const CScenePackage& scenePackage);
 
 						void							start(bool loadAllTextures = false);
 						void							stop(bool unloadAllTextures = false);
@@ -321,7 +321,7 @@ class CSceneAppPlayer {
 																CScene::Index sceneIndex);
 
 	protected:
-				const	SSceneAppResourceLoading&		getSceneAppResourceLoading() const;
+				const	CSceneAppResourceLoading&		getSceneAppResourceLoading() const;
 						CGPUTextureManager&				getGPUTextureManager() const;
 						CSceneAppMediaEngine&			getSceneAppMediaEngine() const;
 				const	CSceneTransitionPlayer::Procs&	getSceneTransitionPlayerProcs() const;

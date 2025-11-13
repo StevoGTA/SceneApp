@@ -15,31 +15,26 @@ using namespace Platform;
 // MARK: CSceneAppView
 
 typedef	CSceneAppPlayer*	(*CSceneAppViewSceneAppPlayerCreationProc)(CGPU& gpu, const CSceneAppPlayer::Procs& procs,
-									const SSceneAppResourceLoading& sceneAppResourceLoading);
+									const CSceneAppResourceLoading& sceneAppResourceLoading);
 
 ref class CSceneAppViewInternals;
 ref class CSceneAppView sealed : public IFrameworkView {
 	// Methods
 	public:
-											// IFrameworkView Methods
-		virtual	void						Initialize(CoreApplicationView^ applicationView);
-		virtual	void						SetWindow(CoreWindow^ window);
-		virtual	void						Load(String^ entryPoint);
-		virtual	void						Run();
-		virtual	void						Uninitialize();
+						// IFrameworkView Methods
+		virtual	void	Initialize(CoreApplicationView^ applicationView);
+		virtual	void	SetWindow(CoreWindow^ window);
+		virtual	void	Load(String^ entryPoint);
+		virtual	void	Run();
+		virtual	void	Uninitialize();
 
 	internal:
-											// Lifecycle methods
-											CSceneAppView(const SDirectXDisplaySupportInfo& displaySupportInfo);
+						// Lifecycle methods
+						CSceneAppView(const SDirectXDisplaySupportInfo& displaySupportInfo);
 
-											// Instance methods
-				void						loadScenes(const CScenePackage::Info& scenePackageInfo,
-													const CFolder& sceneAppContentFolder,
-													CSceneAppViewSceneAppPlayerCreationProc
-															sceneAppPlayerCreationProc = NULL);
-
-											// Class methods
-		static	TArray<CScenePackage::Info>	getScenePackageInfos(const CFolder& folder);
+						// Instance methods
+				void	load(const CScenePackage& scenePackage, const CSceneAppResourceLoading& sceneAppResourceLoading,
+								CSceneAppViewSceneAppPlayerCreationProc sceneAppPlayerCreationProc = nullptr);
 
 	// Properties
 	private:

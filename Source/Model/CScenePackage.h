@@ -17,28 +17,24 @@ class CScenePackage {
 			// Methods
 			public:
 									// Lifecycle methods
-									Info(const CString& filename, const S2DSizeF32& size, Float32 totalPixels,
-											Float32 aspectRatio) :
-										mFilename(filename), mSize(size), mTotalPixels(totalPixels),
-												mAspectRatio(aspectRatio)
+									Info(const CString& filename, const S2DSizeF32& pixelDimensions) :
+										mFilename(filename), mPixelDimensions(pixelDimensions)
 										{}
 
 									// Instance methods
 				const	CString&	getFilename() const
 										{ return mFilename; }
-				const	S2DSizeF32&	getSize() const
-										{ return mSize; }
+				const	S2DSizeF32&	getPixelDimensions() const
+										{ return mPixelDimensions; }
 						Float32		getTotalPixels() const
-										{ return mTotalPixels; }
+										{ return mPixelDimensions.mWidth * mPixelDimensions.mHeight; }
 						Float32		getAspectRatio() const
-										{ return mAspectRatio; }
+										{ return mPixelDimensions.mWidth / mPixelDimensions.mHeight; }
 
 			// Properties
 			private:
 				CString		mFilename;
-				S2DSizeF32	mSize;
-				Float32		mTotalPixels;
-				Float32		mAspectRatio;
+				S2DSizeF32	mPixelDimensions;
 		};
 
 	// Classes
@@ -48,13 +44,13 @@ class CScenePackage {
 	// Methods
 	public:
 									// Lifecycle methods
-									CScenePackage(const S2DSizeF32& size = S2DSizeF32());
-									CScenePackage(const S2DSizeF32& size, const CDictionary& info);
+									CScenePackage(const S2DSizeF32& pixelDimensions = S2DSizeF32());
+									CScenePackage(const S2DSizeF32& pixelDimensions, const CDictionary& info);
 									CScenePackage(const CScenePackage& other);
 									~CScenePackage();
 
 									// Instance methods
-		const	S2DSizeF32&			getSize() const;
+		const	S2DSizeF32&			getPixelDimensions() const;
 				CDictionary			getInfo() const;
 
 				UInt32				getScenesCount() const;
@@ -63,9 +59,6 @@ class CScenePackage {
 				OV<CScene::Index>	getIndexOfScene(const CScene& scene);
 
 				CScenePackage&		operator=(const CScenePackage& other);
-
-									// Class methods
-		static	TArray<Info>		getScenePackageInfos(const CFolder& folder);
 
 	// Properties
 	private:

@@ -94,13 +94,13 @@ class CSceneAppMediaPlayerReference : public CMediaPlayer {
 class CSceneAppMediaEngine::Internals {
 	public:
 		Internals(CSRSWMessageQueues& messageQueues,
-				const SSceneAppResourceLoading& sceneAppResourceLoading) :
-			mMessageQueues(messageQueues), mSSceneAppResourceLoading(sceneAppResourceLoading)
+				const CSceneAppResourceLoading& sceneAppResourceLoading) :
+			mMessageQueues(messageQueues), mSceneAppResourceLoading(sceneAppResourceLoading)
 			{}
 
-		CSRSWMessageQueues&							mMessageQueues;
-		SSceneAppResourceLoading					mSSceneAppResourceLoading;
-		TReferenceDictionary<CSceneAppMediaPlayer>	mSceneAppMediaPlayerMap;
+				CSRSWMessageQueues&							mMessageQueues;
+		const	CSceneAppResourceLoading&					mSceneAppResourceLoading;
+				TReferenceDictionary<CSceneAppMediaPlayer>	mSceneAppMediaPlayerMap;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ class CSceneAppMediaEngine::Internals {
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneAppMediaEngine::CSceneAppMediaEngine(CSRSWMessageQueues& messageQueues,
-		const SSceneAppResourceLoading& sceneAppResourceLoading) : CMediaEngine()
+		const CSceneAppResourceLoading& sceneAppResourceLoading) : CMediaEngine()
 //----------------------------------------------------------------------------------------------------------------------
 {
 	mInternals = new Internals(messageQueues, sceneAppResourceLoading);
@@ -144,7 +144,7 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const CAudioInfo& audioInf
 
 	// Query audio tracks
 			I<CRandomAccessDataSource>		randomAccessDataSource =
-													mInternals->mSSceneAppResourceLoading
+													mInternals->mSceneAppResourceLoading
 															.createRandomAccessDataSource(resourceFilename);
 			CString							extension = *CFilesystemPath(resourceFilename).getExtension();
 			I<SMediaSource::ImportResult>	mediaSourceImportResult =
@@ -200,7 +200,7 @@ OI<CMediaPlayer> CSceneAppMediaEngine::getMediaPlayer(const VideoInfo& videoInfo
 
 	// Query tracks
 			I<CRandomAccessDataSource>						randomAccessDataSource =
-																	mInternals->mSSceneAppResourceLoading
+																	mInternals->mSceneAppResourceLoading
 																			.createRandomAccessDataSource(filename);
 			CString											extension = *CFilesystemPath(filename).getExtension();
 			I<SMediaSource::ImportResult>					mediaSourceImportResult =

@@ -7,7 +7,7 @@
 #include "CAudioInfo.h"
 #include "CMediaEngine.h"
 #include "CMediaPlayer.h"
-#include "SSceneAppResourceLoading.h"
+#include "CSceneAppResourceLoading.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // MARK: CSceneAppMediaEngine
@@ -49,7 +49,7 @@ class CSceneAppMediaEngine : public CMediaEngine {
 	public:
 							// Lifecycle methods
 							CSceneAppMediaEngine(CSRSWMessageQueues& messageQueues,
-									const SSceneAppResourceLoading& sceneAppResourceLoading);
+									const CSceneAppResourceLoading& sceneAppResourceLoading);
 							~CSceneAppMediaEngine();
 
 							// Instance methods

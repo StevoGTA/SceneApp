@@ -41,7 +41,7 @@ class CSceneAppPlayer::Internals {
 	public:
 									Internals(CSceneAppPlayer& sceneAppPlayer, CGPU& gpu,
 												const CSceneAppPlayer::Procs& procs,
-												const SSceneAppResourceLoading& sceneAppResourceLoading);
+												const CSceneAppResourceLoading& sceneAppResourceLoading);
 
 				void				handleTouchesBegan();
 				void				handleTouchesMoved();
@@ -63,42 +63,42 @@ class CSceneAppPlayer::Internals {
 		static	void				scenePlayerActionsPerform(const CActions& actions, const S2DPointF32& point,
 											Internals* internals);
 
-		CSRSWMessageQueues									mMessageQueues;
-		CSceneAppPlayer::Options							mOptions;
+				CSRSWMessageQueues									mMessageQueues;
+				CSceneAppPlayer::Options							mOptions;
 
-		CGPU&												mGPU;
-		CGPUTextureManager									mGPUTextureManager;
-		CSceneAppMediaEngine								mSceneAppMediaEngine;
-		CSceneAppPlayer&									mSceneAppPlayer;
+				CGPU&												mGPU;
+				CGPUTextureManager									mGPUTextureManager;
+				CSceneAppMediaEngine								mSceneAppMediaEngine;
+				CSceneAppPlayer&									mSceneAppPlayer;
 
-		CSceneAppPlayer::Procs								mSceneAppPlayerProcs;
-		SSceneAppResourceLoading							mSceneAppResourceLoading;
-		CScenePlayer::Procs									mScenePlayerProcs;
-		CSceneTransitionPlayer::Procs						mSceneTransitionPlayerProcs;
+				CSceneAppPlayer::Procs								mSceneAppPlayerProcs;
+		const	CSceneAppResourceLoading&							mSceneAppResourceLoading;
+				CScenePlayer::Procs									mScenePlayerProcs;
+				CSceneTransitionPlayer::Procs						mSceneTransitionPlayerProcs;
 
-		CScenePackage										mScenePackage;
+				CScenePackage										mScenePackage;
 
-		TNArray<CScenePlayer>								mScenePlayers;
-		OR<CScenePlayer>									mCurrentScenePlayer;
-		OI<CMediaPlayer>									mCurrentScenePlayerBackground1MediaPlayer;
-		OI<CMediaPlayer>									mCurrentScenePlayerBackground2MediaPlayer;
-		OI<CSceneTransitionPlayer>							mCurrentSceneTransitionPlayer;
-		OV<CScene::Index>									mCurrentSceneTransitionPlayerToSceneIndex;
+				TNArray<CScenePlayer>								mScenePlayers;
+				OR<CScenePlayer>									mCurrentScenePlayer;
+				OI<CMediaPlayer>									mCurrentScenePlayerBackground1MediaPlayer;
+				OI<CMediaPlayer>									mCurrentScenePlayerBackground2MediaPlayer;
+				OI<CSceneTransitionPlayer>							mCurrentSceneTransitionPlayer;
+				OV<CScene::Index>									mCurrentSceneTransitionPlayerToSceneIndex;
 
-		TNLockingArray<CSceneAppPlayer::TouchBeganInfo>		mTouchBeganInfos;
-		TNLockingArray<CSceneAppPlayer::TouchMovedInfo>		mTouchMovedInfos;
-		TNLockingArray<CSceneAppPlayer::TouchEndedInfo>		mTouchEndedInfos;
-		TNLockingArray<CSceneAppPlayer::TouchCancelledInfo>	mTouchCancelledInfos;
-		TNArray<STouchHandlerInfo>							mSceneTouchHandlerInfos;
-		TNArray<STouchHandlerInfo>							mSceneTransitionTouchHandlerInfos;
+				TNLockingArray<CSceneAppPlayer::TouchBeganInfo>		mTouchBeganInfos;
+				TNLockingArray<CSceneAppPlayer::TouchMovedInfo>		mTouchMovedInfos;
+				TNLockingArray<CSceneAppPlayer::TouchEndedInfo>		mTouchEndedInfos;
+				TNLockingArray<CSceneAppPlayer::TouchCancelledInfo>	mTouchCancelledInfos;
+				TNArray<STouchHandlerInfo>							mSceneTouchHandlerInfos;
+				TNArray<STouchHandlerInfo>							mSceneTransitionTouchHandlerInfos;
 
-		UniversalTime										mStopTime;
-		UniversalTimeInterval								mLastPeriodicOutputTimeInterval;
+				UniversalTime										mStopTime;
+				UniversalTimeInterval								mLastPeriodicOutputTimeInterval;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
 CSceneAppPlayer::Internals::Internals(CSceneAppPlayer& sceneAppPlayer, CGPU& gpu, const CSceneAppPlayer::Procs& procs,
-		const SSceneAppResourceLoading& sceneAppResourceLoading) :
+		const CSceneAppResourceLoading& sceneAppResourceLoading) :
 	mOptions(CSceneAppPlayer::kOptionsDefault), mGPU(gpu), mGPUTextureManager(gpu),
 			mSceneAppMediaEngine(mMessageQueues, sceneAppResourceLoading),
 			mSceneAppPlayer(sceneAppPlayer), mSceneAppPlayerProcs(procs),
@@ -430,7 +430,7 @@ void CSceneAppPlayer::Internals::setCurrent(CSceneTransitionPlayer* sceneTransit
 S2DSizeF32 CSceneAppPlayer::Internals::scenePlayerGetViewportSize(Internals* internals)
 //----------------------------------------------------------------------------------------------------------------------
 {
-	return internals->mScenePackage.getSize();
+	return internals->mScenePackage.getPixelDimensions();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -540,7 +540,7 @@ void CSceneAppPlayer::Internals::scenePlayerActionsPerform(const CActions& actio
 // MARK: Lifecycle methods
 
 //----------------------------------------------------------------------------------------------------------------------
-CSceneAppPlayer::CSceneAppPlayer(CGPU& gpu, const Procs& procs, const SSceneAppResourceLoading& sceneAppResourceLoading)
+CSceneAppPlayer::CSceneAppPlayer(CGPU& gpu, const Procs& procs, const CSceneAppResourceLoading& sceneAppResourceLoading)
 //----------------------------------------------------------------------------------------------------------------------
 {
 	// Setup
@@ -571,20 +571,11 @@ void CSceneAppPlayer::setOptions(Options options)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-void CSceneAppPlayer::loadScenes(const CScenePackage::Info& scenePackageInfo)
+void CSceneAppPlayer::loadScenes(const CScenePackage& scenePackage)
 //----------------------------------------------------------------------------------------------------------------------
 {
-// Load scenes
-#if defined(DEBUG)
-	CLogServices::logMessage(CString(OSSTR("Loading scenes from ")) + scenePackageInfo.getFilename());
-#endif
-
-	CDictionary	info =
-						*CBinaryPropertyList::dictionaryFrom(
-								mInternals->mSceneAppResourceLoading.createRandomAccessDataSource(
-										scenePackageInfo.getFilename()));
-	mInternals->mOptions = (Options) info.getUInt64(CString(OSSTR("options")), kOptionsDefault);
-	mInternals->mScenePackage = CScenePackage(scenePackageInfo.getSize(), info);
+	// Store
+	mInternals->mScenePackage = scenePackage;
 
 	// Create scene players
 	mInternals->mScenePlayers.removeAll();
@@ -695,13 +686,13 @@ void CSceneAppPlayer::handlePeriodic(UniversalTimeInterval outputTimeInterval)
 
 	// Render - camera is at (0, 0.7, 1.5), looking at point (0, -0.1, 0) with the up-vector along the y-axis.
 	Float32	fieldOfViewAngle3D = T2DUtilities<Float32>::toRadians(70.0f);
-	Float32	aspectRatio3D = mInternals->mScenePackage.getSize().aspectRatio();
+	Float32	aspectRatio3D = mInternals->mScenePackage.getPixelDimensions().aspectRatio();
 
 	S3DPointF32		camera3D(0.0f, 0.7f, 1.5f);
 	S3DPointF32		target3D(0.0f, -0.1f, 0.0f);
 	S3DVectorF32	up3D(0.0f, 1.0f, 0.0f);
-	mInternals->mGPU.renderStart(mInternals->mScenePackage.getSize(), fieldOfViewAngle3D, aspectRatio3D, 0.01f, 100.0f,
-			camera3D, target3D, up3D);
+	mInternals->mGPU.renderStart(mInternals->mScenePackage.getPixelDimensions(), fieldOfViewAngle3D, aspectRatio3D,
+			0.01f, 100.0f, camera3D, target3D, up3D);
 	if (mInternals->mCurrentSceneTransitionPlayer.hasInstance())
 		// Render transition
 		mInternals->mCurrentSceneTransitionPlayer->render(mInternals->mGPU);
@@ -912,7 +903,7 @@ void CSceneAppPlayer::setCurrent(CSceneTransitionPlayer* sceneTransitionPlayer, 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-const SSceneAppResourceLoading& CSceneAppPlayer::getSceneAppResourceLoading() const
+const CSceneAppResourceLoading& CSceneAppPlayer::getSceneAppResourceLoading() const
 //----------------------------------------------------------------------------------------------------------------------
 {
 	return mInternals->mSceneAppResourceLoading;

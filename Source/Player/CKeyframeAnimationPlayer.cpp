@@ -153,7 +153,7 @@ const OV<CAnimationKeyframe::TransitionType>& CKeyframeAnimationPlayerKeyframe::
 S2DRectF32 CKeyframeAnimationPlayerKeyframe::getScreenRect() const
 //----------------------------------------------------------------------------------------------------------------------
 {
-	//
+	// Compose screen rect
 	S2DRectF32	rect;
 	rect.mOrigin.mX = mScreenPositionPoint.mX - mAnchorPoint.mX;
 	rect.mOrigin.mY = mScreenPositionPoint.mY - mAnchorPoint.mY;
@@ -170,7 +170,7 @@ void CKeyframeAnimationPlayerKeyframe::load(CGPU& gpu,
 	CGPUTextureReference	gpuTextureReference =
 									sceneAppResourceManagementInfo.mGPUTextureManager.gpuTextureReference(
 											sceneAppResourceManagementInfo.createDataSource(mImageFilename),
-											CImage::getBitmap, OV<CString>(mImageFilename));
+											CImage::getBitmap, mImageFilename);
 	gpuTextureReference.finishLoading();
 
 	mGPUTextureSize = gpuTextureReference.getGPUTexture()->getUsedSize();
